@@ -61,7 +61,6 @@
         font-family: "Syne", sans-serif;
       }
 
-      /* Scrollbar */
       ::-webkit-scrollbar {
         width: 5px;
         height: 5px;
@@ -77,7 +76,7 @@
         background: var(--border2);
       }
 
-      /* ── SIDEBAR ─────────────────────────────────────── */
+      /* SIDEBAR */
       #sidebar {
         position: fixed;
         top: 0;
@@ -122,7 +121,6 @@
         color: var(--text3);
         font-weight: 400;
       }
-
       nav {
         padding: 16px 12px;
         flex: 1;
@@ -186,7 +184,6 @@
         background: var(--lime);
         border-radius: 3px 0 0 3px;
       }
-
       .sb-footer {
         padding: 16px;
         border-top: 1px solid var(--border);
@@ -241,7 +238,7 @@
         color: #fff;
       }
 
-      /* ── TOPBAR ──────────────────────────────────────── */
+      /* TOPBAR */
       #topbar {
         position: fixed;
         top: 0;
@@ -328,7 +325,7 @@
         font-variant-numeric: tabular-nums;
       }
 
-      /* ── MAIN ────────────────────────────────────────── */
+      /* MAIN */
       #main {
         margin-left: var(--sidebar);
         padding-top: 64px;
@@ -338,7 +335,7 @@
         padding: 32px;
       }
 
-      /* ── CARDS ───────────────────────────────────────── */
+      /* CARDS */
       .card {
         background: var(--surface);
         border: 1px solid var(--border);
@@ -434,7 +431,7 @@
         color: var(--rose);
       }
 
-      /* ── TABLE ───────────────────────────────────────── */
+      /* TABLE */
       .data-table {
         width: 100%;
         border-collapse: collapse;
@@ -465,7 +462,7 @@
         border-bottom: none;
       }
 
-      /* ── BADGES ──────────────────────────────────────── */
+      /* BADGES */
       .badge {
         display: inline-flex;
         align-items: center;
@@ -501,7 +498,7 @@
         color: var(--text2);
       }
 
-      /* ── BUTTONS ─────────────────────────────────────── */
+      /* BUTTONS */
       .btn {
         display: inline-flex;
         align-items: center;
@@ -556,7 +553,7 @@
         justify-content: center;
       }
 
-      /* ── INPUTS ──────────────────────────────────────── */
+      /* INPUTS */
       .inp {
         background: var(--bg);
         border: 1px solid var(--border);
@@ -586,7 +583,7 @@
         min-height: 90px;
       }
 
-      /* ── MODAL ───────────────────────────────────────── */
+      /* MODAL */
       .modal-overlay {
         position: fixed;
         inset: 0;
@@ -683,7 +680,7 @@
         flex-shrink: 0;
       }
 
-      /* ── FORM ────────────────────────────────────────── */
+      /* FORM */
       .form-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -758,7 +755,7 @@
         border: 1px solid var(--border);
       }
 
-      /* ── PRODUCT CARD ────────────────────────────────── */
+      /* PRODUCT CARD */
       .product-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -831,7 +828,7 @@
         justify-content: space-between;
       }
 
-      /* ── TOAST ───────────────────────────────────────── */
+      /* TOAST */
       #toastContainer {
         position: fixed;
         bottom: 24px;
@@ -885,7 +882,7 @@
         color: var(--sky);
       }
 
-      /* ── SKELETON ────────────────────────────────────── */
+      /* SKELETON */
       .skel {
         background: linear-gradient(
           90deg,
@@ -906,7 +903,7 @@
         }
       }
 
-      /* ── SPINNER ─────────────────────────────────────── */
+      /* SPINNER */
       .spinner {
         width: 36px;
         height: 36px;
@@ -921,7 +918,7 @@
         }
       }
 
-      /* ── PAGINATION ──────────────────────────────────── */
+      /* PAGINATION */
       .pagination {
         display: flex;
         align-items: center;
@@ -956,7 +953,7 @@
         pointer-events: none;
       }
 
-      /* ── PROGRESS ────────────────────────────────────── */
+      /* PROGRESS */
       .progress-bar-wrap {
         background: var(--bg);
         border-radius: 99px;
@@ -970,7 +967,7 @@
         background: var(--lime);
       }
 
-      /* ── STATUS SELECT ───────────────────────────────── */
+      /* STATUS SELECT */
       .status-select {
         appearance: none;
         background: var(--surface2);
@@ -990,8 +987,12 @@
       .status-select:focus {
         border-color: var(--lime);
       }
+      .status-select:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
 
-      /* ── ORDER DETAIL ────────────────────────────────── */
+      /* ORDER DETAIL */
       .info-block {
         background: var(--bg);
         border: 1px solid var(--border);
@@ -1027,7 +1028,7 @@
         word-break: break-word;
       }
 
-      /* ── TABS ────────────────────────────────────────── */
+      /* TABS */
       .tabs {
         display: flex;
         gap: 4px;
@@ -1054,7 +1055,7 @@
         color: var(--text2);
       }
 
-      /* ── TOGGLE ──────────────────────────────────────── */
+      /* TOGGLE */
       .toggle {
         position: relative;
         display: inline-block;
@@ -1095,12 +1096,11 @@
         background: var(--lime);
       }
 
-      /* ── CHART WRAPPER ───────────────────────────────── */
       .chart-wrap {
         position: relative;
       }
 
-      /* ── SECTION HEADER ──────────────────────────────── */
+      /* SECTION HEADER */
       .section-header {
         display: flex;
         align-items: center;
@@ -1113,7 +1113,7 @@
         font-weight: 800;
       }
 
-      /* ── ORDER STATUS TIMELINE ───────────────────────── */
+      /* ORDER STATUS TIMELINE */
       .status-timeline {
         display: flex;
         gap: 0;
@@ -1176,7 +1176,7 @@
         color: var(--lime);
       }
 
-      /* Animations on load */
+      /* Animations */
       .fade-up {
         animation: fadeUp 0.4s ease both;
       }
@@ -1206,7 +1206,31 @@
         animation-delay: 0.25s;
       }
 
-      /* ── RESPONSIVE ──────────────────────────────────── */
+      /* INVOICE PRINT STYLES */
+      @media print {
+        body * {
+          visibility: hidden;
+        }
+        #invoicePrintArea,
+        #invoicePrintArea * {
+          visibility: visible;
+        }
+        #invoicePrintArea {
+          position: fixed;
+          left: 0;
+          top: 0;
+          width: 100%;
+          background: white !important;
+          color: black !important;
+          padding: 40px;
+          font-family: "DM Sans", sans-serif;
+        }
+        .no-print {
+          display: none !important;
+        }
+      }
+
+      /* RESPONSIVE */
       @media (max-width: 1200px) {
         .stat-grid {
           grid-template-columns: repeat(2, 1fr);
@@ -1379,19 +1403,21 @@
 
     <div id="modalContainer"></div>
     <div id="toastContainer"></div>
+    <!-- hidden print area for invoice -->
+    <div id="invoicePrintArea" style="display: none"></div>
 
     <script>
-      // ═══════════════════════════════════════════════════
+      // ═══════════════════════════════════════════
       // CONFIG
-      // ═══════════════════════════════════════════════════
+      // ═══════════════════════════════════════════
       const API_URL = "https://beeyond-harvest-admin.onrender.com/api";
       let token = localStorage.getItem("adminToken");
       let currentPage = "dashboard";
       let activeCharts = [];
 
-      // ═══════════════════════════════════════════════════
+      // ═══════════════════════════════════════════
       // UTILITIES
-      // ═══════════════════════════════════════════════════
+      // ═══════════════════════════════════════════
       function showToast(msg, type = "success") {
         const icons = {
           success: "fa-check-circle",
@@ -1427,6 +1453,17 @@
           day: "numeric",
           month: "short",
           year: "numeric",
+        });
+      }
+
+      function formatFullDate(d) {
+        if (!d) return "—";
+        return new Date(d).toLocaleDateString("en-GB", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
         });
       }
 
@@ -1495,7 +1532,6 @@
       function closeModal() {
         document.getElementById("modalContainer").innerHTML = "";
       }
-
       function modal(content) {
         document.getElementById("modalContainer").innerHTML =
           `<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">${content}</div>`;
@@ -1513,9 +1549,9 @@
       setInterval(updateTime, 1000);
       updateTime();
 
-      // ═══════════════════════════════════════════════════
+      // ═══════════════════════════════════════════
       // NAV
-      // ═══════════════════════════════════════════════════
+      // ═══════════════════════════════════════════
       function loadPage(page) {
         currentPage = page;
         document
@@ -1548,11 +1584,9 @@
       function refreshPage() {
         loadPage(currentPage);
       }
-
       function toggleNotifications() {
         showToast("No new notifications", "info");
       }
-
       function logout() {
         if (confirm("Log out of the admin panel?")) {
           localStorage.clear();
@@ -1560,49 +1594,48 @@
         }
       }
 
-      // ═══════════════════════════════════════════════════
+      // ═══════════════════════════════════════════
       // DASHBOARD
-      // ═══════════════════════════════════════════════════
+      // ═══════════════════════════════════════════
       async function loadDashboard() {
         const c = document.getElementById("content");
         c.innerHTML = `
-    <div class="fade-up">
-      <div class="section-header"><h2>Overview</h2><div style="display:flex;gap:8px"><button class="btn btn-ghost btn-sm" onclick="loadSalesChartPeriod('weekly')">Weekly</button><button class="btn btn-ghost btn-sm active" onclick="loadSalesChartPeriod('monthly')">Monthly</button></div></div>
-      <div class="stat-grid" id="statsGrid">
-        ${[1, 2, 3, 4].map((i) => `<div class="stat-card fade-up stagger-${i}"><div class="skel" style="height:42px;width:42px;border-radius:12px;margin-bottom:16px"></div><div class="skel" style="height:28px;width:80%;margin-bottom:8px"></div><div class="skel" style="height:14px;width:50%"></div></div>`).join("")}
-      </div>
-    </div>
-    <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:16px;margin-top:20px">
-      <div class="card fade-up stagger-3">
-        <div class="section-header" style="margin-bottom:20px">
-          <div><div class="card-title">Revenue Overview</div><div class="card-sub">Delivered orders only</div></div>
-          <select class="inp" style="width:auto;font-size:12px;padding:6px 10px" id="chartPeriodSelect" onchange="loadSalesChartPeriod(this.value)">
-            <option value="monthly">Monthly</option>
-            <option value="weekly">Weekly</option>
-          </select>
-        </div>
-        <div class="chart-wrap"><canvas id="salesChart" height="240"></canvas></div>
-      </div>
-      <div class="card fade-up stagger-4">
-        <div class="card-title" style="margin-bottom:4px">Recent Orders</div>
-        <div class="card-sub" style="margin-bottom:16px">Latest activity</div>
-        <div id="recentOrdersList"><div style="display:flex;justify-content:center;padding:32px"><div class="spinner"></div></div></div>
-        <a href="#" onclick="loadPage('orders');return false;" style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--lime);margin-top:14px;text-decoration:none">View all orders <i class="fas fa-arrow-right"></i></a>
-      </div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
-      <div class="card fade-up stagger-5">
-        <div class="card-title" style="margin-bottom:4px">Top Selling Products</div>
-        <div class="card-sub" style="margin-bottom:16px">By revenue</div>
-        <div id="topProductsList"></div>
-      </div>
-      <div class="card fade-up stagger-5">
-        <div class="card-title" style="margin-bottom:4px">Order Status Breakdown</div>
-        <div class="card-sub" style="margin-bottom:16px">Current distribution</div>
-        <div class="chart-wrap"><canvas id="statusChart" height="200"></canvas></div>
-      </div>
-    </div>
-  `;
+          <div class="fade-up">
+            <div class="section-header"><h2>Overview</h2><div style="display:flex;gap:8px"><button class="btn btn-ghost btn-sm" onclick="loadSalesChartPeriod('weekly')">Weekly</button><button class="btn btn-ghost btn-sm active" onclick="loadSalesChartPeriod('monthly')">Monthly</button></div></div>
+            <div class="stat-grid" id="statsGrid">
+              ${[1, 2, 3, 4].map((i) => `<div class="stat-card fade-up stagger-${i}"><div class="skel" style="height:42px;width:42px;border-radius:12px;margin-bottom:16px"></div><div class="skel" style="height:28px;width:80%;margin-bottom:8px"></div><div class="skel" style="height:14px;width:50%"></div></div>`).join("")}
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:16px;margin-top:20px">
+            <div class="card fade-up stagger-3">
+              <div class="section-header" style="margin-bottom:20px">
+                <div><div class="card-title">Revenue Overview</div><div class="card-sub">Delivered orders only</div></div>
+                <select class="inp" style="width:auto;font-size:12px;padding:6px 10px" id="chartPeriodSelect" onchange="loadSalesChartPeriod(this.value)">
+                  <option value="monthly">Monthly</option>
+                  <option value="weekly">Weekly</option>
+                </select>
+              </div>
+              <div class="chart-wrap"><canvas id="salesChart" height="240"></canvas></div>
+            </div>
+            <div class="card fade-up stagger-4">
+              <div class="card-title" style="margin-bottom:4px">Recent Orders</div>
+              <div class="card-sub" style="margin-bottom:16px">Latest activity</div>
+              <div id="recentOrdersList"><div style="display:flex;justify-content:center;padding:32px"><div class="spinner"></div></div></div>
+              <a href="#" onclick="loadPage('orders');return false;" style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--lime);margin-top:14px;text-decoration:none">View all orders <i class="fas fa-arrow-right"></i></a>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
+            <div class="card fade-up stagger-5">
+              <div class="card-title" style="margin-bottom:4px">Top Selling Products</div>
+              <div class="card-sub" style="margin-bottom:16px">By revenue</div>
+              <div id="topProductsList"></div>
+            </div>
+            <div class="card fade-up stagger-5">
+              <div class="card-title" style="margin-bottom:4px">Order Status Breakdown</div>
+              <div class="card-sub" style="margin-bottom:16px">Current distribution</div>
+              <div class="chart-wrap"><canvas id="statusChart" height="200"></canvas></div>
+            </div>
+          </div>`;
         try {
           const [stats, orders] = await Promise.all([
             apiCall("/dashboard/stats"),
@@ -1617,74 +1650,59 @@
           const pending = allOrders.filter(
             (o) => o.orderStatus === "pending",
           ).length;
-
-          // Update pending badge
           if (pending > 0) {
             const pb = document.getElementById("pendingBadge");
             pb.textContent = pending;
             pb.style.display = "";
             document.getElementById("notifDot").style.display = "";
           }
-
-          // Stat cards
           document.getElementById("statsGrid").innerHTML = `
-      ${statCard("Total Revenue", formatCurrency(totalRevenue), "fa-bangladeshi-taka-sign", "#c6f135", "rgba(198,241,53,.15)", "Delivered orders", "up", "dashboard")}
-      ${statCard("Total Orders", s.totalOrders || 0, "fa-shopping-bag", "#38bdf8", "rgba(56,189,248,.15)", `${pending} pending`, pending > 0 ? "down" : "up", "orders")}
-      ${statCard("Products", s.totalProducts || 0, "fa-box-open", "#2dd4bf", "rgba(45,212,191,.15)", `${s.lowStockProducts || 0} low stock`, s.lowStockProducts > 0 ? "down" : "up", "products")}
-      ${statCard("Delivered", s.completedOrders || 0, "fa-circle-check", "#f5a623", "rgba(245,166,35,.15)", "Completed orders", "up", "orders")}
-    `;
-
-          // Recent orders
+            ${statCard("Total Revenue", formatCurrency(totalRevenue), "fa-bangladeshi-taka-sign", "#c6f135", "rgba(198,241,53,.15)", "Delivered orders", "up", "dashboard")}
+            ${statCard("Total Orders", s.totalOrders || 0, "fa-shopping-bag", "#38bdf8", "rgba(56,189,248,.15)", `${pending} pending`, pending > 0 ? "down" : "up", "orders")}
+            ${statCard("Products", s.totalProducts || 0, "fa-box-open", "#2dd4bf", "rgba(45,212,191,.15)", `${s.lowStockProducts || 0} low stock`, s.lowStockProducts > 0 ? "down" : "up", "products")}
+            ${statCard("Delivered", s.completedOrders || 0, "fa-circle-check", "#f5a623", "rgba(245,166,35,.15)", "Completed orders", "up", "orders")}`;
           const recent = allOrders.slice(0, 6);
           document.getElementById("recentOrdersList").innerHTML = recent.length
             ? recent
                 .map(
                   (o) => `
-        <div onclick="viewOrder('${o._id}')" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer" class="hover-row">
-          <div style="width:32px;height:32px;border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-            <i class="fas fa-receipt" style="font-size:12px;color:var(--text3)"></i>
-          </div>
-          <div style="flex:1;overflow:hidden">
-            <div style="font-size:13px;font-weight:600">${o.orderNumber}</div>
-            <div style="font-size:11px;color:var(--text3)">${o.customer?.name}</div>
-          </div>
-          <div style="text-align:right">
-            <div style="font-size:13px;font-weight:700;color:var(--lime)">${formatCurrency(o.total)}</div>
-            ${statusBadge(o.orderStatus)}
-          </div>
-        </div>
-      `,
+              <div onclick="viewOrder('${o._id}')" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer">
+                <div style="width:32px;height:32px;border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                  <i class="fas fa-receipt" style="font-size:12px;color:var(--text3)"></i>
+                </div>
+                <div style="flex:1;overflow:hidden">
+                  <div style="font-size:13px;font-weight:600">${o.orderNumber}</div>
+                  <div style="font-size:11px;color:var(--text3)">${o.customer?.name}</div>
+                </div>
+                <div style="text-align:right">
+                  <div style="font-size:13px;font-weight:700;color:var(--lime)">${formatCurrency(o.total)}</div>
+                  ${statusBadge(o.orderStatus)}
+                </div>
+              </div>`,
                 )
                 .join("")
             : '<p style="color:var(--text3);font-size:13px;text-align:center;padding:24px">No orders yet</p>';
-
-          // Top products
           const top = s.topProducts || [];
           const maxRev = Math.max(...top.map((p) => p.revenue || 0), 1);
           document.getElementById("topProductsList").innerHTML = top.length
             ? top
                 .map(
                   (p, i) => `
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
-          <div style="font-family:Syne,sans-serif;font-size:16px;font-weight:800;color:var(--text3);width:20px;text-align:right">${i + 1}</div>
-          <img src="${p.product?.images?.[0]?.url || "https://via.placeholder.com/40x40?text=?"}" style="width:40px;height:40px;border-radius:8px;object-fit:cover;border:1px solid var(--border)">
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:600;margin-bottom:4px">${p.product?.name}</div>
-            <div class="progress-bar-wrap">
-              <div class="progress-bar-fill" style="width:${Math.round((p.revenue / maxRev) * 100)}%"></div>
-            </div>
-          </div>
-          <div style="text-align:right;flex-shrink:0">
-            <div style="font-size:13px;font-weight:700;color:var(--lime)">${formatCurrency(p.revenue)}</div>
-            <div style="font-size:11px;color:var(--text3)">${p.totalSold} sold</div>
-          </div>
-        </div>
-      `,
+              <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+                <div style="font-family:Syne,sans-serif;font-size:16px;font-weight:800;color:var(--text3);width:20px;text-align:right">${i + 1}</div>
+                <img src="${p.product?.images?.[0]?.url || "https://via.placeholder.com/40x40?text=?"}" style="width:40px;height:40px;border-radius:8px;object-fit:cover;border:1px solid var(--border)">
+                <div style="flex:1">
+                  <div style="font-size:13px;font-weight:600;margin-bottom:4px">${p.product?.name}</div>
+                  <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${Math.round((p.revenue / maxRev) * 100)}%"></div></div>
+                </div>
+                <div style="text-align:right;flex-shrink:0">
+                  <div style="font-size:13px;font-weight:700;color:var(--lime)">${formatCurrency(p.revenue)}</div>
+                  <div style="font-size:11px;color:var(--text3)">${p.totalSold} sold</div>
+                </div>
+              </div>`,
                 )
                 .join("")
             : '<p style="color:var(--text3);font-size:13px;text-align:center;padding:24px">No sales data yet</p>';
-
-          // Status chart
           const statusCounts = {};
           allOrders.forEach((o) => {
             statusCounts[o.orderStatus] =
@@ -1729,7 +1747,6 @@
             });
             activeCharts.push(ch);
           }
-
           await loadSalesChartPeriod("monthly");
         } catch (e) {
           showToast(e.message, "error");
@@ -1737,16 +1754,12 @@
       }
 
       function statCard(label, value, icon, color, bg, sub, dir, page) {
-        return `
-    <div class="stat-card fade-up" style="--accent:${color}" onclick="loadPage('${page}')">
-      <div class="stat-icon" style="background:${bg};color:${color}"><i class="fas ${icon}"></i></div>
-      <div class="stat-value">${value}</div>
-      <div class="stat-label">${label}</div>
-      <div class="stat-sub ${dir}">
-        <i class="fas fa-arrow-${dir === "up" ? "up-right" : "down-right"}"></i>${sub}
-      </div>
-    </div>
-  `;
+        return `<div class="stat-card fade-up" style="--accent:${color}" onclick="loadPage('${page}')">
+          <div class="stat-icon" style="background:${bg};color:${color}"><i class="fas ${icon}"></i></div>
+          <div class="stat-value">${value}</div>
+          <div class="stat-label">${label}</div>
+          <div class="stat-sub ${dir}"><i class="fas fa-arrow-${dir === "up" ? "up-right" : "down-right"}"></i>${sub}</div>
+        </div>`;
       }
 
       async function loadSalesChartPeriod(period = "monthly") {
@@ -1754,17 +1767,7 @@
           const res = await apiCall(`/dashboard/sales?period=${period}`);
           const ctx = document.getElementById("salesChart");
           if (!ctx) return;
-          // destroy existing
-          activeCharts = activeCharts.filter((c) => {
-            try {
-              c.canvas?.id !== "salesChart";
-              return c.canvas?.id !== "salesChart";
-            } catch (e) {
-              return false;
-            }
-          });
           Chart.getChart(ctx)?.destroy();
-
           const months = [
             "Jan",
             "Feb",
@@ -1787,11 +1790,9 @@
             const i = (item._id || 1) - 1;
             if (i >= 0 && i < vals.length) vals[i] = item.total || 0;
           });
-
           const grad = ctx.getContext("2d").createLinearGradient(0, 0, 0, 240);
           grad.addColorStop(0, "rgba(198,241,53,.25)");
           grad.addColorStop(1, "rgba(198,241,53,0)");
-
           const ch = new Chart(ctx, {
             type: "line",
             data: {
@@ -1852,9 +1853,9 @@
         }
       }
 
-      // ═══════════════════════════════════════════════════
+      // ═══════════════════════════════════════════
       // PRODUCTS
-      // ═══════════════════════════════════════════════════
+      // ═══════════════════════════════════════════
       let prodPage = 1,
         prodTotal = 1,
         prodFilter = { search: "", category: "", status: "", sort: "newest" };
@@ -1865,49 +1866,47 @@
         try {
           cats = (await apiCall("/categories")).data || [];
         } catch (e) {}
-
         c.innerHTML = `
-    <div class="section-header fade-up">
-      <h2>Products</h2>
-      <button class="btn btn-primary" onclick="openProductModal()"><i class="fas fa-plus"></i> Add Product</button>
-    </div>
-    <div class="card fade-up" style="margin-bottom:16px">
-      <div style="display:grid;grid-template-columns:1fr auto auto auto auto;gap:10px;align-items:center">
-        <div class="inp-group"><i class="fas fa-search"></i><input class="inp" id="pSearch" placeholder="Search products..." value="${prodFilter.search}" oninput="prodFilter.search=this.value;prodPage=1;loadProductsList()"></div>
-        <select class="inp" style="width:auto" id="pCat" onchange="prodFilter.category=this.value;prodPage=1;loadProductsList()">
-          <option value="">All Categories</option>
-          ${cats.map((cat) => `<option value="${cat._id}" ${prodFilter.category === cat._id ? "selected" : ""}>${cat.name}</option>`).join("")}
-        </select>
-        <select class="inp" style="width:auto" id="pStatus" onchange="prodFilter.status=this.value;prodPage=1;loadProductsList()">
-          <option value="">All Status</option>
-          <option value="active" ${prodFilter.status === "active" ? "selected" : ""}>Active</option>
-          <option value="inactive" ${prodFilter.status === "inactive" ? "selected" : ""}>Inactive</option>
-          <option value="featured" ${prodFilter.status === "featured" ? "selected" : ""}>Featured</option>
-          <option value="lowstock" ${prodFilter.status === "lowstock" ? "selected" : ""}>Low Stock</option>
-        </select>
-        <select class="inp" style="width:auto" id="pSort" onchange="prodFilter.sort=this.value;prodPage=1;loadProductsList()">
-          <option value="newest">Newest</option>
-          <option value="price_asc">Price ↑</option>
-          <option value="price_desc">Price ↓</option>
-          <option value="stock_asc">Stock ↑</option>
-        </select>
-        <button class="btn btn-ghost btn-sm" onclick="prodFilter={search:'',category:'',status:'',sort:'newest'};prodPage=1;loadProducts()"><i class="fas fa-rotate-right"></i></button>
-      </div>
-    </div>
-    <div id="productsGrid" class="product-grid fade-up">
-      ${Array(6)
-        .fill()
-        .map(
-          () =>
-            `<div class="product-card"><div class="skel" style="height:180px;border-radius:0"></div><div style="padding:14px"><div class="skel" style="height:16px;width:70%;margin-bottom:8px"></div><div class="skel" style="height:22px;width:40%;margin-bottom:8px"></div><div class="skel" style="height:12px;width:90%"></div></div></div>`,
-        )
-        .join("")}
-    </div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:20px" id="prodPagination">
-      <div style="font-size:13px;color:var(--text3)" id="prodInfo"></div>
-      <div class="pagination" id="prodPages"></div>
-    </div>
-  `;
+          <div class="section-header fade-up">
+            <h2>Products</h2>
+            <button class="btn btn-primary" onclick="openProductModal()"><i class="fas fa-plus"></i> Add Product</button>
+          </div>
+          <div class="card fade-up" style="margin-bottom:16px">
+            <div style="display:grid;grid-template-columns:1fr auto auto auto auto;gap:10px;align-items:center">
+              <div class="inp-group"><i class="fas fa-search"></i><input class="inp" id="pSearch" placeholder="Search products..." value="${prodFilter.search}" oninput="prodFilter.search=this.value;prodPage=1;loadProductsList()"></div>
+              <select class="inp" style="width:auto" id="pCat" onchange="prodFilter.category=this.value;prodPage=1;loadProductsList()">
+                <option value="">All Categories</option>
+                ${cats.map((cat) => `<option value="${cat._id}" ${prodFilter.category === cat._id ? "selected" : ""}>${cat.name}</option>`).join("")}
+              </select>
+              <select class="inp" style="width:auto" id="pStatus" onchange="prodFilter.status=this.value;prodPage=1;loadProductsList()">
+                <option value="">All Status</option>
+                <option value="active" ${prodFilter.status === "active" ? "selected" : ""}>Active</option>
+                <option value="inactive" ${prodFilter.status === "inactive" ? "selected" : ""}>Inactive</option>
+                <option value="featured" ${prodFilter.status === "featured" ? "selected" : ""}>Featured</option>
+                <option value="lowstock" ${prodFilter.status === "lowstock" ? "selected" : ""}>Low Stock</option>
+              </select>
+              <select class="inp" style="width:auto" id="pSort" onchange="prodFilter.sort=this.value;prodPage=1;loadProductsList()">
+                <option value="newest">Newest</option>
+                <option value="price_asc">Price ↑</option>
+                <option value="price_desc">Price ↓</option>
+                <option value="stock_asc">Stock ↑</option>
+              </select>
+              <button class="btn btn-ghost btn-sm" onclick="prodFilter={search:'',category:'',status:'',sort:'newest'};prodPage=1;loadProducts()"><i class="fas fa-rotate-right"></i></button>
+            </div>
+          </div>
+          <div id="productsGrid" class="product-grid fade-up">
+            ${Array(6)
+              .fill()
+              .map(
+                () =>
+                  `<div class="product-card"><div class="skel" style="height:180px;border-radius:0"></div><div style="padding:14px"><div class="skel" style="height:16px;width:70%;margin-bottom:8px"></div><div class="skel" style="height:22px;width:40%;margin-bottom:8px"></div><div class="skel" style="height:12px;width:90%"></div></div></div>`,
+              )
+              .join("")}
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:20px" id="prodPagination">
+            <div style="font-size:13px;color:var(--text3)" id="prodInfo"></div>
+            <div class="pagination" id="prodPages"></div>
+          </div>`;
         loadProductsList();
       }
 
@@ -1929,42 +1928,39 @@
           if (status === "lowstock")
             products = products.filter((p) => p.stock <= 10);
           prodTotal = res.pagination?.pages || 1;
-
           document.getElementById("productsGrid").innerHTML = products.length
             ? products
                 .map(
                   (p) => `
-      <div class="product-card fade-up">
-        <div class="product-card-img">
-          <img src="${p.images?.[0]?.url || "https://via.placeholder.com/400x300?text=No+Image"}" alt="${p.name}" loading="lazy">
-          <div class="product-card-overlay">
-            <button class="btn btn-ghost btn-sm" onclick="editProduct('${p._id}');event.stopPropagation()"><i class="fas fa-edit"></i></button>
-            <button class="btn btn-danger btn-sm" onclick="deleteProduct('${p._id}');event.stopPropagation()"><i class="fas fa-trash"></i></button>
-            ${p.isFeatured ? "" : `<button class="btn btn-ghost btn-sm" onclick="toggleFeatured('${p._id}',true);event.stopPropagation()" title="Feature"><i class="fas fa-star"></i></button>`}
-          </div>
-          <div style="position:absolute;top:10px;left:10px;display:flex;gap:6px">
-            ${p.stock <= 0 ? '<span class="badge badge-rose">Out of stock</span>' : p.stock <= 10 ? `<span class="badge badge-amber">Low: ${p.stock}</span>` : ""}
-            ${p.isFeatured ? '<span class="badge badge-teal"><i class="fas fa-star"></i> Featured</span>' : ""}
-          </div>
-          <div style="position:absolute;top:10px;right:10px">
-            <span class="badge ${p.isActive ? "badge-lime" : "badge-rose"}">${p.isActive ? "Active" : "Off"}</span>
-          </div>
-        </div>
-        <div class="product-card-body">
-          <div class="product-card-name" title="${p.name}">${p.name}</div>
-          <div class="product-card-price">${formatCurrency(p.price)}</div>
-          ${p.comparePrice ? `<div style="font-size:12px;color:var(--text3);text-decoration:line-through">${formatCurrency(p.comparePrice)}</div>` : ""}
-          <div class="product-card-meta">
-            <span>SKU: ${p.sku}</span>
-            <span style="color:${p.stock > 0 ? "var(--teal)" : "var(--rose)"}">${p.stock > 0 ? p.stock + " in stock" : "Out of stock"}</span>
-          </div>
-        </div>
-      </div>
-    `,
+              <div class="product-card fade-up">
+                <div class="product-card-img">
+                  <img src="${p.images?.[0]?.url || "https://via.placeholder.com/400x300?text=No+Image"}" alt="${p.name}" loading="lazy">
+                  <div class="product-card-overlay">
+                    <button class="btn btn-ghost btn-sm" onclick="editProduct('${p._id}');event.stopPropagation()"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteProduct('${p._id}');event.stopPropagation()"><i class="fas fa-trash"></i></button>
+                    ${p.isFeatured ? "" : `<button class="btn btn-ghost btn-sm" onclick="toggleFeatured('${p._id}',true);event.stopPropagation()" title="Feature"><i class="fas fa-star"></i></button>`}
+                  </div>
+                  <div style="position:absolute;top:10px;left:10px;display:flex;gap:6px">
+                    ${p.stock <= 0 ? '<span class="badge badge-rose">Out of stock</span>' : p.stock <= 10 ? `<span class="badge badge-amber">Low: ${p.stock}</span>` : ""}
+                    ${p.isFeatured ? '<span class="badge badge-teal"><i class="fas fa-star"></i> Featured</span>' : ""}
+                  </div>
+                  <div style="position:absolute;top:10px;right:10px">
+                    <span class="badge ${p.isActive ? "badge-lime" : "badge-rose"}">${p.isActive ? "Active" : "Off"}</span>
+                  </div>
+                </div>
+                <div class="product-card-body">
+                  <div class="product-card-name" title="${p.name}">${p.name}</div>
+                  <div class="product-card-price">${formatCurrency(p.price)}</div>
+                  ${p.comparePrice ? `<div style="font-size:12px;color:var(--text3);text-decoration:line-through">${formatCurrency(p.comparePrice)}</div>` : ""}
+                  <div class="product-card-meta">
+                    <span>SKU: ${p.sku}</span>
+                    <span style="color:${p.stock > 0 ? "var(--teal)" : "var(--rose)"}">${p.stock > 0 ? p.stock + " in stock" : "Out of stock"}</span>
+                  </div>
+                </div>
+              </div>`,
                 )
                 .join("")
             : '<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--text3)"><i class="fas fa-box-open" style="font-size:40px;margin-bottom:12px;display:block"></i>No products found</div>';
-
           document.getElementById("prodInfo").textContent =
             `Page ${prodPage} of ${prodTotal}`;
           renderPagination("prodPages", prodPage, prodTotal, (p) => {
@@ -1987,90 +1983,46 @@
             product = (await apiCall(`/products/${id}`)).data;
           } catch (e) {}
         }
-
         modal(`
-    <div class="modal-box wide">
-      <div class="modal-header">
-        <div><div class="modal-title">${id ? "Edit Product" : "New Product"}</div><div class="modal-sub">${id ? "Update product details" : "Add a new product to your catalog"}</div></div>
-        <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
-      </div>
-      <form id="productForm">
-        <div class="modal-body">
-          <div class="form-grid">
-            <div class="form-group">
-              <label class="form-label">Product Name *</label>
-              <input class="inp" name="name" placeholder="e.g. Organic Honey" required value="${product?.name || ""}">
+          <div class="modal-box wide">
+            <div class="modal-header">
+              <div><div class="modal-title">${id ? "Edit Product" : "New Product"}</div><div class="modal-sub">${id ? "Update product details" : "Add a new product"}</div></div>
+              <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
             </div>
-            <div class="form-group">
-              <label class="form-label">SKU *</label>
-              <input class="inp" name="sku" placeholder="e.g. ORG-HON-001" required value="${product?.sku || ""}">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Price (৳) *</label>
-              <input class="inp" name="price" type="number" step="0.01" placeholder="0.00" required value="${product?.price || ""}">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Compare Price (৳)</label>
-              <input class="inp" name="comparePrice" type="number" step="0.01" placeholder="Original price" value="${product?.comparePrice || ""}">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Stock *</label>
-              <input class="inp" name="stock" type="number" placeholder="0" required value="${product?.stock || ""}">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Category *</label>
-              <select class="inp" name="category" required>
-                <option value="">Select Category</option>
-                ${cats.map((cat) => `<option value="${cat._id}" ${product?.category?._id === cat._id ? "selected" : ""}>${cat.name}</option>`).join("")}
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Weight / Unit</label>
-              <input class="inp" name="weight" placeholder="e.g. 500g" value="${product?.weight || ""}">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Low Stock Alert At</label>
-              <input class="inp" name="lowStockAlert" type="number" placeholder="10" value="${product?.lowStockAlert || 10}">
-            </div>
-            <div class="form-group full">
-              <label class="form-label">Description</label>
-              <textarea class="inp" name="description" placeholder="Describe the product...">${product?.description || ""}</textarea>
-            </div>
-            <div class="form-group full">
-              <label class="form-label">Product Images</label>
-              <div class="upload-zone" id="uploadZone" onclick="document.getElementById('productImages').click()">
-                <i class="fas fa-cloud-arrow-up"></i>
-                <p>Click to upload images</p>
-                <span>PNG, JPG, WEBP up to 5MB each</span>
+            <form id="productForm">
+              <div class="modal-body">
+                <div class="form-grid">
+                  <div class="form-group"><label class="form-label">Product Name *</label><input class="inp" name="name" placeholder="e.g. Organic Honey" required value="${product?.name || ""}"></div>
+                  <div class="form-group"><label class="form-label">SKU *</label><input class="inp" name="sku" placeholder="e.g. ORG-HON-001" required value="${product?.sku || ""}"></div>
+                  <div class="form-group"><label class="form-label">Price (৳) *</label><input class="inp" name="price" type="number" step="0.01" placeholder="0.00" required value="${product?.price || ""}"></div>
+                  <div class="form-group"><label class="form-label">Compare Price (৳)</label><input class="inp" name="comparePrice" type="number" step="0.01" placeholder="Original price" value="${product?.comparePrice || ""}"></div>
+                  <div class="form-group"><label class="form-label">Stock *</label><input class="inp" name="stock" type="number" placeholder="0" required value="${product?.stock || ""}"></div>
+                  <div class="form-group"><label class="form-label">Category *</label><select class="inp" name="category" required><option value="">Select Category</option>${cats.map((cat) => `<option value="${cat._id}" ${product?.category?._id === cat._id ? "selected" : ""}>${cat.name}</option>`).join("")}</select></div>
+                  <div class="form-group"><label class="form-label">Weight / Unit</label><input class="inp" name="weight" placeholder="e.g. 500g" value="${product?.weight || ""}"></div>
+                  <div class="form-group"><label class="form-label">Low Stock Alert At</label><input class="inp" name="lowStockAlert" type="number" placeholder="10" value="${product?.lowStockAlert || 10}"></div>
+                  <div class="form-group full"><label class="form-label">Description</label><textarea class="inp" name="description" placeholder="Describe the product...">${product?.description || ""}</textarea></div>
+                  <div class="form-group full">
+                    <label class="form-label">Product Images</label>
+                    <div class="upload-zone" id="uploadZone" onclick="document.getElementById('productImages').click()">
+                      <i class="fas fa-cloud-arrow-up"></i><p>Click to upload images</p><span>PNG, JPG, WEBP up to 5MB each</span>
+                    </div>
+                    <input type="file" name="images" multiple accept="image/*" id="productImages" style="display:none">
+                    <div class="img-preview-grid" id="imgPreview"></div>
+                    ${product?.images?.length ? `<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">${product.images.map((img) => `<img src="${img.url}" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--border)">`).join("")}</div><p style="font-size:11px;color:var(--text3);margin-top:6px">Current images above. Upload new to replace.</p>` : ""}
+                  </div>
+                  <div class="form-group"><label class="form-label">Tags (comma-separated)</label><input class="inp" name="tags" placeholder="organic, honey, natural" value="${(product?.tags || []).join(", ")}"></div>
+                  <div class="form-group" style="display:flex;gap:24px;align-items:center">
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:500"><label class="toggle"><input type="checkbox" name="isActive" value="true" ${product?.isActive !== false ? "checked" : ""}><span class="toggle-slider"></span></label>Active</label>
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:500"><label class="toggle"><input type="checkbox" name="isFeatured" value="true" ${product?.isFeatured ? "checked" : ""}><span class="toggle-slider"></span></label>Featured</label>
+                  </div>
+                </div>
               </div>
-              <input type="file" name="images" multiple accept="image/*" id="productImages" style="display:none">
-              <div class="img-preview-grid" id="imgPreview"></div>
-              ${product?.images?.length ? `<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">${product.images.map((img) => `<div style="position:relative"><img src="${img.url}" style="width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--border)"><span style="position:absolute;top:-4px;right:-4px;width:18px;height:18px;background:var(--rose);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;cursor:pointer;color:#fff" title="Current image">✓</span></div>`).join("")}</div><p style="font-size:11px;color:var(--text3);margin-top:6px">Current images shown above. Upload new to replace.</p>` : ""}
-            </div>
-            <div class="form-group">
-              <label class="form-label">Tags (comma-separated)</label>
-              <input class="inp" name="tags" placeholder="organic, honey, natural" value="${(product?.tags || []).join(", ")}">
-            </div>
-            <div class="form-group" style="display:flex;gap:24px;align-items:center">
-              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:500">
-                <label class="toggle"><input type="checkbox" name="isActive" value="true" ${product?.isActive !== false ? "checked" : ""}><span class="toggle-slider"></span></label>
-                Active
-              </label>
-              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:500">
-                <label class="toggle"><input type="checkbox" name="isFeatured" value="true" ${product?.isFeatured ? "checked" : ""}><span class="toggle-slider"></span></label>
-                Featured
-              </label>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-          <button type="submit" class="btn btn-primary" id="productSubmitBtn"><i class="fas fa-${id ? "save" : "plus"}"></i> ${id ? "Save Changes" : "Create Product"}</button>
-        </div>
-      </form>
-    </div>
-  `);
-
+              <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="productSubmitBtn"><i class="fas fa-${id ? "save" : "plus"}"></i> ${id ? "Save Changes" : "Create Product"}</button>
+              </div>
+            </form>
+          </div>`);
         document
           .getElementById("productImages")
           .addEventListener("change", (e) => {
@@ -2084,8 +2036,6 @@
               reader.readAsDataURL(file);
             });
           });
-
-        // Drag-drop
         const zone = document.getElementById("uploadZone");
         zone.addEventListener("dragover", (e) => {
           e.preventDefault();
@@ -2102,7 +2052,6 @@
             .getElementById("productImages")
             .dispatchEvent(new Event("change"));
         });
-
         document.getElementById("productForm").onsubmit = async (e) => {
           e.preventDefault();
           const btn = document.getElementById("productSubmitBtn");
@@ -2175,9 +2124,9 @@
         }
       }
 
-      // ═══════════════════════════════════════════════════
+      // ═══════════════════════════════════════════
       // CATEGORIES
-      // ═══════════════════════════════════════════════════
+      // ═══════════════════════════════════════════
       async function loadCategories() {
         const c = document.getElementById("content");
         c.innerHTML = `<div class="section-header fade-up"><h2>Categories</h2><button class="btn btn-primary" onclick="openCategoryModal()"><i class="fas fa-plus"></i> Add Category</button></div><div id="catsGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px" class="fade-up"><div style="display:flex;justify-content:center;align-items:center;height:200px;grid-column:1/-1"><div class="spinner"></div></div></div>`;
@@ -2187,28 +2136,26 @@
             ? cats
                 .map(
                   (c) => `
-      <div class="card" style="padding:0;overflow:hidden;cursor:pointer" onclick="editCategory('${c._id}')">
-        <div style="height:120px;background:var(--bg3);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
-          ${c.image ? `<img src="${c.image}" style="width:100%;height:100%;object-fit:cover">` : `<i class="fas fa-layer-group" style="font-size:40px;color:var(--text3)"></i>`}
-          <div style="position:absolute;inset:0;background:rgba(0,0,0,.5);opacity:0;transition:.2s;display:flex;align-items:center;justify-content:center;gap:8px" class="cat-overlay">
-            <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();editCategory('${c._id}')"><i class="fas fa-edit"></i></button>
-            <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteCategory('${c._id}')"><i class="fas fa-trash"></i></button>
-          </div>
-        </div>
-        <div style="padding:16px">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-            <div style="font-weight:700;font-size:15px">${c.name}</div>
-            <span class="badge ${c.isActive ? "badge-lime" : "badge-rose"}">${c.isActive ? "Active" : "Off"}</span>
-          </div>
-          <div style="font-size:12px;color:var(--text3)">${c.description || "No description"}</div>
-          <div style="font-size:11px;color:var(--text3);margin-top:8px">Display Order: ${c.order || 0}</div>
-        </div>
-      </div>
-    `,
+              <div class="card" style="padding:0;overflow:hidden;cursor:pointer" onclick="editCategory('${c._id}')">
+                <div style="height:120px;background:var(--bg3);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+                  ${c.image ? `<img src="${c.image}" style="width:100%;height:100%;object-fit:cover">` : `<i class="fas fa-layer-group" style="font-size:40px;color:var(--text3)"></i>`}
+                  <div style="position:absolute;inset:0;background:rgba(0,0,0,.5);opacity:0;transition:.2s;display:flex;align-items:center;justify-content:center;gap:8px" class="cat-overlay">
+                    <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();editCategory('${c._id}')"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteCategory('${c._id}')"><i class="fas fa-trash"></i></button>
+                  </div>
+                </div>
+                <div style="padding:16px">
+                  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                    <div style="font-weight:700;font-size:15px">${c.name}</div>
+                    <span class="badge ${c.isActive ? "badge-lime" : "badge-rose"}">${c.isActive ? "Active" : "Off"}</span>
+                  </div>
+                  <div style="font-size:12px;color:var(--text3)">${c.description || "No description"}</div>
+                  <div style="font-size:11px;color:var(--text3);margin-top:8px">Display Order: ${c.order || 0}</div>
+                </div>
+              </div>`,
                 )
                 .join("")
             : '<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--text3)"><i class="fas fa-layer-group" style="font-size:40px;margin-bottom:12px;display:block"></i>No categories yet</div>';
-          // hover effect
           document.querySelectorAll(".cat-overlay").forEach((el) => {
             el.closest("[onclick]").addEventListener(
               "mouseenter",
@@ -2232,51 +2179,32 @@
           } catch (e) {}
         }
         modal(`
-    <div class="modal-box">
-      <div class="modal-header">
-        <div><div class="modal-title">${id ? "Edit Category" : "New Category"}</div><div class="modal-sub">${id ? "Update category details" : "Create a new product category"}</div></div>
-        <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
-      </div>
-      <form id="catForm">
-        <div class="modal-body">
-          <div style="display:flex;flex-direction:column;gap:14px">
-            <div class="form-group">
-              <label class="form-label">Category Name *</label>
-              <input class="inp" name="name" placeholder="e.g. Honey & Bee Products" required value="${cat?.name || ""}">
+          <div class="modal-box">
+            <div class="modal-header">
+              <div><div class="modal-title">${id ? "Edit Category" : "New Category"}</div><div class="modal-sub">${id ? "Update category details" : "Create a new product category"}</div></div>
+              <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
             </div>
-            <div class="form-group">
-              <label class="form-label">Description</label>
-              <textarea class="inp" name="description" placeholder="Describe this category...">${cat?.description || ""}</textarea>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Display Order</label>
-              <input class="inp" name="order" type="number" placeholder="0" value="${cat?.order || 0}">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Category Image</label>
-              <div class="upload-zone" onclick="document.getElementById('catImg').click()">
-                <i class="fas fa-image"></i>
-                <p>Click to upload image</p>
-                <span>PNG, JPG, WEBP</span>
+            <form id="catForm">
+              <div class="modal-body">
+                <div style="display:flex;flex-direction:column;gap:14px">
+                  <div class="form-group"><label class="form-label">Category Name *</label><input class="inp" name="name" placeholder="e.g. Honey & Bee Products" required value="${cat?.name || ""}"></div>
+                  <div class="form-group"><label class="form-label">Description</label><textarea class="inp" name="description" placeholder="Describe this category...">${cat?.description || ""}</textarea></div>
+                  <div class="form-group"><label class="form-label">Display Order</label><input class="inp" name="order" type="number" placeholder="0" value="${cat?.order || 0}"></div>
+                  <div class="form-group">
+                    <label class="form-label">Category Image</label>
+                    <div class="upload-zone" onclick="document.getElementById('catImg').click()"><i class="fas fa-image"></i><p>Click to upload image</p><span>PNG, JPG, WEBP</span></div>
+                    <input type="file" name="image" accept="image/*" id="catImg" style="display:none">
+                    <div id="catPreview" style="margin-top:10px">${cat?.image ? `<img src="${cat.image}" style="width:100%;height:120px;object-fit:cover;border-radius:10px;border:1px solid var(--border)">` : ""}</div>
+                  </div>
+                  <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;font-weight:500"><label class="toggle"><input type="checkbox" name="isActive" value="true" ${cat?.isActive !== false ? "checked" : ""}><span class="toggle-slider"></span></label>Active</label>
+                </div>
               </div>
-              <input type="file" name="image" accept="image/*" id="catImg" style="display:none">
-              <div id="catPreview" style="margin-top:10px">
-                ${cat?.image ? `<img src="${cat.image}" style="width:100%;height:120px;object-fit:cover;border-radius:10px;border:1px solid var(--border)">` : ""}
+              <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="catSubmitBtn"><i class="fas fa-${id ? "save" : "plus"}"></i> ${id ? "Save Changes" : "Create"}</button>
               </div>
-            </div>
-            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;font-weight:500">
-              <label class="toggle"><input type="checkbox" name="isActive" value="true" ${cat?.isActive !== false ? "checked" : ""}><span class="toggle-slider"></span></label>
-              Active
-            </label>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-          <button type="submit" class="btn btn-primary" id="catSubmitBtn"><i class="fas fa-${id ? "save" : "plus"}"></i> ${id ? "Save Changes" : "Create"}</button>
-        </div>
-      </form>
-    </div>
-  `);
+            </form>
+          </div>`);
         document.getElementById("catImg").addEventListener("change", (e) => {
           if (e.target.files[0]) {
             const r = new FileReader();
@@ -2330,9 +2258,9 @@
         }
       }
 
-      // ═══════════════════════════════════════════════════
-      // ORDERS
-      // ═══════════════════════════════════════════════════
+      // ═══════════════════════════════════════════
+      // ORDERS  (FIXED + INVOICE)
+      // ═══════════════════════════════════════════
       let ordPage = 1,
         ordTotal = 1,
         ordFilter = {
@@ -2344,46 +2272,48 @@
           dateTo: "",
         };
 
+      // Track in-flight status updates to prevent race conditions
+      const statusUpdating = new Set();
+
       async function loadOrders() {
         const c = document.getElementById("content");
         c.innerHTML = `
-    <div class="section-header fade-up"><h2>Orders</h2>
-      <div style="display:flex;gap:8px">
-        <button class="btn btn-ghost btn-sm" onclick="exportOrders()"><i class="fas fa-file-export"></i> Export</button>
-        <button class="btn btn-ghost btn-sm" onclick="loadOrders()"><i class="fas fa-rotate-right"></i></button>
-      </div>
-    </div>
-    <div class="card fade-up" style="margin-bottom:16px">
-      <div style="display:grid;grid-template-columns:1fr auto auto auto auto auto;gap:10px;align-items:center">
-        <div class="inp-group"><i class="fas fa-search"></i><input class="inp" id="oSearch" placeholder="Search order # or customer..." oninput="ordFilter.search=this.value;ordPage=1;loadOrdersList()"></div>
-        <select class="inp" style="width:auto" onchange="ordFilter.status=this.value;ordPage=1;loadOrdersList()">
-          <option value="">All Status</option>
-          ${["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"].map((s) => `<option value="${s}">${s.charAt(0).toUpperCase() + s.slice(1)}</option>`).join("")}
-        </select>
-        <select class="inp" style="width:auto" onchange="ordFilter.payment=this.value;ordPage=1;loadOrdersList()">
-          <option value="">All Payment</option>
-          <option value="paid">Paid</option>
-          <option value="pending">Unpaid</option>
-        </select>
-        <input class="inp" type="date" style="width:auto" placeholder="From" onchange="ordFilter.dateFrom=this.value;ordPage=1;loadOrdersList()">
-        <input class="inp" type="date" style="width:auto" placeholder="To" onchange="ordFilter.dateTo=this.value;ordPage=1;loadOrdersList()">
-        <button class="btn btn-ghost btn-sm" onclick="ordFilter={search:'',status:'',payment:'',sort:'newest',dateFrom:'',dateTo:''};ordPage=1;loadOrders()"><i class="fas fa-rotate-right"></i></button>
-      </div>
-    </div>
-    <div class="card fade-up" style="padding:0;overflow:hidden">
-      <table class="data-table">
-        <thead><tr>
-          <th>Order</th><th>Customer</th><th>Items</th><th>Total</th>
-          <th>Payment</th><th>Status</th><th>Date</th><th>Actions</th>
-        </tr></thead>
-        <tbody id="ordersBody"><tr><td colspan="8" style="text-align:center;padding:48px"><div class="spinner" style="margin:0 auto"></div></td></tr></tbody>
-      </table>
-      <div style="padding:16px 20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
-        <div style="font-size:13px;color:var(--text3)" id="ordInfo"></div>
-        <div class="pagination" id="ordPages"></div>
-      </div>
-    </div>
-  `;
+          <div class="section-header fade-up"><h2>Orders</h2>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-ghost btn-sm" onclick="exportOrders()"><i class="fas fa-file-export"></i> Export CSV</button>
+              <button class="btn btn-ghost btn-sm" onclick="loadOrders()"><i class="fas fa-rotate-right"></i></button>
+            </div>
+          </div>
+          <div class="card fade-up" style="margin-bottom:16px">
+            <div style="display:grid;grid-template-columns:1fr auto auto auto auto auto;gap:10px;align-items:center">
+              <div class="inp-group"><i class="fas fa-search"></i><input class="inp" id="oSearch" placeholder="Search order # or customer..." oninput="ordFilter.search=this.value;ordPage=1;loadOrdersList()"></div>
+              <select class="inp" style="width:auto" onchange="ordFilter.status=this.value;ordPage=1;loadOrdersList()">
+                <option value="">All Status</option>
+                ${["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"].map((s) => `<option value="${s}">${s.charAt(0).toUpperCase() + s.slice(1)}</option>`).join("")}
+              </select>
+              <select class="inp" style="width:auto" onchange="ordFilter.payment=this.value;ordPage=1;loadOrdersList()">
+                <option value="">All Payment</option>
+                <option value="paid">Paid</option>
+                <option value="pending">Unpaid</option>
+              </select>
+              <input class="inp" type="date" style="width:auto" onchange="ordFilter.dateFrom=this.value;ordPage=1;loadOrdersList()">
+              <input class="inp" type="date" style="width:auto" onchange="ordFilter.dateTo=this.value;ordPage=1;loadOrdersList()">
+              <button class="btn btn-ghost btn-sm" onclick="ordFilter={search:'',status:'',payment:'',sort:'newest',dateFrom:'',dateTo:''};ordPage=1;loadOrders()"><i class="fas fa-rotate-right"></i></button>
+            </div>
+          </div>
+          <div class="card fade-up" style="padding:0;overflow:hidden">
+            <table class="data-table">
+              <thead><tr>
+                <th>Order</th><th>Customer</th><th>Items</th><th>Total</th>
+                <th>Payment</th><th>Status</th><th>Date</th><th>Actions</th>
+              </tr></thead>
+              <tbody id="ordersBody"><tr><td colspan="8" style="text-align:center;padding:48px"><div class="spinner" style="margin:0 auto"></div></td></tr></tbody>
+            </table>
+            <div style="padding:16px 20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+              <div style="font-size:13px;color:var(--text3)" id="ordInfo"></div>
+              <div class="pagination" id="ordPages"></div>
+            </div>
+          </div>`;
         loadOrdersList();
       }
 
@@ -2402,23 +2332,31 @@
             ? orders
                 .map(
                   (o) => `
-      <tr onclick="viewOrder('${o._id}')">
-        <td><div style="font-weight:600;font-size:13px">${o.orderNumber}</div><div style="font-size:11px;color:var(--text3)">#${o._id?.slice(-6)}</div></td>
-        <td><div style="font-weight:500;font-size:13px">${o.customer?.name}</div><div style="font-size:11px;color:var(--text3)">${o.customer?.phone}</div></td>
-        <td><div style="font-size:13px">${o.items?.length} item${o.items?.length !== 1 ? "s" : ""}</div></td>
-        <td><div style="font-weight:700;color:var(--lime);font-family:Syne,sans-serif">${formatCurrency(o.total)}</div></td>
-        <td>${payBadge(o.paymentStatus)}<div style="font-size:11px;color:var(--text3);margin-top:4px">${o.paymentMethod}</div></td>
-        <td onclick="event.stopPropagation()">
-          <select class="status-select" onchange="updateOrderStatus('${o._id}',this.value)">
-            ${["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"].map((s) => `<option value="${s}" ${o.orderStatus === s ? "selected" : ""}>${s.charAt(0).toUpperCase() + s.slice(1)}</option>`).join("")}
-          </select>
-        </td>
-        <td style="font-size:12px;color:var(--text2)">${formatDate(o.createdAt)}</td>
-        <td onclick="event.stopPropagation()">
-          <button class="btn btn-ghost btn-sm btn-icon" onclick="viewOrder('${o._id}')"><i class="fas fa-eye"></i></button>
-        </td>
-      </tr>
-    `,
+              <tr onclick="viewOrder('${o._id}')">
+                <td>
+                  <div style="font-weight:600;font-size:13px">${o.orderNumber}</div>
+                  <div style="font-size:11px;color:var(--text3)">#${o._id?.slice(-6)}</div>
+                </td>
+                <td>
+                  <div style="font-weight:500;font-size:13px">${o.customer?.name}</div>
+                  <div style="font-size:11px;color:var(--text3)">${o.customer?.phone}</div>
+                </td>
+                <td><div style="font-size:13px">${o.items?.length} item${o.items?.length !== 1 ? "s" : ""}</div></td>
+                <td><div style="font-weight:700;color:var(--lime);font-family:Syne,sans-serif">${formatCurrency(o.total)}</div></td>
+                <td>${payBadge(o.paymentStatus)}<div style="font-size:11px;color:var(--text3);margin-top:4px">${o.paymentMethod}</div></td>
+                <td onclick="event.stopPropagation()">
+                  <select class="status-select" id="status-${o._id}" data-order-id="${o._id}" onchange="handleStatusChange(this, '${o._id}')">
+                    ${["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"].map((s) => `<option value="${s}" ${o.orderStatus === s ? "selected" : ""}>${s.charAt(0).toUpperCase() + s.slice(1)}</option>`).join("")}
+                  </select>
+                </td>
+                <td style="font-size:12px;color:var(--text2)">${formatDate(o.createdAt)}</td>
+                <td onclick="event.stopPropagation()">
+                  <div style="display:flex;gap:4px">
+                    <button class="btn btn-ghost btn-sm btn-icon" onclick="viewOrder('${o._id}')" title="View"><i class="fas fa-eye"></i></button>
+                    <button class="btn btn-ghost btn-sm btn-icon" onclick="openInvoiceModal('${o._id}')" title="Invoice"><i class="fas fa-file-invoice"></i></button>
+                  </div>
+                </td>
+              </tr>`,
                 )
                 .join("")
             : '<tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text3)">No orders found</td></tr>';
@@ -2433,6 +2371,47 @@
         }
       }
 
+      // FIXED: robust status change handler — prevents double firing, restores on error
+      async function handleStatusChange(selectEl, orderId) {
+        if (statusUpdating.has(orderId)) return; // prevent race conditions
+        const newStatus = selectEl.value;
+        const prevStatus =
+          selectEl.dataset.prevStatus ||
+          selectEl.options[
+            selectEl.selectedIndex === 0 ? 0 : selectEl.selectedIndex
+          ].value;
+        // Store previous so we can revert on error
+        const allOptions = Array.from(selectEl.options);
+        const prevOption =
+          allOptions.find((o) => o.dataset.current === "true") ||
+          allOptions.find((o) => o.defaultSelected);
+
+        statusUpdating.add(orderId);
+        selectEl.disabled = true;
+        try {
+          await apiCall(`/orders/${orderId}/status`, {
+            method: "PUT",
+            body: JSON.stringify({ orderStatus: newStatus }),
+          });
+          showToast(`Order status → ${newStatus}`, "success");
+          // Mark current option so future reverts work
+          allOptions.forEach((o) => delete o.dataset.current);
+          selectEl.options[selectEl.selectedIndex].dataset.current = "true";
+        } catch (e) {
+          showToast(`Failed: ${e.message}`, "error");
+          // Revert the select to previous value
+          if (prevOption) {
+            selectEl.value = prevOption.value;
+          } else {
+            loadOrdersList();
+          } // fallback: reload if we can't determine prev
+        } finally {
+          statusUpdating.delete(orderId);
+          selectEl.disabled = false;
+        }
+      }
+
+      // Keep legacy function for calls from other places
       async function updateOrderStatus(id, status) {
         try {
           await apiCall(`/orders/${id}/status`, {
@@ -2443,6 +2422,7 @@
           if (currentPage === "dashboard") loadDashboard();
         } catch (e) {
           showToast(e.message, "error");
+          throw e; // re-throw so caller knows it failed
         }
       }
 
@@ -2463,92 +2443,93 @@
           const stepIdx = ORDER_STEPS.indexOf(order.orderStatus);
           const cancelled = order.orderStatus === "cancelled";
           document.getElementById("modalContainer").innerHTML = `
-      <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
-        <div class="modal-box wide">
-          <div class="modal-header">
-            <div>
-              <div class="modal-title">Order ${order.orderNumber}</div>
-              <div class="modal-sub">${formatDate(order.createdAt)} · ${order.items?.length} item${order.items?.length !== 1 ? "s" : ""}</div>
-            </div>
-            <div style="display:flex;gap:8px;align-items:center">
-              ${statusBadge(order.orderStatus)}
-              <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
-            </div>
-          </div>
-          <div class="modal-body">
-            ${
-              !cancelled
-                ? `
-            <div style="margin-bottom:24px">
-              <div style="font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--text3);margin-bottom:12px">Order Progress</div>
-              <div class="status-timeline">
-                ${ORDER_STEPS.map(
-                  (step, i) => `
-                  <div class="timeline-step ${i < stepIdx ? "done" : i === stepIdx ? "current" : ""}">
-                    <div class="timeline-dot"><i class="fas ${["fa-clock", "fa-check", "fa-gear", "fa-truck", "fa-circle-check"][i]}"></i></div>
-                    <div class="timeline-label">${step.charAt(0).toUpperCase() + step.slice(1)}</div>
+            <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+              <div class="modal-box wide">
+                <div class="modal-header">
+                  <div>
+                    <div class="modal-title">Order ${order.orderNumber}</div>
+                    <div class="modal-sub">${formatFullDate(order.createdAt)} · ${order.items?.length} item${order.items?.length !== 1 ? "s" : ""}</div>
                   </div>
-                `,
-                ).join("")}
+                  <div style="display:flex;gap:8px;align-items:center">
+                    ${statusBadge(order.orderStatus)}
+                    <button class="btn btn-ghost btn-sm" onclick="openInvoiceModal('${order._id}')" title="Invoice" style="gap:6px"><i class="fas fa-file-invoice"></i> Invoice</button>
+                    <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+                  </div>
+                </div>
+                <div class="modal-body">
+                  ${
+                    !cancelled
+                      ? `
+                  <div style="margin-bottom:24px">
+                    <div style="font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--text3);margin-bottom:12px">Order Progress</div>
+                    <div class="status-timeline">
+                      ${ORDER_STEPS.map(
+                        (step, i) => `
+                        <div class="timeline-step ${i < stepIdx ? "done" : i === stepIdx ? "current" : ""}">
+                          <div class="timeline-dot"><i class="fas ${["fa-clock", "fa-check", "fa-gear", "fa-truck", "fa-circle-check"][i]}"></i></div>
+                          <div class="timeline-label">${step.charAt(0).toUpperCase() + step.slice(1)}</div>
+                        </div>`,
+                      ).join("")}
+                    </div>
+                  </div>`
+                      : ""
+                  }
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+                    <div class="info-block">
+                      <h4><i class="fas fa-user" style="margin-right:6px"></i>Customer</h4>
+                      <div class="info-row"><span>Name</span><span>${order.customer?.name}</span></div>
+                      <div class="info-row"><span>Phone</span><span>${order.customer?.phone}</span></div>
+                      <div class="info-row"><span>Email</span><span>${order.customer?.email || "—"}</span></div>
+                      <div class="info-row"><span>Address</span><span>${[order.customer?.address?.street, order.customer?.address?.area, order.customer?.address?.city].filter(Boolean).join(", ") || "—"}</span></div>
+                    </div>
+                    <div class="info-block">
+                      <h4><i class="fas fa-receipt" style="margin-right:6px"></i>Payment</h4>
+                      <div class="info-row"><span>Method</span><span>${order.paymentMethod}</span></div>
+                      <div class="info-row"><span>Status</span><span>${payBadge(order.paymentStatus)}</span></div>
+                      <div class="info-row"><span>Tracking</span><span>${order.trackingNumber || "—"}</span></div>
+                      <div class="info-row"><span>Notes</span><span>${order.notes || "—"}</span></div>
+                    </div>
+                  </div>
+                  <div class="info-block">
+                    <h4><i class="fas fa-box" style="margin-right:6px"></i>Items</h4>
+                    <table class="data-table" style="margin-top:8px">
+                      <thead><tr><th>Product</th><th>Price</th><th>Qty</th><th style="text-align:right">Total</th></tr></thead>
+                      <tbody>
+                        ${(order.items || [])
+                          .map(
+                            (item) => `
+                          <tr>
+                            <td style="font-weight:500">${item.name}</td>
+                            <td>${formatCurrency(item.price)}</td>
+                            <td>×${item.quantity}</td>
+                            <td style="text-align:right;font-weight:600">${formatCurrency(item.total)}</td>
+                          </tr>`,
+                          )
+                          .join("")}
+                      </tbody>
+                      <tfoot>
+                        <tr><td colspan="3" style="text-align:right;color:var(--text3);font-size:12px">Subtotal</td><td style="text-align:right">${formatCurrency(order.subtotal)}</td></tr>
+                        <tr><td colspan="3" style="text-align:right;color:var(--text3);font-size:12px">Delivery</td><td style="text-align:right">${formatCurrency(order.deliveryCharge)}</td></tr>
+                        ${order.discount ? `<tr><td colspan="3" style="text-align:right;color:var(--rose);font-size:12px">Discount</td><td style="text-align:right;color:var(--rose)">-${formatCurrency(order.discount)}</td></tr>` : ""}
+                        <tr><td colspan="3" style="text-align:right;font-weight:700;font-size:14px">Total</td><td style="text-align:right;font-weight:800;font-size:18px;color:var(--lime);font-family:Syne,sans-serif">${formatCurrency(order.total)}</td></tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                </div>
+                <div class="modal-footer" style="justify-content:space-between">
+                  <div style="display:flex;gap:8px;align-items:center">
+                    <select class="inp" style="width:auto;font-size:12px" id="orderStatusUpdate">
+                      ${["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"].map((s) => `<option value="${s}" ${order.orderStatus === s ? "selected" : ""}>${s.charAt(0).toUpperCase() + s.slice(1)}</option>`).join("")}
+                    </select>
+                    <button class="btn btn-primary btn-sm" id="modalUpdateBtn" onclick="updateStatusFromModal('${order._id}')"><i class="fas fa-check"></i> Update Status</button>
+                  </div>
+                  <div style="display:flex;gap:8px">
+                    <button class="btn btn-ghost" onclick="openInvoiceModal('${order._id}')"><i class="fas fa-file-invoice"></i> View Invoice</button>
+                    <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+                  </div>
+                </div>
               </div>
-            </div>`
-                : ""
-            }
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
-              <div class="info-block">
-                <h4><i class="fas fa-user" style="margin-right:6px"></i>Customer</h4>
-                <div class="info-row"><span>Name</span><span>${order.customer?.name}</span></div>
-                <div class="info-row"><span>Phone</span><span>${order.customer?.phone}</span></div>
-                <div class="info-row"><span>Email</span><span>${order.customer?.email || "—"}</span></div>
-                <div class="info-row"><span>Address</span><span>${[order.customer?.address?.street, order.customer?.address?.area, order.customer?.address?.city].filter(Boolean).join(", ") || "—"}</span></div>
-              </div>
-              <div class="info-block">
-                <h4><i class="fas fa-receipt" style="margin-right:6px"></i>Payment</h4>
-                <div class="info-row"><span>Method</span><span>${order.paymentMethod}</span></div>
-                <div class="info-row"><span>Status</span><span>${payBadge(order.paymentStatus)}</span></div>
-                <div class="info-row"><span>Tracking</span><span>${order.trackingNumber || "—"}</span></div>
-                <div class="info-row"><span>Notes</span><span>${order.notes || "—"}</span></div>
-              </div>
-            </div>
-            <div class="info-block">
-              <h4><i class="fas fa-box" style="margin-right:6px"></i>Items</h4>
-              <table class="data-table" style="margin-top:8px">
-                <thead><tr><th>Product</th><th>Price</th><th>Qty</th><th style="text-align:right">Total</th></tr></thead>
-                <tbody>
-                  ${(order.items || [])
-                    .map(
-                      (item) => `
-                    <tr>
-                      <td style="font-weight:500">${item.name}</td>
-                      <td>${formatCurrency(item.price)}</td>
-                      <td>×${item.quantity}</td>
-                      <td style="text-align:right;font-weight:600">${formatCurrency(item.total)}</td>
-                    </tr>
-                  `,
-                    )
-                    .join("")}
-                </tbody>
-                <tfoot>
-                  <tr><td colspan="3" style="text-align:right;color:var(--text3);font-size:12px">Subtotal</td><td style="text-align:right">${formatCurrency(order.subtotal)}</td></tr>
-                  <tr><td colspan="3" style="text-align:right;color:var(--text3);font-size:12px">Delivery</td><td style="text-align:right">${formatCurrency(order.deliveryCharge)}</td></tr>
-                  ${order.discount ? `<tr><td colspan="3" style="text-align:right;color:var(--rose);font-size:12px">Discount</td><td style="text-align:right;color:var(--rose)">-${formatCurrency(order.discount)}</td></tr>` : ""}
-                  <tr><td colspan="3" style="text-align:right;font-weight:700;font-size:14px">Total</td><td style="text-align:right;font-weight:800;font-size:18px;color:var(--lime);font-family:Syne,sans-serif">${formatCurrency(order.total)}</td></tr>
-                </tfoot>
-              </table>
-            </div>
-          </div>
-          <div class="modal-footer" style="justify-content:space-between">
-            <div style="display:flex;gap:8px">
-              <select class="inp" style="width:auto;font-size:12px" id="orderStatusUpdate">
-                ${["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"].map((s) => `<option value="${s}" ${order.orderStatus === s ? "selected" : ""}>${s.charAt(0).toUpperCase() + s.slice(1)}</option>`).join("")}
-              </select>
-              <button class="btn btn-primary btn-sm" onclick="updateStatusFromModal('${order._id}')"><i class="fas fa-check"></i> Update</button>
-            </div>
-            <button class="btn btn-ghost" onclick="closeModal()">Close</button>
-          </div>
-        </div>
-      </div>
-    `;
+            </div>`;
         } catch (e) {
           showToast(e.message, "error");
           closeModal();
@@ -2556,10 +2537,261 @@
       }
 
       async function updateStatusFromModal(id) {
-        const status = document.getElementById("orderStatusUpdate").value;
-        await updateOrderStatus(id, status);
-        await viewOrder(id);
-        loadOrdersList();
+        const btn = document.getElementById("modalUpdateBtn");
+        const select = document.getElementById("orderStatusUpdate");
+        const status = select.value;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        btn.disabled = true;
+        select.disabled = true;
+        try {
+          await updateOrderStatus(id, status);
+          await viewOrder(id); // refresh modal with new data
+          if (currentPage === "orders") loadOrdersList();
+        } catch (e) {
+          // error already shown by updateOrderStatus
+        } finally {
+          if (
+            btn &&
+            !btn.closest(".modal-box")?.closest("#modalContainer")?.children
+              .length === 0
+          ) {
+            btn.innerHTML = '<i class="fas fa-check"></i> Update Status';
+            btn.disabled = false;
+            select.disabled = false;
+          }
+        }
+      }
+
+      // ═══════════════════════════════════════════
+      // INVOICE
+      // ═══════════════════════════════════════════
+      async function openInvoiceModal(orderId) {
+        modal(
+          `<div class="modal-box wide"><div class="modal-header"><div><div class="modal-title">Loading invoice...</div></div><button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button></div><div class="modal-body" style="display:flex;justify-content:center;padding:48px"><div class="spinner"></div></div></div>`,
+        );
+        try {
+          const order = (await apiCall(`/orders/${orderId}`)).data;
+          const invoiceHtml = buildInvoiceHtml(order);
+          document.getElementById("modalContainer").innerHTML = `
+            <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+              <div class="modal-box wide">
+                <div class="modal-header">
+                  <div>
+                    <div class="modal-title">Invoice — ${order.orderNumber}</div>
+                    <div class="modal-sub">${formatFullDate(order.createdAt)}</div>
+                  </div>
+                  <div style="display:flex;gap:8px;align-items:center">
+                    <button class="btn btn-primary btn-sm" onclick="downloadInvoice('${order._id}')"><i class="fas fa-download"></i> Download PDF</button>
+                    <button class="btn btn-ghost btn-sm" onclick="printInvoice('${order._id}')"><i class="fas fa-print"></i> Print</button>
+                    <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+                  </div>
+                </div>
+                <div class="modal-body" style="background:var(--bg);padding:0">
+                  <div id="invoicePreviewContent" style="padding:32px">
+                    ${invoiceHtml}
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button class="btn btn-ghost" onclick="viewOrder('${order._id}')"><i class="fas fa-arrow-left"></i> Back to Order</button>
+                  <div style="display:flex;gap:8px">
+                    <button class="btn btn-ghost" onclick="printInvoice('${order._id}')"><i class="fas fa-print"></i> Print</button>
+                    <button class="btn btn-primary" onclick="downloadInvoice('${order._id}')"><i class="fas fa-download"></i> Download PDF</button>
+                  </div>
+                </div>
+              </div>
+            </div>`;
+          // Store order data for download
+          window._invoiceOrderCache = window._invoiceOrderCache || {};
+          window._invoiceOrderCache[order._id] = order;
+        } catch (e) {
+          showToast(e.message, "error");
+          closeModal();
+        }
+      }
+
+      function buildInvoiceHtml(order, forPrint = false) {
+        const bgColor = forPrint ? "#ffffff" : "#1e2328";
+        const cardBg = forPrint ? "#f9f9f9" : "#111416";
+        const textColor = forPrint ? "#1a1a1a" : "#e8ecef";
+        const textMuted = forPrint ? "#666" : "#8f9baa";
+        const borderColor = forPrint ? "#e5e7eb" : "rgba(255,255,255,0.07)";
+        const accentColor = forPrint ? "#5a3e00" : "#c6f135";
+        const accentBg = forPrint ? "#fef3c7" : "rgba(198,241,53,0.12)";
+
+        return `
+          <div style="font-family:'DM Sans',sans-serif;background:${bgColor};color:${textColor};max-width:720px;margin:0 auto;border-radius:16px;overflow:hidden;border:1px solid ${borderColor}">
+            <!-- Header -->
+            <div style="background:${forPrint ? "#1a1a1a" : "#0b0d0f"};padding:32px 36px;display:flex;align-items:center;justify-content:space-between">
+              <div style="display:flex;align-items:center;gap:14px">
+                <div style="width:48px;height:48px;background:#c6f135;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px">🌿</div>
+                <div>
+                  <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:#c6f135">Beeyond Harvest</div>
+                  <div style="font-size:12px;color:#8f9baa;margin-top:2px">beeyondharvestbd.com</div>
+                </div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#c6f135;letter-spacing:-1px">INVOICE</div>
+                <div style="font-size:13px;color:#8f9baa;margin-top:2px">${order.orderNumber}</div>
+              </div>
+            </div>
+            <!-- Info row -->
+            <div style="padding:24px 36px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;border-bottom:1px solid ${borderColor}">
+              <div>
+                <div style="font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:${textMuted};margin-bottom:8px">Bill To</div>
+                <div style="font-weight:600;font-size:14px;color:${textColor}">${order.customer?.name}</div>
+                <div style="font-size:12px;color:${textMuted};margin-top:2px">${order.customer?.phone}</div>
+                ${order.customer?.email ? `<div style="font-size:12px;color:${textMuted}">${order.customer.email}</div>` : ""}
+                <div style="font-size:12px;color:${textMuted};margin-top:4px">${[order.customer?.address?.street, order.customer?.address?.area, order.customer?.address?.city].filter(Boolean).join(", ") || "—"}</div>
+              </div>
+              <div>
+                <div style="font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:${textMuted};margin-bottom:8px">Invoice Details</div>
+                <div style="font-size:13px;color:${textColor}"><span style="color:${textMuted}">Invoice #: </span>${order.orderNumber}</div>
+                <div style="font-size:13px;color:${textColor};margin-top:4px"><span style="color:${textMuted}">Date: </span>${new Date(order.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}</div>
+                ${order.trackingNumber ? `<div style="font-size:13px;color:${textColor};margin-top:4px"><span style="color:${textMuted}">Tracking: </span>${order.trackingNumber}</div>` : ""}
+              </div>
+              <div>
+                <div style="font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:${textMuted};margin-bottom:8px">Payment</div>
+                <div style="font-size:13px;color:${textColor}"><span style="color:${textMuted}">Method: </span>${order.paymentMethod}</div>
+                <div style="margin-top:6px">
+                  <span style="background:${order.paymentStatus === "paid" ? "rgba(198,241,53,0.15)" : "rgba(245,166,35,0.15)"};color:${order.paymentStatus === "paid" ? "#c6f135" : "#f5a623"};padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700">${order.paymentStatus?.toUpperCase()}</span>
+                </div>
+                <div style="margin-top:6px">
+                  <span style="background:${order.orderStatus === "delivered" ? "rgba(198,241,53,0.15)" : order.orderStatus === "cancelled" ? "rgba(244,63,94,0.15)" : "rgba(56,189,248,0.15)"};color:${order.orderStatus === "delivered" ? "#c6f135" : order.orderStatus === "cancelled" ? "#f43f5e" : "#38bdf8"};padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700">${order.orderStatus?.toUpperCase()}</span>
+                </div>
+              </div>
+            </div>
+            <!-- Items table -->
+            <div style="padding:24px 36px">
+              <table style="width:100%;border-collapse:collapse">
+                <thead>
+                  <tr style="background:${accentBg}">
+                    <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:${accentColor};border-radius:8px 0 0 8px">#</th>
+                    <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:${accentColor}">Product</th>
+                    <th style="padding:10px 14px;text-align:center;font-size:11px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:${accentColor}">Qty</th>
+                    <th style="padding:10px 14px;text-align:right;font-size:11px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:${accentColor}">Unit Price</th>
+                    <th style="padding:10px 14px;text-align:right;font-size:11px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:${accentColor};border-radius:0 8px 8px 0">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${(order.items || [])
+                    .map(
+                      (item, i) => `
+                    <tr style="border-bottom:1px solid ${borderColor}">
+                      <td style="padding:12px 14px;font-size:12px;color:${textMuted}">${i + 1}</td>
+                      <td style="padding:12px 14px">
+                        <div style="font-weight:600;font-size:13px;color:${textColor}">${item.name}</div>
+                        ${item.sku ? `<div style="font-size:11px;color:${textMuted}">SKU: ${item.sku}</div>` : ""}
+                      </td>
+                      <td style="padding:12px 14px;text-align:center;font-size:13px;color:${textColor}">${item.quantity}</td>
+                      <td style="padding:12px 14px;text-align:right;font-size:13px;color:${textColor}">${formatCurrency(item.price)}</td>
+                      <td style="padding:12px 14px;text-align:right;font-size:13px;font-weight:600;color:${textColor}">${formatCurrency(item.total)}</td>
+                    </tr>`,
+                    )
+                    .join("")}
+                </tbody>
+              </table>
+            </div>
+            <!-- Totals -->
+            <div style="padding:0 36px 24px;display:flex;justify-content:flex-end">
+              <div style="width:280px">
+                <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid ${borderColor};font-size:13px">
+                  <span style="color:${textMuted}">Subtotal</span>
+                  <span style="color:${textColor};font-weight:500">${formatCurrency(order.subtotal)}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid ${borderColor};font-size:13px">
+                  <span style="color:${textMuted}">Delivery Charge</span>
+                  <span style="color:${textColor};font-weight:500">${formatCurrency(order.deliveryCharge)}</span>
+                </div>
+                ${
+                  order.discount
+                    ? `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid ${borderColor};font-size:13px">
+                  <span style="color:#f43f5e">Discount</span>
+                  <span style="color:#f43f5e;font-weight:500">-${formatCurrency(order.discount)}</span>
+                </div>`
+                    : ""
+                }
+                <div style="display:flex;justify-content:space-between;padding:14px 16px;background:${accentBg};border-radius:10px;margin-top:8px">
+                  <span style="font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:${accentColor}">TOTAL</span>
+                  <span style="font-family:'Syne',sans-serif;font-weight:800;font-size:20px;color:${accentColor}">${formatCurrency(order.total)}</span>
+                </div>
+              </div>
+            </div>
+            <!-- Notes -->
+            ${order.notes ? `<div style="padding:0 36px 24px"><div style="background:${cardBg};border:1px solid ${borderColor};border-radius:10px;padding:14px"><div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:${textMuted};margin-bottom:6px">Notes</div><div style="font-size:13px;color:${textColor}">${order.notes}</div></div></div>` : ""}
+            <!-- Footer -->
+            <div style="padding:20px 36px;border-top:1px solid ${borderColor};display:flex;align-items:center;justify-content:space-between">
+              <div style="font-size:11px;color:${textMuted}">Thank you for shopping with Beeyond Harvest 🍯</div>
+              <div style="font-size:11px;color:${textMuted}">Generated ${new Date().toLocaleDateString("en-GB")}</div>
+            </div>
+          </div>`;
+      }
+
+      function printInvoice(orderId) {
+        const order = window._invoiceOrderCache?.[orderId];
+        if (!order) {
+          showToast(
+            "Order data not available, reload invoice first",
+            "warning",
+          );
+          return;
+        }
+        const printArea = document.getElementById("invoicePrintArea");
+        printArea.style.display = "block";
+        printArea.innerHTML =
+          `<style>body{margin:0;padding:0;background:#fff}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}</style>` +
+          buildInvoiceHtml(order, true);
+        window.print();
+        setTimeout(() => {
+          printArea.style.display = "none";
+          printArea.innerHTML = "";
+        }, 1000);
+      }
+
+      async function downloadInvoice(orderId) {
+        const order = window._invoiceOrderCache?.[orderId];
+        if (!order) {
+          showToast(
+            "Order data not available, reload invoice first",
+            "warning",
+          );
+          return;
+        }
+
+        // Build a standalone HTML blob and use browser's print-to-PDF
+        const fullHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Invoice - ${order.orderNumber}</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: #fff; padding: 40px; }
+  @media print { body { padding: 0; } }
+</style>
+</head>
+<body>
+${buildInvoiceHtml(order, true)}
+<script>
+  window.onload = function() {
+    setTimeout(function() { window.print(); }, 800);
+  };
+<\/script>
+</body>
+</html>`;
+        const blob = new Blob([fullHtml], { type: "text/html;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `invoice-${order.orderNumber}.html`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast(
+          "Invoice downloaded — open file and print/save as PDF",
+          "info",
+        );
       }
 
       async function exportOrders() {
@@ -2601,9 +2833,9 @@
         }
       }
 
-      // ═══════════════════════════════════════════════════
+      // ═══════════════════════════════════════════
       // BANNERS
-      // ═══════════════════════════════════════════════════
+      // ═══════════════════════════════════════════
       async function loadBanners() {
         const c = document.getElementById("content");
         c.innerHTML = `<div class="section-header fade-up"><h2>Banners</h2><button class="btn btn-primary" onclick="openBannerModal()"><i class="fas fa-plus"></i> Add Banner</button></div><div id="bannersGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px" class="fade-up"><div style="display:flex;justify-content:center;align-items:center;height:200px;grid-column:1/-1"><div class="spinner"></div></div></div>`;
@@ -2613,26 +2845,25 @@
             ? banners
                 .map(
                   (b) => `
-      <div class="card" style="padding:0;overflow:hidden">
-        <div style="position:relative;height:200px">
-          <img src="${b.image?.url || b.image}" style="width:100%;height:100%;object-fit:cover">
-          <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.7),transparent)"></div>
-          <div style="position:absolute;bottom:16px;left:16px">
-            <div style="font-family:Syne,sans-serif;font-size:18px;font-weight:700;color:#fff">${b.title}</div>
-            ${b.subtitle ? `<div style="font-size:12px;color:rgba(255,255,255,.75)">${b.subtitle}</div>` : ""}
-          </div>
-          <div style="position:absolute;top:12px;right:12px;display:flex;gap:6px">
-            <button class="btn btn-ghost btn-sm btn-icon" onclick="editBanner('${b._id}')" style="background:rgba(0,0,0,.5);border-color:rgba(255,255,255,.2);color:#fff"><i class="fas fa-edit"></i></button>
-            <button class="btn btn-danger btn-sm btn-icon" onclick="deleteBanner('${b._id}')"><i class="fas fa-trash"></i></button>
-          </div>
-        </div>
-        <div style="padding:14px;display:flex;align-items:center;justify-content:space-between">
-          <span class="badge ${b.isActive ? "badge-lime" : "badge-rose"}">${b.isActive ? "Active" : "Inactive"}</span>
-          <span class="badge badge-sky">${(b.position || "").replace("_", " ")}</span>
-          ${b.link ? `<a href="${b.link}" target="_blank" class="badge badge-text" style="text-decoration:none"><i class="fas fa-link"></i> Link</a>` : ""}
-        </div>
-      </div>
-    `,
+              <div class="card" style="padding:0;overflow:hidden">
+                <div style="position:relative;height:200px">
+                  <img src="${b.image?.url || b.image}" style="width:100%;height:100%;object-fit:cover">
+                  <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.7),transparent)"></div>
+                  <div style="position:absolute;bottom:16px;left:16px">
+                    <div style="font-family:Syne,sans-serif;font-size:18px;font-weight:700;color:#fff">${b.title}</div>
+                    ${b.subtitle ? `<div style="font-size:12px;color:rgba(255,255,255,.75)">${b.subtitle}</div>` : ""}
+                  </div>
+                  <div style="position:absolute;top:12px;right:12px;display:flex;gap:6px">
+                    <button class="btn btn-ghost btn-sm btn-icon" onclick="editBanner('${b._id}')" style="background:rgba(0,0,0,.5);border-color:rgba(255,255,255,.2);color:#fff"><i class="fas fa-edit"></i></button>
+                    <button class="btn btn-danger btn-sm btn-icon" onclick="deleteBanner('${b._id}')"><i class="fas fa-trash"></i></button>
+                  </div>
+                </div>
+                <div style="padding:14px;display:flex;align-items:center;justify-content:space-between">
+                  <span class="badge ${b.isActive ? "badge-lime" : "badge-rose"}">${b.isActive ? "Active" : "Inactive"}</span>
+                  <span class="badge badge-sky">${(b.position || "").replace("_", " ")}</span>
+                  ${b.link ? `<a href="${b.link}" target="_blank" class="badge badge-text" style="text-decoration:none"><i class="fas fa-link"></i> Link</a>` : ""}
+                </div>
+              </div>`,
                 )
                 .join("")
             : '<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--text3)"><i class="fas fa-images" style="font-size:40px;margin-bottom:12px;display:block"></i>No banners yet</div>';
@@ -2649,46 +2880,40 @@
           } catch (e) {}
         }
         modal(`
-    <div class="modal-box">
-      <div class="modal-header">
-        <div><div class="modal-title">${id ? "Edit Banner" : "New Banner"}</div></div>
-        <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
-      </div>
-      <form id="bannerForm">
-        <div class="modal-body">
-          <div style="display:flex;flex-direction:column;gap:14px">
-            <div class="form-group"><label class="form-label">Title *</label><input class="inp" name="title" placeholder="Banner title" required value="${banner?.title || ""}"></div>
-            <div class="form-group"><label class="form-label">Subtitle</label><input class="inp" name="subtitle" placeholder="Optional subtitle" value="${banner?.subtitle || ""}"></div>
-            <div class="form-group"><label class="form-label">Link URL</label><input class="inp" name="link" type="url" placeholder="https://..." value="${banner?.link || ""}"></div>
-            <div class="form-group">
-              <label class="form-label">Position</label>
-              <select class="inp" name="position">
-                ${["home_top", "home_middle", "home_bottom"].map((p) => `<option value="${p}" ${banner?.position === p ? "selected" : ""}>${p.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}</option>`).join("")}
-              </select>
+          <div class="modal-box">
+            <div class="modal-header">
+              <div><div class="modal-title">${id ? "Edit Banner" : "New Banner"}</div></div>
+              <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
             </div>
-            <div class="form-group">
-              <label class="form-label">Banner Image ${!id ? "*" : ""}</label>
-              <div class="upload-zone" onclick="document.getElementById('bannerImg').click()">
-                <i class="fas fa-image"></i><p>Click to upload</p><span>Recommended: 1200×400px</span>
+            <form id="bannerForm">
+              <div class="modal-body">
+                <div style="display:flex;flex-direction:column;gap:14px">
+                  <div class="form-group"><label class="form-label">Title *</label><input class="inp" name="title" placeholder="Banner title" required value="${banner?.title || ""}"></div>
+                  <div class="form-group"><label class="form-label">Subtitle</label><input class="inp" name="subtitle" placeholder="Optional subtitle" value="${banner?.subtitle || ""}"></div>
+                  <div class="form-group"><label class="form-label">Link URL</label><input class="inp" name="link" type="url" placeholder="https://..." value="${banner?.link || ""}"></div>
+                  <div class="form-group">
+                    <label class="form-label">Position</label>
+                    <select class="inp" name="position">
+                      ${["home_top", "home_middle", "home_bottom"].map((p) => `<option value="${p}" ${banner?.position === p ? "selected" : ""}>${p.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}</option>`).join("")}
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Banner Image ${!id ? "*" : ""}</label>
+                    <div class="upload-zone" onclick="document.getElementById('bannerImg').click()"><i class="fas fa-image"></i><p>Click to upload</p><span>Recommended: 1200×400px</span></div>
+                    <input type="file" name="image" accept="image/*" id="bannerImg" ${!id ? "required" : ""} style="display:none">
+                    <div id="bannerPreview" style="margin-top:10px">
+                      ${banner?.image?.url ? `<img src="${banner.image.url}" style="width:100%;height:120px;object-fit:cover;border-radius:10px;border:1px solid var(--border)">` : banner?.image ? `<img src="${banner.image}" style="width:100%;height:120px;object-fit:cover;border-radius:10px">` : ""}
+                    </div>
+                  </div>
+                  <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;font-weight:500"><label class="toggle"><input type="checkbox" name="isActive" value="true" ${banner?.isActive !== false ? "checked" : ""}><span class="toggle-slider"></span></label>Active</label>
+                </div>
               </div>
-              <input type="file" name="image" accept="image/*" id="bannerImg" ${!id ? "required" : ""} style="display:none">
-              <div id="bannerPreview" style="margin-top:10px">
-                ${banner?.image?.url ? `<img src="${banner.image.url}" style="width:100%;height:120px;object-fit:cover;border-radius:10px;border:1px solid var(--border)">` : banner?.image ? `<img src="${banner.image}" style="width:100%;height:120px;object-fit:cover;border-radius:10px">` : ""}
+              <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="bannerBtn"><i class="fas fa-${id ? "save" : "plus"}"></i> ${id ? "Save" : "Create"}</button>
               </div>
-            </div>
-            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;font-weight:500">
-              <label class="toggle"><input type="checkbox" name="isActive" value="true" ${banner?.isActive !== false ? "checked" : ""}><span class="toggle-slider"></span></label>
-              Active
-            </label>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-          <button type="submit" class="btn btn-primary" id="bannerBtn"><i class="fas fa-${id ? "save" : "plus"}"></i> ${id ? "Save" : "Create"}</button>
-        </div>
-      </form>
-    </div>
-  `);
+            </form>
+          </div>`);
         document.getElementById("bannerImg").addEventListener("change", (e) => {
           if (e.target.files[0]) {
             const r = new FileReader();
@@ -2743,9 +2968,9 @@
         }
       }
 
-      // ═══════════════════════════════════════════════════
+      // ═══════════════════════════════════════════
       // SETTINGS
-      // ═══════════════════════════════════════════════════
+      // ═══════════════════════════════════════════
       async function loadSettings() {
         const admin = JSON.parse(localStorage.getItem("adminData") || "{}");
         const initials = (admin.name || "A")
@@ -2755,50 +2980,45 @@
           .toUpperCase()
           .slice(0, 2);
         document.getElementById("content").innerHTML = `
-    <div class="section-header fade-up"><h2>Settings</h2></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-      <div class="card fade-up">
-        <div class="card-title" style="margin-bottom:4px">Profile</div>
-        <div class="card-sub" style="margin-bottom:20px">Update your admin details</div>
-        <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;padding:16px;background:var(--bg);border-radius:12px;border:1px solid var(--border)">
-          <div style="width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,var(--lime),var(--teal));display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-size:20px;font-weight:800;color:#0b0d0f;flex-shrink:0">${initials}</div>
-          <div>
-            <div style="font-weight:700;font-size:16px">${admin.name || "Admin"}</div>
-            <div style="font-size:12px;color:var(--text3)">${admin.email || ""}</div>
-            <div style="margin-top:4px"><span class="badge badge-lime">${admin.role || "Admin"}</span></div>
-          </div>
-        </div>
-        <form id="profileForm" style="display:flex;flex-direction:column;gap:12px">
-          <div class="form-group"><label class="form-label">Full Name</label><input class="inp" name="name" value="${admin.name || ""}" placeholder="Your name"></div>
-          <div class="form-group"><label class="form-label">Email</label><input class="inp" value="${admin.email || ""}" readonly style="opacity:.6;cursor:not-allowed"></div>
-          <div class="form-group"><label class="form-label">New Password</label><input class="inp" name="password" type="password" placeholder="Leave blank to keep current"></div>
-          <div class="form-group"><label class="form-label">Confirm Password</label><input class="inp" name="confirmPassword" type="password" placeholder="Repeat new password"></div>
-          <button type="submit" class="btn btn-primary" id="profileBtn"><i class="fas fa-save"></i> Save Changes</button>
-        </form>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:16px">
-        <div class="card fade-up">
-          <div class="card-title" style="margin-bottom:16px">System Information</div>
-          <div class="info-block">
-            <div class="info-row"><span>API Version</span><span class="badge badge-lime">v1.0.0</span></div>
-            <div class="info-row"><span>Environment</span><span class="badge badge-amber">Development</span></div>
-            <div class="info-row"><span>Admin Role</span><span>${admin.role || "Admin"}</span></div>
-            <div class="info-row"><span>Last Login</span><span>${new Date().toLocaleString()}</span></div>
-            <div class="info-row"><span>API Status</span><span class="badge badge-lime"><i class="fas fa-circle" style="font-size:8px"></i> Online</span></div>
-          </div>
-        </div>
-        <div class="card fade-up">
-          <div class="card-title" style="margin-bottom:16px">Quick Actions</div>
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <button class="btn btn-ghost" onclick="loadPage('products')" style="justify-content:flex-start"><i class="fas fa-box-open" style="color:var(--teal)"></i> Manage Products</button>
-            <button class="btn btn-ghost" onclick="loadPage('orders')" style="justify-content:flex-start"><i class="fas fa-shopping-bag" style="color:var(--lime)"></i> View Orders</button>
-            <button class="btn btn-ghost" onclick="loadPage('categories')" style="justify-content:flex-start"><i class="fas fa-layer-group" style="color:var(--amber)"></i> Edit Categories</button>
-            <button class="btn btn-danger" onclick="logout()" style="justify-content:flex-start"><i class="fas fa-sign-out-alt"></i> Logout</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
+          <div class="section-header fade-up"><h2>Settings</h2></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div class="card fade-up">
+              <div class="card-title" style="margin-bottom:4px">Profile</div>
+              <div class="card-sub" style="margin-bottom:20px">Update your admin details</div>
+              <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;padding:16px;background:var(--bg);border-radius:12px;border:1px solid var(--border)">
+                <div style="width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,var(--lime),var(--teal));display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-size:20px;font-weight:800;color:#0b0d0f;flex-shrink:0">${initials}</div>
+                <div><div style="font-weight:700;font-size:16px">${admin.name || "Admin"}</div><div style="font-size:12px;color:var(--text3)">${admin.email || ""}</div><div style="margin-top:4px"><span class="badge badge-lime">${admin.role || "Admin"}</span></div></div>
+              </div>
+              <form id="profileForm" style="display:flex;flex-direction:column;gap:12px">
+                <div class="form-group"><label class="form-label">Full Name</label><input class="inp" name="name" value="${admin.name || ""}" placeholder="Your name"></div>
+                <div class="form-group"><label class="form-label">Email</label><input class="inp" value="${admin.email || ""}" readonly style="opacity:.6;cursor:not-allowed"></div>
+                <div class="form-group"><label class="form-label">New Password</label><input class="inp" name="password" type="password" placeholder="Leave blank to keep current"></div>
+                <div class="form-group"><label class="form-label">Confirm Password</label><input class="inp" name="confirmPassword" type="password" placeholder="Repeat new password"></div>
+                <button type="submit" class="btn btn-primary" id="profileBtn"><i class="fas fa-save"></i> Save Changes</button>
+              </form>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:16px">
+              <div class="card fade-up">
+                <div class="card-title" style="margin-bottom:16px">System Information</div>
+                <div class="info-block">
+                  <div class="info-row"><span>API Version</span><span class="badge badge-lime">v1.0.0</span></div>
+                  <div class="info-row"><span>Environment</span><span class="badge badge-amber">Development</span></div>
+                  <div class="info-row"><span>Admin Role</span><span>${admin.role || "Admin"}</span></div>
+                  <div class="info-row"><span>Last Login</span><span>${new Date().toLocaleString()}</span></div>
+                  <div class="info-row"><span>API Status</span><span class="badge badge-lime"><i class="fas fa-circle" style="font-size:8px"></i> Online</span></div>
+                </div>
+              </div>
+              <div class="card fade-up">
+                <div class="card-title" style="margin-bottom:16px">Quick Actions</div>
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  <button class="btn btn-ghost" onclick="loadPage('products')" style="justify-content:flex-start"><i class="fas fa-box-open" style="color:var(--teal)"></i> Manage Products</button>
+                  <button class="btn btn-ghost" onclick="loadPage('orders')" style="justify-content:flex-start"><i class="fas fa-shopping-bag" style="color:var(--lime)"></i> View Orders</button>
+                  <button class="btn btn-ghost" onclick="loadPage('categories')" style="justify-content:flex-start"><i class="fas fa-layer-group" style="color:var(--amber)"></i> Edit Categories</button>
+                  <button class="btn btn-danger" onclick="logout()" style="justify-content:flex-start"><i class="fas fa-sign-out-alt"></i> Logout</button>
+                </div>
+              </div>
+            </div>
+          </div>`;
         document.getElementById("profileForm").onsubmit = async (e) => {
           e.preventDefault();
           const btn = document.getElementById("profileBtn");
@@ -2843,9 +3063,9 @@
         };
       }
 
-      // ═══════════════════════════════════════════════════
+      // ═══════════════════════════════════════════
       // PAGINATION HELPER
-      // ═══════════════════════════════════════════════════
+      // ═══════════════════════════════════════════
       function renderPagination(containerId, current, total, onPage) {
         const el = document.getElementById(containerId);
         if (!el) return;
@@ -2874,9 +3094,9 @@
         el.innerHTML = html;
       }
 
-      // ═══════════════════════════════════════════════════
+      // ═══════════════════════════════════════════
       // GLOBAL SEARCH
-      // ═══════════════════════════════════════════════════
+      // ═══════════════════════════════════════════
       let searchTimeout;
       document
         .getElementById("globalSearch")
@@ -2923,9 +3143,9 @@
           }, 600);
         });
 
-      // ═══════════════════════════════════════════════════
+      // ═══════════════════════════════════════════
       // INIT
-      // ═══════════════════════════════════════════════════
+      // ═══════════════════════════════════════════
       if (!token) {
         location.href = "index.html";
       } else {
