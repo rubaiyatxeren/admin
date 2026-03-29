@@ -1,0 +1,137 @@
+/* Custom Animations */
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Dark Mode Styles */
+body.dark {
+  background-color: #1a202c;
+}
+
+body.dark .bg-white {
+  background-color: #2d3748;
+}
+
+body.dark .text-gray-800 {
+  color: #f7fafc;
+}
+
+body.dark .text-gray-600 {
+  color: #cbd5e0;
+}
+
+body.dark .border {
+  border-color: #4a5568;
+}
+
+/* Loading States */
+.loading {
+  position: relative;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.loading::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 30px;
+  height: 30px;
+  margin: -15px 0 0 -15px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Gradient Background */
+.gradient-bg {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Card Hover Effects */
+.card-hover {
+  transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-5px);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Table Styles */
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+table thead th {
+  position: sticky;
+  top: 0;
+  background: #f9fafb;
+}
+
+/* Form Focus Styles */
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  ring: 2px solid #667eea;
+  border-color: transparent;
+}
+
+/* Modal Animation */
+.modal-enter {
+  animation: modalEnter 0.3s ease-out;
+}
+
+@keyframes modalEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
