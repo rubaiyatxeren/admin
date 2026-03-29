@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Beeyond Harvest — Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <link
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
       rel="stylesheet"
@@ -2757,8 +2758,70 @@
           return;
         }
 
-        // Build a standalone HTML blob and use browser's print-to-PDF
-        const fullHtml = `<!DOCTYPE html>
+        const btn = document.getElementById("invoiceDownloadBtn");
+        const originalText = btn?.innerHTML || "Download PNG";
+
+        if (btn) {
+          btn.innerHTML =
+            '<i class="fas fa-spinner fa-spin"></i> Generating...';
+          btn.disabled = true;
+        }
+
+        try {
+          // Create a temporary container for the invoice
+          const tempContainer = document.createElement("div");
+          tempContainer.style.position = "absolute";
+          tempContainer.style.left = "-9999px";
+          tempContainer.style.top = "-9999px";
+          tempContainer.style.width = "800px";
+          tempContainer.style.padding = "40px";
+          tempContainer.style.background = "#ffffff";
+          document.body.appendChild(tempContainer);
+
+          // Generate invoice HTML with print styles
+          tempContainer.innerHTML = buildInvoiceHtml(order, true);
+
+          // Use html2canvas to convert to image
+          const canvas = await html2canvas(tempContainer, {
+            scale: 2, // Higher quality
+            backgroundColor: "#ffffff",
+            useCORS: true,
+            logging: false,
+            allowTaint: true,
+            imageTimeout: 0,
+            onclone: function (clonedDoc) {
+              // Ensure all images are loaded
+              const images = clonedDoc.querySelectorAll("img");
+              images.forEach((img) => {
+                if (!img.complete) {
+                  img.crossOrigin = "anonymous";
+                }
+              });
+            },
+          });
+
+          // Clean up temporary container
+          document.body.removeChild(tempContainer);
+
+          // Convert canvas to PNG and download
+          const pngUrl = canvas.toDataURL("image/png");
+          const a = document.createElement("a");
+          a.href = pngUrl;
+          a.download = `invoice-${order.orderNumber}.png`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+
+          showToast("Invoice downloaded as PNG!", "success");
+        } catch (error) {
+          console.error("Error generating PNG:", error);
+          showToast(
+            "Failed to generate PNG. Try downloading as HTML instead.",
+            "error",
+          );
+
+          // Fallback to HTML download
+          const fullHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -2772,26 +2835,27 @@
 </head>
 <body>
 ${buildInvoiceHtml(order, true)}
-<script>
-  window.onload = function() {
-    setTimeout(function() { window.print(); }, 800);
-  };
-<\/script>
 </body>
 </html>`;
-        const blob = new Blob([fullHtml], { type: "text/html;charset=utf-8" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `invoice-${order.orderNumber}.html`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        showToast(
-          "Invoice downloaded — open file and print/save as PDF",
-          "info",
-        );
+
+          const blob = new Blob([fullHtml], {
+            type: "text/html;charset=utf-8",
+          });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `invoice-${order.orderNumber}.html`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          showToast("Downloaded as HTML (PNG failed)", "info");
+        } finally {
+          if (btn) {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+          }
+        }
       }
 
       async function exportOrders() {
