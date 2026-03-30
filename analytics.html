@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Advanced Analytics - Beeyond Harvest</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/analytics.css" />
+  </head>
+  <body>
+    <div class="analytics-container">
+      <!-- Header -->
+      <div class="analytics-header">
+        <div class="header-left">
+          <button
+            class="back-btn"
+            onclick="window.location.href = 'index.html'"
+          >
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+          </button>
+          <h1><i class="fas fa-chart-line"></i> Advanced Analytics</h1>
+        </div>
+        <div class="header-right">
+          <button class="export-btn" id="exportAnalyticsBtn">
+            <i class="fas fa-download"></i> Export Report
+          </button>
+          <button class="refresh-btn" onclick="loadAllAnalytics()">
+            <i class="fas fa-sync-alt"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Date Range Filter -->
+      <div class="date-filter-card">
+        <div class="filter-group">
+          <label><i class="far fa-calendar-alt"></i> Start Date</label>
+          <input type="date" id="startDate" class="analytics-input" />
+        </div>
+        <div class="filter-group">
+          <label><i class="far fa-calendar-check"></i> End Date</label>
+          <input type="date" id="endDate" class="analytics-input" />
+        </div>
+        <div class="filter-group">
+          <label><i class="fas fa-chart-simple"></i> Comparison</label>
+          <select id="comparePeriod" class="analytics-input">
+            <option value="none">No Comparison</option>
+            <option value="previous">vs Previous Period</option>
+            <option value="last_year">vs Last Year</option>
+          </select>
+        </div>
+        <button class="apply-filter-btn" onclick="applyDateFilter()">
+          <i class="fas fa-filter"></i> Apply
+        </button>
+      </div>
+
+      <!-- KPI Cards with Trends -->
+      <div class="kpi-grid" id="kpiGrid">
+        <div class="kpi-card">
+          <div class="kpi-icon"><i class="fas fa-chart-line"></i></div>
+          <div class="kpi-value" id="totalRevenue">--</div>
+          <div class="kpi-label">Total Revenue</div>
+          <div class="kpi-trend" id="revenueTrend"></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon"><i class="fas fa-shopping-cart"></i></div>
+          <div class="kpi-value" id="totalOrders">--</div>
+          <div class="kpi-label">Total Orders</div>
+          <div class="kpi-trend" id="ordersTrend"></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon"><i class="fas fa-users"></i></div>
+          <div class="kpi-value" id="uniqueCustomers">--</div>
+          <div class="kpi-label">Unique Customers</div>
+          <div class="kpi-trend" id="customersTrend"></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon"><i class="fas fa-tachometer-alt"></i></div>
+          <div class="kpi-value" id="conversionRate">--</div>
+          <div class="kpi-label">Conversion Rate</div>
+          <div class="kpi-trend" id="conversionTrend"></div>
+        </div>
+      </div>
+
+      <!-- Charts Grid -->
+      <div class="charts-grid">
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3><i class="fas fa-chart-line"></i> Revenue Trend</h3>
+            <select
+              id="revenueChartType"
+              class="chart-type-select"
+              onchange="updateRevenueChartType()"
+            >
+              <option value="line">Line Chart</option>
+              <option value="bar">Bar Chart</option>
+            </select>
+          </div>
+          <canvas id="revenueChart" height="300"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3><i class="fas fa-chart-pie"></i> Category Performance</h3>
+          </div>
+          <canvas id="categoryChart" height="300"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3><i class="fas fa-clock"></i> Hourly Sales Heatmap</h3>
+          </div>
+          <canvas id="hourlyChart" height="300"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3><i class="fas fa-tag"></i> Top Products</h3>
+          </div>
+          <div id="topProductsList" class="top-products-list"></div>
+        </div>
+      </div>
+
+      <!-- Customer Insights -->
+      <div class="insights-grid">
+        <div class="insight-card">
+          <h3><i class="fas fa-user-plus"></i> New vs Returning</h3>
+          <canvas id="customerTypeChart" height="250"></canvas>
+        </div>
+        <div class="insight-card">
+          <h3><i class="fas fa-map-marker-alt"></i> Top Locations</h3>
+          <div id="topLocationsList" class="locations-list"></div>
+        </div>
+        <div class="insight-card">
+          <h3><i class="fas fa-hourglass-half"></i> Average Delivery Time</h3>
+          <div class="big-stat" id="avgDeliveryTime">--</div>
+          <div class="stat-subtitle">hours from order to delivery</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="js/analytics.js"></script>
+  </body>
+</html>
