@@ -4498,51 +4498,52 @@ ${buildInvoiceHtml(order, true)}
             }, 2000);
         }
       }
-      // Delivery Charge Management Functions
+
       async function loadDeliveryCharges() {
         const container = document.getElementById("deliveryChargesList");
         if (!container) return;
 
         try {
-          // ✅ Use /api/delivery-charges (without /orders)
-          const res = await apiCall("/delivery-charges");
+          // ✅ Fixed: Remove leading slash
+          const res = await apiCall("delivery-charges");
           const charges = res.data || [];
 
           if (charges.length === 0) {
             container.innerHTML = `
-                <div style="text-align: center; padding: 40px; color: var(--text3);">
-                    <i class="fas fa-truck" style="font-size: 40px; margin-bottom: 12px; display: block;"></i>
-                    No delivery charges configured. Add your first charge.
-                </div>
-            `;
+        <div style="text-align: center; padding: 40px; color: var(--text3);">
+          <i class="fas fa-truck" style="font-size: 40px; margin-bottom: 12px; display: block;"></i>
+          No delivery charges configured. Add your first charge.
+        </div>
+      `;
             return;
           }
 
           container.innerHTML = charges
             .map(
               (charge) => `
-            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border-radius: 12px; margin-bottom: 8px; border: 1px solid var(--border);">
-                <div style="flex: 1;">
-                    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                        <span style="font-weight: 600; font-size: 14px;">${charge.name === "inside_dhaka" ? "🏙️ Inside Dhaka" : charge.name === "outside_dhaka" ? "🚚 Outside Dhaka" : "📦 Default"}</span>
-                        <span class="badge ${charge.isActive ? "badge-lime" : "badge-rose"}">${charge.isActive ? "Active" : "Inactive"}</span>
-                        <span style="font-family: 'Syne', monospace; font-size: 18px; font-weight: 700; color: var(--lime);">৳${charge.amount}</span>
-                        ${charge.minOrderAmount > 0 ? `<span class="badge badge-amber">Min: ৳${charge.minOrderAmount}</span>` : ""}
-                    </div>
-                </div>
-                <div style="display: flex; gap: 8px;">
-                    <button class="btn btn-ghost btn-sm" onclick="editDeliveryCharge('${charge._id}')">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-danger btn-sm" onclick="deleteDeliveryCharge('${charge._id}')">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border-radius: 12px; margin-bottom: 8px; border: 1px solid var(--border);">
+          <div style="flex: 1;">
+            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+              <span style="font-weight: 600; font-size: 14px;">${charge.name === "inside_dhaka" ? "🏙️ Inside Dhaka" : charge.name === "outside_dhaka" ? "🚚 Outside Dhaka" : "📦 Default"}</span>
+              <span class="badge ${charge.isActive ? "badge-lime" : "badge-rose"}">${charge.isActive ? "Active" : "Inactive"}</span>
+              <span style="font-family: 'Syne', monospace; font-size: 18px; font-weight: 700; color: var(--lime);">৳${charge.amount}</span>
+              ${charge.minOrderAmount > 0 ? `<span class="badge badge-amber">Min: ৳${charge.minOrderAmount}</span>` : ""}
             </div>
-        `,
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-ghost btn-sm" onclick="editDeliveryCharge('${charge._id}')">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn btn-danger btn-sm" onclick="deleteDeliveryCharge('${charge._id}')">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      `,
             )
             .join("");
         } catch (error) {
+          console.error("Error loading delivery charges:", error);
           showToast("Failed to load delivery charges", "error");
         }
       }
@@ -4551,9 +4552,12 @@ ${buildInvoiceHtml(order, true)}
         let charge = null;
         if (id) {
           try {
-            const res = await apiCall(`/delivery-charges`);
+            // ✅ Fixed: Remove leading slash
+            const res = await apiCall("delivery-charges");
             charge = res.data.find((c) => c._id === id);
-          } catch (e) {}
+          } catch (e) {
+            console.error("Error fetching charge:", e);
+          }
         }
 
         modal(`
@@ -4566,56 +4570,45 @@ ${buildInvoiceHtml(order, true)}
         <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
       </div>
       <form id="deliveryChargeForm">
-        <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
-
+        <div class="modal-body">
           <div class="form-group">
             <label class="form-label">Zone Name</label>
-            <!-- ✅ FIX 1: Never disable — use readonly styling instead -->
-            <select class="inp" id="dcNameSelect" name="name" required
-              style="${id ? "opacity:0.6;pointer-events:none;" : ""}">
-              <option value="inside_dhaka"  ${charge?.name === "inside_dhaka" ? "selected" : ""}>Inside Dhaka</option>
+            <select class="inp" name="name" required ${id ? "disabled" : ""}>
+              <option value="inside_dhaka" ${charge?.name === "inside_dhaka" ? "selected" : ""}>Inside Dhaka</option>
               <option value="outside_dhaka" ${charge?.name === "outside_dhaka" ? "selected" : ""}>Outside Dhaka</option>
-              <option value="default"       ${charge?.name === "default" ? "selected" : ""}>Default (Fallback)</option>
+              <option value="default" ${charge?.name === "default" ? "selected" : ""}>Default (Fallback)</option>
             </select>
-            <div style="font-size:11px;color:var(--text3);margin-top:4px;line-height:1.6">
+            <div style="font-size: 11px; color: var(--text3); margin-top: 4px;">
               Inside Dhaka: For customers in Dhaka city<br>
               Outside Dhaka: For customers outside Dhaka<br>
               Default: Used when no other charge applies
             </div>
           </div>
-
+          
           <div class="form-group">
             <label class="form-label">Delivery Charge (৳)</label>
-            <input class="inp" name="amount" type="number" min="0" step="1"
-              required placeholder="e.g. 60" value="${charge?.amount ?? 60}">
+            <input class="inp" name="amount" type="number" step="1" required value="${charge?.amount || 60}">
           </div>
-
+          
           <div class="form-group">
             <label class="form-label">Minimum Order Amount (Optional)</label>
-            <input class="inp" name="minOrderAmount" type="number" min="0" step="1"
-              placeholder="0 = always applicable" value="${charge?.minOrderAmount ?? 0}">
-            <div style="font-size:11px;color:var(--text3);margin-top:4px">
-              Only apply this charge when order total exceeds this amount
+            <input class="inp" name="minOrderAmount" type="number" step="1" placeholder="0 = always applicable" value="${charge?.minOrderAmount || 0}">
+            <div style="font-size: 11px; color: var(--text3); margin-top: 4px;">
+              Only apply this charge when order total is above this amount
             </div>
           </div>
-
-          <!-- ✅ FIX 2: No nested <label> tags — use a <div> as outer wrapper -->
-          <div style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-top:4px">
+          
+          <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-top: 12px;">
             <label class="toggle">
-              <input type="checkbox" id="dcIsActive" name="isActive"
-                ${charge?.isActive !== false ? "checked" : ""}>
+              <input type="checkbox" name="isActive" value="true" ${charge?.isActive !== false ? "checked" : ""}>
               <span class="toggle-slider"></span>
             </label>
-            <span style="font-size:13px;font-weight:500">Active</span>
-          </div>
-
+            <span style="font-size: 13px; font-weight: 500;">Active</span>
+          </label>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-          <!-- ✅ FIX 3: Give submit button an id for loading state -->
-          <button type="submit" class="btn btn-primary" id="dcSubmitBtn">
-            <i class="fas fa-save"></i> Save Delivery Charge
-          </button>
+          <button type="submit" class="btn btn-primary">Save Delivery Charge</button>
         </div>
       </form>
     </div>
@@ -4623,49 +4616,26 @@ ${buildInvoiceHtml(order, true)}
 
         document.getElementById("deliveryChargeForm").onsubmit = async (e) => {
           e.preventDefault();
-          const btn = document.getElementById("dcSubmitBtn");
-
-          // ✅ FIX 1: Read select value directly from element (works even with pointer-events:none)
-          const nameValue = document.getElementById("dcNameSelect").value;
-          const amountValue = parseInt(e.target.amount.value);
-          const minOrderValue = parseInt(e.target.minOrderAmount.value) || 0;
-          // ✅ FIX 2: Read checkbox by id — reliable even with toggle wrapper
-          const isActiveValue = document.getElementById("dcIsActive").checked;
-
-          // ✅ FIX 3: Client-side validation before hitting API
-          if (!nameValue) {
-            showToast("Please select a zone", "error");
-            return;
-          }
-          if (isNaN(amountValue) || amountValue < 0) {
-            showToast("Please enter a valid delivery charge amount", "error");
-            return;
-          }
-
+          const formData = new FormData(e.target);
           const data = {
-            name: nameValue,
-            amount: amountValue,
-            minOrderAmount: minOrderValue,
-            isActive: isActiveValue,
+            name: formData.get("name"),
+            amount: parseInt(formData.get("amount")),
+            minOrderAmount: parseInt(formData.get("minOrderAmount")) || 0,
+            isActive: e.target.isActive?.checked || false,
           };
 
-          // ✅ FIX 3: Loading state on button
-          btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-          btn.disabled = true;
-
           try {
-            await apiCall("/delivery-charges", {
+            // ✅ Fixed: Remove leading slash
+            await apiCall("delivery-charges", {
               method: "POST",
               body: JSON.stringify(data),
             });
-            showToast("Delivery charge saved!", "success");
+            showToast("Delivery charge saved successfully!", "success");
             closeModal();
             loadDeliveryCharges();
           } catch (err) {
-            showToast(err.message, "error");
-          } finally {
-            btn.innerHTML = '<i class="fas fa-save"></i> Save Delivery Charge';
-            btn.disabled = false;
+            console.error("Error saving delivery charge:", err);
+            showToast(err.message || "Failed to save delivery charge", "error");
           }
         };
       }
@@ -4677,12 +4647,13 @@ ${buildInvoiceHtml(order, true)}
       async function deleteDeliveryCharge(id) {
         if (!confirm("Delete this delivery charge?")) return;
         try {
-          // ✅ Use /api/delivery-charges/${id}
-          await apiCall(`/delivery-charges/${id}`, { method: "DELETE" });
+          // ✅ Fixed: Remove leading slash
+          await apiCall(`delivery-charges/${id}`, { method: "DELETE" });
           showToast("Delivery charge deleted", "success");
           loadDeliveryCharges();
         } catch (err) {
-          showToast(err.message, "error");
+          console.error("Error deleting delivery charge:", err);
+          showToast(err.message || "Failed to delete delivery charge", "error");
         }
       }
 
