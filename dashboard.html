@@ -1570,6 +1570,17 @@
         </div>
         <a
           class="nav-link"
+          data-page="testing"
+          onclick="
+            loadPage('testing');
+            return false;
+          "
+          href="#"
+        >
+          <i class="fas fa-flask"></i> Load Testing
+        </a>
+        <a
+          class="nav-link"
           onclick="window.open('analytics.html', '_blank')"
           href="#"
         >
@@ -1959,6 +1970,7 @@
           orders: "Orders",
           banners: "Banners",
           settings: "Settings",
+          testing: "⚗️ Load Testing", // ← ADD THIS
         };
         document.getElementById("pageTitle").textContent = titles[page] || page;
         destroyCharts();
@@ -1969,6 +1981,7 @@
           orders: loadOrders,
           banners: loadBanners,
           settings: loadSettings,
+          testing: loadTesting, // ← ADD THIS
         };
         (pages[page] || loadDashboard)();
       }
@@ -4172,7 +4185,348 @@ ${buildInvoiceHtml(order, true)}
       document.head.appendChild(reportStyles);
 
       console.log("✅ Report Generator loaded - PNG reports with filters");
+      async function loadTesting() {
+        const c = document.getElementById("content");
+        c.innerHTML = `
+    <div class="section-header fade-up">
+      <h2>⚗️ Load Testing</h2>
+      <span class="badge badge-amber"><i class="fas fa-triangle-exclamation"></i> Dev Only</span>
+    </div>
 
+    <!-- ── Config Card ─────────────────────────────────── -->
+    <div class="card fade-up" style="margin-bottom:16px">
+      <div class="card-title" style="margin-bottom:4px">Test Configuration</div>
+      <div class="card-sub" style="margin-bottom:20px">Generate fake orders to stress-test your backend and admin panel</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px;align-items:end">
+
+        <div class="form-group">
+          <label class="form-label">Number of Orders</label>
+          <input class="inp" id="ltCount" type="number" min="1" max="1000" value="10" placeholder="10">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Batch Size</label>
+          <select class="inp" id="ltBatch">
+            <option value="10">10 (safe)</option>
+            <option value="25">25 (normal)</option>
+            <option value="50" selected>50 (fast)</option>
+            <option value="100">100 (stress)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Order Status Mix</label>
+          <select class="inp" id="ltStatus">
+            <option value="random">Random Mix</option>
+            <option value="pending">All Pending</option>
+            <option value="delivered">All Delivered</option>
+            <option value="cancelled">All Cancelled</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Send Emails?</label>
+          <select class="inp" id="ltEmails">
+            <option value="false" selected>No (faster)</option>
+            <option value="true">Yes (test email)</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap">
+        <button class="btn btn-primary" id="ltRunBtn" onclick="runLoadTest()">
+          <i class="fas fa-play"></i> Run Load Test
+        </button>
+        <button class="btn btn-ghost" onclick="runLoadTest(10)" title="Quick 10 orders">
+          <i class="fas fa-bolt"></i> Quick 10
+        </button>
+        <button class="btn btn-ghost" onclick="runLoadTest(100)" title="100 orders">
+          <i class="fas fa-gauge-high"></i> 100 Orders
+        </button>
+        <button class="btn btn-ghost" onclick="runLoadTest(500)" title="500 orders">
+          <i class="fas fa-fire"></i> 500 Orders
+        </button>
+        <button class="btn btn-danger" onclick="confirmCleanup()" style="margin-left:auto">
+          <i class="fas fa-trash"></i> Cleanup Test Orders
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Progress ─────────────────────────────────────── -->
+    <div class="card fade-up" id="ltProgressCard" style="margin-bottom:16px;display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div class="card-title">⏳ Running Test...</div>
+        <div id="ltTimer" style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--lime)">0.0s</div>
+      </div>
+      <div class="progress-bar-wrap" style="margin-bottom:8px">
+        <div class="progress-bar-fill" id="ltProgressBar" style="width:0%;transition:width .3s ease"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text3)">
+        <span id="ltProgressLabel">Preparing...</span>
+        <span id="ltProgressPct">0%</span>
+      </div>
+    </div>
+
+    <!-- ── Results ───────────────────────────────────────── -->
+    <div id="ltResults"></div>
+
+    <!-- ── History ───────────────────────────────────────── -->
+    <div class="card fade-up" style="margin-top:16px">
+      <div class="card-title" style="margin-bottom:4px">Test History</div>
+      <div class="card-sub" style="margin-bottom:16px">Recent runs this session</div>
+      <div id="ltHistory" style="display:flex;flex-direction:column;gap:8px">
+        <div style="text-align:center;padding:24px;color:var(--text3);font-size:13px">
+          <i class="fas fa-clock" style="margin-bottom:8px;display:block;font-size:24px"></i>
+          No tests run yet this session
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Presets ───────────────────────────────────────── -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:16px">
+      <div class="card fade-up" style="cursor:pointer;border-color:var(--lime)" onclick="applyPreset('smoke')">
+        <div style="font-size:24px;margin-bottom:8px">🧪</div>
+        <div class="card-title" style="color:var(--lime)">Smoke Test</div>
+        <div class="card-sub">10 orders — verify basics work</div>
+        <div style="margin-top:12px;font-size:11px;color:var(--text3)">Count: 10 · Batch: 10</div>
+      </div>
+      <div class="card fade-up" style="cursor:pointer;border-color:var(--amber)" onclick="applyPreset('load')">
+        <div style="font-size:24px;margin-bottom:8px">⚡</div>
+        <div class="card-title" style="color:var(--amber)">Load Test</div>
+        <div class="card-sub">200 orders — normal traffic simulation</div>
+        <div style="margin-top:12px;font-size:11px;color:var(--text3)">Count: 200 · Batch: 50</div>
+      </div>
+      <div class="card fade-up" style="cursor:pointer;border-color:var(--rose)" onclick="applyPreset('stress')">
+        <div style="font-size:24px;margin-bottom:8px">🔥</div>
+        <div class="card-title" style="color:var(--rose)">Stress Test</div>
+        <div class="card-sub">1000 orders — push to limits</div>
+        <div style="margin-top:12px;font-size:11px;color:var(--text3)">Count: 1000 · Batch: 100</div>
+      </div>
+    </div>`;
+
+        // Inject helpers into window scope so onclick attrs work
+        window._ltHistory = window._ltHistory || [];
+        renderLtHistory();
+      }
+
+      function applyPreset(type) {
+        const presets = {
+          smoke: { count: 10, batch: "10", status: "random" },
+          load: { count: 200, batch: "50", status: "random" },
+          stress: { count: 1000, batch: "100", status: "random" },
+        };
+        const p = presets[type];
+        if (!p) return;
+        document.getElementById("ltCount").value = p.count;
+        document.getElementById("ltBatch").value = p.batch;
+        document.getElementById("ltStatus").value = p.status;
+        showToast(`Preset applied: ${type}`, "info");
+      }
+
+      async function runLoadTest(quickCount = null) {
+        const count =
+          quickCount ||
+          parseInt(document.getElementById("ltCount").value) ||
+          10;
+        const sendEmails =
+          document.getElementById("ltEmails")?.value === "true";
+
+        if (count > 1000) {
+          showToast("Max 1000 orders per run", "warning");
+          return;
+        }
+
+        const btn = document.getElementById("ltRunBtn");
+        if (btn) {
+          btn.disabled = true;
+          btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Running...';
+        }
+
+        // Show progress
+        const progressCard = document.getElementById("ltProgressCard");
+        if (progressCard) progressCard.style.display = "";
+        setLtProgress(0, "Starting test...");
+
+        const startTime = Date.now();
+        let timerInterval = setInterval(() => {
+          const el = document.getElementById("ltTimer");
+          if (el)
+            el.textContent = ((Date.now() - startTime) / 1000).toFixed(1) + "s";
+        }, 100);
+
+        try {
+          setLtProgress(20, "Sending request to backend...");
+
+          const res = await apiCall("/orders/load-test", {
+            method: "POST",
+            body: JSON.stringify({ count, sendEmails }),
+          });
+
+          setLtProgress(100, "Complete!");
+          clearInterval(timerInterval);
+
+          const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
+          const summary = res.summary || {};
+
+          // Render results
+          document.getElementById("ltResults").innerHTML = `
+      <div class="card fade-up" style="border-color:${summary.failed > 0 ? "var(--amber)" : "var(--lime)"}">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+          <div style="width:48px;height:48px;border-radius:14px;background:${summary.failed > 0 ? "rgba(245,166,35,.15)" : "rgba(198,241,53,.15)"};display:flex;align-items:center;justify-content:center;font-size:22px">
+            ${summary.failed > 0 ? "⚠️" : "✅"}
+          </div>
+          <div>
+            <div class="card-title">Test Complete</div>
+            <div class="card-sub">${elapsed}s total · ${summary.rate || "N/A"}</div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+          <div style="background:var(--bg);border-radius:12px;padding:16px;text-align:center">
+            <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--lime)">${summary.created || 0}</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:4px">Created</div>
+          </div>
+          <div style="background:var(--bg);border-radius:12px;padding:16px;text-align:center">
+            <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--rose)">${summary.failed || 0}</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:4px">Failed</div>
+          </div>
+          <div style="background:var(--bg);border-radius:12px;padding:16px;text-align:center">
+            <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--sky)">${elapsed}s</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:4px">Duration</div>
+          </div>
+          <div style="background:var(--bg);border-radius:12px;padding:16px;text-align:center">
+            <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--amber)">${summary.rate || "—"}</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:4px">Throughput</div>
+          </div>
+        </div>
+
+        ${
+          res.errors?.length
+            ? `
+          <div style="background:rgba(244,63,94,.08);border:1px solid rgba(244,63,94,.2);border-radius:10px;padding:14px;margin-bottom:16px">
+            <div style="font-size:12px;font-weight:700;color:var(--rose);margin-bottom:8px"><i class="fas fa-circle-exclamation"></i> Errors (${res.errors.length})</div>
+            ${res.errors.map((e) => `<div style="font-size:11px;color:var(--text3);font-family:monospace;padding:2px 0">${e}</div>`).join("")}
+          </div>`
+            : ""
+        }
+
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-primary btn-sm" onclick="loadPage('orders')">
+            <i class="fas fa-eye"></i> View Orders
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="runLoadTest(${count})">
+            <i class="fas fa-redo"></i> Run Again
+          </button>
+          <button class="btn btn-danger btn-sm" onclick="confirmCleanup()" style="margin-left:auto">
+            <i class="fas fa-trash"></i> Cleanup Test Data
+          </button>
+        </div>
+      </div>`;
+
+          // Save to history
+          window._ltHistory = window._ltHistory || [];
+          window._ltHistory.unshift({
+            time: new Date().toLocaleTimeString(),
+            count,
+            created: summary.created || 0,
+            failed: summary.failed || 0,
+            elapsed,
+            rate: summary.rate || "—",
+          });
+          if (window._ltHistory.length > 10) window._ltHistory.pop();
+          renderLtHistory();
+
+          showToast(
+            `✅ ${summary.created} orders created in ${elapsed}s`,
+            "success",
+          );
+        } catch (err) {
+          clearInterval(timerInterval);
+          setLtProgress(0, "Failed");
+          if (progressCard) progressCard.style.display = "none";
+          document.getElementById("ltResults").innerHTML = `
+      <div class="card" style="border-color:var(--rose)">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="font-size:32px">❌</div>
+          <div>
+            <div class="card-title" style="color:var(--rose)">Test Failed</div>
+            <div class="card-sub">${err.message}</div>
+          </div>
+        </div>
+        <div style="margin-top:16px;padding:12px;background:var(--bg);border-radius:10px;font-size:12px;font-family:monospace;color:var(--text3)">
+          ${err.message}
+        </div>
+        <div style="margin-top:12px">
+          <button class="btn btn-ghost btn-sm" onclick="loadPage('testing')">
+            <i class="fas fa-rotate-right"></i> Reset
+          </button>
+        </div>
+      </div>`;
+          showToast(err.message, "error");
+        } finally {
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-play"></i> Run Load Test';
+          }
+          if (progressCard)
+            setTimeout(() => {
+              if (progressCard) progressCard.style.display = "none";
+            }, 2000);
+        }
+      }
+
+      function setLtProgress(pct, label) {
+        const bar = document.getElementById("ltProgressBar");
+        const lbl = document.getElementById("ltProgressLabel");
+        const pctEl = document.getElementById("ltProgressPct");
+        if (bar) bar.style.width = pct + "%";
+        if (lbl) lbl.textContent = label;
+        if (pctEl) pctEl.textContent = pct + "%";
+      }
+
+      function renderLtHistory() {
+        const el = document.getElementById("ltHistory");
+        if (!el) return;
+        const h = window._ltHistory || [];
+        if (!h.length) return;
+        el.innerHTML = h
+          .map(
+            (r) => `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border)">
+      <div style="font-size:12px;color:var(--text3);width:60px">${r.time}</div>
+      <div style="flex:1">
+        <span style="font-size:13px;font-weight:600">${r.count} orders requested</span>
+        <span style="font-size:11px;color:var(--text3);margin-left:8px">${r.elapsed}s · ${r.rate}</span>
+      </div>
+      <span class="badge badge-lime">${r.created} created</span>
+      ${r.failed > 0 ? `<span class="badge badge-rose">${r.failed} failed</span>` : ""}
+    </div>`,
+          )
+          .join("");
+      }
+
+      async function confirmCleanup() {
+        if (
+          !confirm(
+            "Delete ALL test orders? (emails ending in @loadtest.com)\n\nThis cannot be undone.",
+          )
+        )
+          return;
+        try {
+          // We call a cleanup endpoint — add this to your backend or use the filter
+          const res = await apiCall("/orders/load-test/cleanup", {
+            method: "DELETE",
+          });
+          showToast(`🧹 Cleaned up ${res.deleted || 0} test orders`, "success");
+          loadPage("testing");
+        } catch (err) {
+          // Fallback message if endpoint doesn't exist yet
+          showToast(
+            "Add DELETE /api/orders/load-test/cleanup to backend first",
+            "warning",
+          );
+        }
+      }
       // ═══════════════════════════════════════════
       // INIT
       // ═══════════════════════════════════════════
