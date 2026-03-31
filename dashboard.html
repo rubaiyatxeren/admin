@@ -3450,46 +3450,70 @@ ${buildInvoiceHtml(order, true)}
           .join("")
           .toUpperCase()
           .slice(0, 2);
+
         document.getElementById("content").innerHTML = `
-          <div class="section-header fade-up"><h2>Settings</h2></div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-            <div class="card fade-up">
-              <div class="card-title" style="margin-bottom:4px">Profile</div>
-              <div class="card-sub" style="margin-bottom:20px">Update your admin details</div>
-              <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;padding:16px;background:var(--bg);border-radius:12px;border:1px solid var(--border)">
-                <div style="width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,var(--lime),var(--teal));display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-size:20px;font-weight:800;color:#0b0d0f;flex-shrink:0">${initials}</div>
-                <div><div style="font-weight:700;font-size:16px">${admin.name || "Admin"}</div><div style="font-size:12px;color:var(--text3)">${admin.email || ""}</div><div style="margin-top:4px"><span class="badge badge-lime">${admin.role || "Admin"}</span></div></div>
-              </div>
-              <form id="profileForm" style="display:flex;flex-direction:column;gap:12px">
-                <div class="form-group"><label class="form-label">Full Name</label><input class="inp" name="name" value="${admin.name || ""}" placeholder="Your name"></div>
-                <div class="form-group"><label class="form-label">Email</label><input class="inp" value="${admin.email || ""}" readonly style="opacity:.6;cursor:not-allowed"></div>
-                <div class="form-group"><label class="form-label">New Password</label><input class="inp" name="password" type="password" placeholder="Leave blank to keep current"></div>
-                <div class="form-group"><label class="form-label">Confirm Password</label><input class="inp" name="confirmPassword" type="password" placeholder="Repeat new password"></div>
-                <button type="submit" class="btn btn-primary" id="profileBtn"><i class="fas fa-save"></i> Save Changes</button>
-              </form>
-            </div>
-            <div style="display:flex;flex-direction:column;gap:16px">
-              <div class="card fade-up">
-                <div class="card-title" style="margin-bottom:16px">System Information</div>
-                <div class="info-block">
-                  <div class="info-row"><span>API Version</span><span class="badge badge-lime">v1.0.0</span></div>
-                  <div class="info-row"><span>Environment</span><span class="badge badge-amber">Development</span></div>
-                  <div class="info-row"><span>Admin Role</span><span>${admin.role || "Admin"}</span></div>
-                  <div class="info-row"><span>Last Login</span><span>${new Date().toLocaleString()}</span></div>
-                  <div class="info-row"><span>API Status</span><span class="badge badge-lime"><i class="fas fa-circle" style="font-size:8px"></i> Online</span></div>
-                </div>
-              </div>
-              <div class="card fade-up">
-                <div class="card-title" style="margin-bottom:16px">Quick Actions</div>
-                <div style="display:flex;flex-direction:column;gap:8px">
-                  <button class="btn btn-ghost" onclick="loadPage('products')" style="justify-content:flex-start"><i class="fas fa-box-open" style="color:var(--teal)"></i> Manage Products</button>
-                  <button class="btn btn-ghost" onclick="loadPage('orders')" style="justify-content:flex-start"><i class="fas fa-shopping-bag" style="color:var(--lime)"></i> View Orders</button>
-                  <button class="btn btn-ghost" onclick="loadPage('categories')" style="justify-content:flex-start"><i class="fas fa-layer-group" style="color:var(--amber)"></i> Edit Categories</button>
-                  <button class="btn btn-danger" onclick="logout()" style="justify-content:flex-start"><i class="fas fa-sign-out-alt"></i> Logout</button>
-                </div>
-              </div>
-            </div>
-          </div>`;
+    <div class="section-header fade-up"><h2>Settings</h2></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="card fade-up">
+        <div class="card-title" style="margin-bottom:4px">Profile</div>
+        <div class="card-sub" style="margin-bottom:20px">Update your admin details</div>
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;padding:16px;background:var(--bg);border-radius:12px;border:1px solid var(--border)">
+          <div style="width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,var(--lime),var(--teal));display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-size:20px;font-weight:800;color:#0b0d0f;flex-shrink:0">${initials}</div>
+          <div><div style="font-weight:700;font-size:16px">${admin.name || "Admin"}</div><div style="font-size:12px;color:var(--text3)">${admin.email || ""}</div><div style="margin-top:4px"><span class="badge badge-lime">${admin.role || "Admin"}</span></div></div>
+        </div>
+        <form id="profileForm" style="display:flex;flex-direction:column;gap:12px">
+          <div class="form-group"><label class="form-label">Full Name</label><input class="inp" name="name" value="${admin.name || ""}" placeholder="Your name"></div>
+          <div class="form-group"><label class="form-label">Email</label><input class="inp" value="${admin.email || ""}" readonly style="opacity:.6;cursor:not-allowed"></div>
+          <div class="form-group"><label class="form-label">New Password</label><input class="inp" name="password" type="password" placeholder="Leave blank to keep current"></div>
+          <div class="form-group"><label class="form-label">Confirm Password</label><input class="inp" name="confirmPassword" type="password" placeholder="Repeat new password"></div>
+          <button type="submit" class="btn btn-primary" id="profileBtn"><i class="fas fa-save"></i> Save Changes</button>
+        </form>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="card fade-up">
+          <div class="card-title" style="margin-bottom:16px">System Information</div>
+          <div class="info-block">
+            <div class="info-row"><span>API Version</span><span class="badge badge-lime">v1.0.0</span></div>
+            <div class="info-row"><span>Environment</span><span class="badge badge-amber">Development</span></div>
+            <div class="info-row"><span>Admin Role</span><span>${admin.role || "Admin"}</span></div>
+            <div class="info-row"><span>Last Login</span><span>${new Date().toLocaleString()}</span></div>
+            <div class="info-row"><span>API Status</span><span class="badge badge-lime"><i class="fas fa-circle" style="font-size:8px"></i> Online</span></div>
+          </div>
+        </div>
+        
+        <!-- Delivery Charge Management Card -->
+        <div class="card fade-up">
+          <div class="card-title" style="margin-bottom: 16px;">
+            <i class="fas fa-truck"></i> Delivery Charge Management
+          </div>
+          <div class="card-sub" style="margin-bottom: 20px;">
+            Configure delivery charges based on location and order value
+          </div>
+          
+          <div id="deliveryChargesList"></div>
+          
+          <button class="btn btn-primary" onclick="openDeliveryChargeModal()" style="margin-top: 16px; width: 100%;">
+            <i class="fas fa-plus"></i> Add Delivery Charge
+          </button>
+        </div>
+        
+        <div class="card fade-up">
+          <div class="card-title" style="margin-bottom:16px">Quick Actions</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <button class="btn btn-ghost" onclick="loadPage('products')" style="justify-content:flex-start"><i class="fas fa-box-open" style="color:var(--teal)"></i> Manage Products</button>
+            <button class="btn btn-ghost" onclick="loadPage('orders')" style="justify-content:flex-start"><i class="fas fa-shopping-bag" style="color:var(--lime)"></i> View Orders</button>
+            <button class="btn btn-ghost" onclick="loadPage('categories')" style="justify-content:flex-start"><i class="fas fa-layer-group" style="color:var(--amber)"></i> Edit Categories</button>
+            <button class="btn btn-danger" onclick="logout()" style="justify-content:flex-start"><i class="fas fa-sign-out-alt"></i> Logout</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+        // ✅ ADD THIS LINE HERE - AFTER HTML IS RENDERED, BEFORE PROFILE FORM HANDLER
+        await loadDeliveryCharges();
+
+        // Profile form handler
         document.getElementById("profileForm").onsubmit = async (e) => {
           e.preventDefault();
           const btn = document.getElementById("profileBtn");
@@ -4472,6 +4496,193 @@ ${buildInvoiceHtml(order, true)}
             setTimeout(() => {
               if (progressCard) progressCard.style.display = "none";
             }, 2000);
+        }
+      }
+      // Delivery Charge Management Functions
+      async function loadDeliveryCharges() {
+        const container = document.getElementById("deliveryChargesList");
+        if (!container) return;
+
+        try {
+          // ✅ Use /api/delivery-charges (without /orders)
+          const res = await apiCall("/delivery-charges");
+          const charges = res.data || [];
+
+          if (charges.length === 0) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: var(--text3);">
+                    <i class="fas fa-truck" style="font-size: 40px; margin-bottom: 12px; display: block;"></i>
+                    No delivery charges configured. Add your first charge.
+                </div>
+            `;
+            return;
+          }
+
+          container.innerHTML = charges
+            .map(
+              (charge) => `
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border-radius: 12px; margin-bottom: 8px; border: 1px solid var(--border);">
+                <div style="flex: 1;">
+                    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                        <span style="font-weight: 600; font-size: 14px;">${charge.name === "inside_dhaka" ? "🏙️ Inside Dhaka" : charge.name === "outside_dhaka" ? "🚚 Outside Dhaka" : "📦 Default"}</span>
+                        <span class="badge ${charge.isActive ? "badge-lime" : "badge-rose"}">${charge.isActive ? "Active" : "Inactive"}</span>
+                        <span style="font-family: 'Syne', monospace; font-size: 18px; font-weight: 700; color: var(--lime);">৳${charge.amount}</span>
+                        ${charge.minOrderAmount > 0 ? `<span class="badge badge-amber">Min: ৳${charge.minOrderAmount}</span>` : ""}
+                    </div>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-ghost btn-sm" onclick="editDeliveryCharge('${charge._id}')">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteDeliveryCharge('${charge._id}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `,
+            )
+            .join("");
+        } catch (error) {
+          showToast("Failed to load delivery charges", "error");
+        }
+      }
+
+      async function openDeliveryChargeModal(id = null) {
+        let charge = null;
+        if (id) {
+          try {
+            const res = await apiCall(`/delivery-charges`);
+            charge = res.data.find((c) => c._id === id);
+          } catch (e) {}
+        }
+
+        modal(`
+    <div class="modal-box">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">${id ? "Edit" : "Add"} Delivery Charge</div>
+          <div class="modal-sub">Configure delivery fees for different zones</div>
+        </div>
+        <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+      </div>
+      <form id="deliveryChargeForm">
+        <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
+
+          <div class="form-group">
+            <label class="form-label">Zone Name</label>
+            <!-- ✅ FIX 1: Never disable — use readonly styling instead -->
+            <select class="inp" id="dcNameSelect" name="name" required
+              style="${id ? "opacity:0.6;pointer-events:none;" : ""}">
+              <option value="inside_dhaka"  ${charge?.name === "inside_dhaka" ? "selected" : ""}>Inside Dhaka</option>
+              <option value="outside_dhaka" ${charge?.name === "outside_dhaka" ? "selected" : ""}>Outside Dhaka</option>
+              <option value="default"       ${charge?.name === "default" ? "selected" : ""}>Default (Fallback)</option>
+            </select>
+            <div style="font-size:11px;color:var(--text3);margin-top:4px;line-height:1.6">
+              Inside Dhaka: For customers in Dhaka city<br>
+              Outside Dhaka: For customers outside Dhaka<br>
+              Default: Used when no other charge applies
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Delivery Charge (৳)</label>
+            <input class="inp" name="amount" type="number" min="0" step="1"
+              required placeholder="e.g. 60" value="${charge?.amount ?? 60}">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Minimum Order Amount (Optional)</label>
+            <input class="inp" name="minOrderAmount" type="number" min="0" step="1"
+              placeholder="0 = always applicable" value="${charge?.minOrderAmount ?? 0}">
+            <div style="font-size:11px;color:var(--text3);margin-top:4px">
+              Only apply this charge when order total exceeds this amount
+            </div>
+          </div>
+
+          <!-- ✅ FIX 2: No nested <label> tags — use a <div> as outer wrapper -->
+          <div style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-top:4px">
+            <label class="toggle">
+              <input type="checkbox" id="dcIsActive" name="isActive"
+                ${charge?.isActive !== false ? "checked" : ""}>
+              <span class="toggle-slider"></span>
+            </label>
+            <span style="font-size:13px;font-weight:500">Active</span>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+          <!-- ✅ FIX 3: Give submit button an id for loading state -->
+          <button type="submit" class="btn btn-primary" id="dcSubmitBtn">
+            <i class="fas fa-save"></i> Save Delivery Charge
+          </button>
+        </div>
+      </form>
+    </div>
+  `);
+
+        document.getElementById("deliveryChargeForm").onsubmit = async (e) => {
+          e.preventDefault();
+          const btn = document.getElementById("dcSubmitBtn");
+
+          // ✅ FIX 1: Read select value directly from element (works even with pointer-events:none)
+          const nameValue = document.getElementById("dcNameSelect").value;
+          const amountValue = parseInt(e.target.amount.value);
+          const minOrderValue = parseInt(e.target.minOrderAmount.value) || 0;
+          // ✅ FIX 2: Read checkbox by id — reliable even with toggle wrapper
+          const isActiveValue = document.getElementById("dcIsActive").checked;
+
+          // ✅ FIX 3: Client-side validation before hitting API
+          if (!nameValue) {
+            showToast("Please select a zone", "error");
+            return;
+          }
+          if (isNaN(amountValue) || amountValue < 0) {
+            showToast("Please enter a valid delivery charge amount", "error");
+            return;
+          }
+
+          const data = {
+            name: nameValue,
+            amount: amountValue,
+            minOrderAmount: minOrderValue,
+            isActive: isActiveValue,
+          };
+
+          // ✅ FIX 3: Loading state on button
+          btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+          btn.disabled = true;
+
+          try {
+            await apiCall("/delivery-charges", {
+              method: "POST",
+              body: JSON.stringify(data),
+            });
+            showToast("Delivery charge saved!", "success");
+            closeModal();
+            loadDeliveryCharges();
+          } catch (err) {
+            showToast(err.message, "error");
+          } finally {
+            btn.innerHTML = '<i class="fas fa-save"></i> Save Delivery Charge';
+            btn.disabled = false;
+          }
+        };
+      }
+
+      async function editDeliveryCharge(id) {
+        openDeliveryChargeModal(id);
+      }
+
+      async function deleteDeliveryCharge(id) {
+        if (!confirm("Delete this delivery charge?")) return;
+        try {
+          // ✅ Use /api/delivery-charges/${id}
+          await apiCall(`/delivery-charges/${id}`, { method: "DELETE" });
+          showToast("Delivery charge deleted", "success");
+          loadDeliveryCharges();
+        } catch (err) {
+          showToast(err.message, "error");
         }
       }
 
