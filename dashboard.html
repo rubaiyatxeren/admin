@@ -4505,7 +4505,7 @@ ${buildInvoiceHtml(order, true)}
 
         try {
           // ✅ Fixed: Remove leading slash
-          const res = await apiCall("delivery-charges");
+          const res = await apiCall("/delivery-charges");
           const charges = res.data || [];
 
           if (charges.length === 0) {
@@ -4553,7 +4553,7 @@ ${buildInvoiceHtml(order, true)}
         if (id) {
           try {
             // ✅ Fixed: Remove leading slash
-            const res = await apiCall("delivery-charges");
+            const res = await apiCall("/delivery-charges");
             charge = res.data.find((c) => c._id === id);
           } catch (e) {
             console.error("Error fetching charge:", e);
@@ -4626,7 +4626,7 @@ ${buildInvoiceHtml(order, true)}
 
           try {
             // ✅ Fixed: Remove leading slash
-            await apiCall("delivery-charges", {
+            await apiCall("/delivery-charges", {
               method: "POST",
               body: JSON.stringify(data),
             });
@@ -4648,7 +4648,7 @@ ${buildInvoiceHtml(order, true)}
         if (!confirm("Delete this delivery charge?")) return;
         try {
           // ✅ Fixed: Remove leading slash
-          await apiCall(`delivery-charges/${id}`, { method: "DELETE" });
+          await apiCall(`/delivery-charges/${id}`, { method: "DELETE" });
           showToast("Delivery charge deleted", "success");
           loadDeliveryCharges();
         } catch (err) {
