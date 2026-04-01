@@ -2061,48 +2061,52 @@
       // ═══════════════════════════════════════════
       async function loadDashboard() {
         const c = document.getElementById("content");
+
+        // First, render the skeleton/loading state immediately
         c.innerHTML = `
-                <div class="fade-up">
-                  <div class="section-header"><h2>Overview</h2><div style="display:flex;gap:8px"><button class="btn btn-ghost btn-sm" onclick="loadSalesChartPeriod('weekly')">Weekly</button><button class="btn btn-ghost btn-sm active" onclick="loadSalesChartPeriod('monthly')">Monthly</button></div></div>
-                  <div class="stat-grid" id="statsGrid">
-                    ${[1, 2, 3, 4].map((i) => `<div class="stat-card fade-up stagger-${i}"><div class="skel" style="height:42px;width:42px;border-radius:12px;margin-bottom:16px"></div><div class="skel" style="height:28px;width:80%;margin-bottom:8px"></div><div class="skel" style="height:14px;width:50%"></div></div>`).join("")}
-                  </div>
-                </div>
-                <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:16px;margin-top:20px">
-                  <div class="card fade-up stagger-3">
-                    <div class="section-header" style="margin-bottom:20px">
-                      <div><div class="card-title">Revenue Overview</div><div class="card-sub">Delivered orders only</div></div>
-                      <select class="inp" style="width:auto;font-size:12px;padding:6px 10px" id="chartPeriodSelect" onchange="loadSalesChartPeriod(this.value)">
-                        <option value="monthly">Monthly</option>
-                        <option value="weekly">Weekly</option>
-                      </select>
-                    </div>
-                    <div class="chart-wrap"><canvas id="salesChart" height="340"></canvas></div>
-                  </div>
-                  <div class="card fade-up stagger-4">
-                    <div class="card-title" style="margin-bottom:4px">Recent Orders</div>
-                    <div class="card-sub" style="margin-bottom:16px">Latest activity</div>
-                    <div id="recentOrdersList"><div style="display:flex;justify-content:center;padding:32px"><div class="spinner"></div></div></div>
-                    <a href="#" onclick="loadPage('orders');return false;" style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--lime);margin-top:14px;text-decoration:none">View all orders <i class="fas fa-arrow-right"></i></a>
-                  </div>
-                </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
-                  <div class="card fade-up stagger-5">
-                    <div class="card-title" style="margin-bottom:4px">Top Selling Products</div>
-                    <div class="card-sub" style="margin-bottom:16px">By revenue</div>
-                    <div id="topProductsList"></div>
-                  </div>
-                  <div class="card fade-up stagger-5">
-                    <div class="card-title" style="margin-bottom:4px">Order Status Breakdown</div>
-                    <div class="card-sub" style="margin-bottom:16px">Current distribution</div>
-                    <div class="chart-wrap"><canvas id="statusChart" height="200"></canvas></div>
-                  </div>
-                </div>`;
+    <div class="fade-up">
+      <div class="section-header"><h2>Overview</h2><div style="display:flex;gap:8px"><button class="btn btn-ghost btn-sm" onclick="loadSalesChartPeriod('weekly')">Weekly</button><button class="btn btn-ghost btn-sm active" onclick="loadSalesChartPeriod('monthly')">Monthly</button></div></div>
+      <div class="stat-grid" id="statsGrid">
+        ${[1, 2, 3, 4].map((i) => `<div class="stat-card fade-up stagger-${i}"><div class="skel" style="height:42px;width:42px;border-radius:12px;margin-bottom:16px"></div><div class="skel" style="height:28px;width:80%;margin-bottom:8px"></div><div class="skel" style="height:14px;width:50%"></div></div>`).join("")}
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:16px;margin-top:20px">
+      <div class="card fade-up stagger-3">
+        <div class="section-header" style="margin-bottom:20px">
+          <div><div class="card-title">Revenue Overview</div><div class="card-sub">Delivered orders only</div></div>
+          <select class="inp" style="width:auto;font-size:12px;padding:6px 10px" id="chartPeriodSelect" onchange="loadSalesChartPeriod(this.value)">
+            <option value="monthly">Monthly</option>
+            <option value="weekly">Weekly</option>
+          </select>
+        </div>
+        <div class="chart-wrap"><canvas id="salesChart" height="340"></canvas></div>
+      </div>
+      <div class="card fade-up stagger-4">
+        <div class="card-title" style="margin-bottom:4px">Recent Orders</div>
+        <div class="card-sub" style="margin-bottom:16px">Latest activity</div>
+        <div id="recentOrdersList"><div style="display:flex;justify-content:center;padding:32px"><div class="spinner"></div></div></div>
+        <a href="#" onclick="loadPage('orders');return false;" style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--lime);margin-top:14px;text-decoration:none">View all orders <i class="fas fa-arrow-right"></i></a>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
+      <div class="card fade-up stagger-5">
+        <div class="card-title" style="margin-bottom:4px">Top Selling Products</div>
+        <div class="card-sub" style="margin-bottom:16px">By revenue</div>
+        <div id="topProductsList"></div>
+      </div>
+      <div class="card fade-up stagger-5">
+        <div class="card-title" style="margin-bottom:4px">Order Status Breakdown</div>
+        <div class="card-sub" style="margin-bottom:16px">Current distribution</div>
+        <div class="chart-wrap"><canvas id="statusChart" height="200"></canvas></div>
+      </div>
+    </div>`;
+
         try {
           const [stats, orders] = await Promise.all([
             apiCall("/dashboard/stats"),
             apiCall("/orders?limit=1000"),
           ]);
+
           const s = stats.data;
           const allOrders = orders.data || [];
           const delivered = allOrders.filter(
@@ -2112,59 +2116,68 @@
           const pending = allOrders.filter(
             (o) => o.orderStatus === "pending",
           ).length;
+
           if (pending > 0) {
             const pb = document.getElementById("pendingBadge");
             pb.textContent = pending;
             pb.style.display = "";
             document.getElementById("notifDot").style.display = "";
           }
+
+          // Update stats grid
           document.getElementById("statsGrid").innerHTML = `
-                  ${statCard("Total Revenue", formatCurrency(totalRevenue), "fa-bangladeshi-taka-sign", "#c6f135", "rgba(198,241,53,.15)", "Delivered orders", "up", "dashboard")}
-                  ${statCard("Total Orders", s.totalOrders || 0, "fa-shopping-bag", "#38bdf8", "rgba(56,189,248,.15)", `${pending} pending`, pending > 0 ? "down" : "up", "orders")}
-                  ${statCard("Products", s.totalProducts || 0, "fa-box-open", "#2dd4bf", "rgba(45,212,191,.15)", `${s.lowStockProducts || 0} low stock`, s.lowStockProducts > 0 ? "down" : "up", "products")}
-                  ${statCard("Delivered", s.completedOrders || 0, "fa-circle-check", "#f5a623", "rgba(245,166,35,.15)", "Completed orders", "up", "orders")}`;
+      ${statCard("Total Revenue", formatCurrency(totalRevenue), "fa-bangladeshi-taka-sign", "#c6f135", "rgba(198,241,53,.15)", "Delivered orders", "up", "dashboard")}
+      ${statCard("Total Orders", s.totalOrders || 0, "fa-shopping-bag", "#38bdf8", "rgba(56,189,248,.15)", `${pending} pending`, pending > 0 ? "down" : "up", "orders")}
+      ${statCard("Products", s.totalProducts || 0, "fa-box-open", "#2dd4bf", "rgba(45,212,191,.15)", `${s.lowStockProducts || 0} low stock`, s.lowStockProducts > 0 ? "down" : "up", "products")}
+      ${statCard("Delivered", s.completedOrders || 0, "fa-circle-check", "#f5a623", "rgba(245,166,35,.15)", "Completed orders", "up", "orders")}`;
+
+          // Update recent orders
           const recent = allOrders.slice(0, 6);
           document.getElementById("recentOrdersList").innerHTML = recent.length
             ? recent
                 .map(
                   (o) => `
-                    <div onclick="viewOrder('${o._id}')" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer">
-                      <div style="width:32px;height:32px;border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                        <i class="fas fa-receipt" style="font-size:12px;color:var(--text3)"></i>
-                      </div>
-                      <div style="flex:1;overflow:hidden">
-                        <div style="font-size:13px;font-weight:600">${o.orderNumber}</div>
-                        <div style="font-size:11px;color:var(--text3)">${o.customer?.name}</div>
-                      </div>
-                      <div style="text-align:right">
-                        <div style="font-size:13px;font-weight:700;color:var(--lime)">${formatCurrency(o.total)}</div>
-                        ${statusBadge(o.orderStatus)}
-                      </div>
-                    </div>`,
+        <div onclick="viewOrder('${o._id}')" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer">
+          <div style="width:32px;height:32px;border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <i class="fas fa-receipt" style="font-size:12px;color:var(--text3)"></i>
+          </div>
+          <div style="flex:1;overflow:hidden">
+            <div style="font-size:13px;font-weight:600">${o.orderNumber}</div>
+            <div style="font-size:11px;color:var(--text3)">${o.customer?.name}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:13px;font-weight:700;color:var(--lime)">${formatCurrency(o.total)}</div>
+            ${statusBadge(o.orderStatus)}
+          </div>
+        </div>`,
                 )
                 .join("")
             : '<p style="color:var(--text3);font-size:13px;text-align:center;padding:24px">No orders yet</p>';
+
+          // Update top products
           const top = s.topProducts || [];
           const maxRev = Math.max(...top.map((p) => p.revenue || 0), 1);
           document.getElementById("topProductsList").innerHTML = top.length
             ? top
                 .map(
                   (p, i) => `
-                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
-                      <div style="font-family:Syne,sans-serif;font-size:16px;font-weight:800;color:var(--text3);width:20px;text-align:right">${i + 1}</div>
-                      <img src="${p.product?.images?.[0]?.url || "https://via.placeholder.com/40x40?text=?"}" style="width:40px;height:40px;border-radius:8px;object-fit:cover;border:1px solid var(--border)">
-                      <div style="flex:1">
-                        <div style="font-size:13px;font-weight:600;margin-bottom:4px">${p.product?.name}</div>
-                        <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${Math.round((p.revenue / maxRev) * 100)}%"></div></div>
-                      </div>
-                      <div style="text-align:right;flex-shrink:0">
-                        <div style="font-size:13px;font-weight:700;color:var(--lime)">${formatCurrency(p.revenue)}</div>
-                        <div style="font-size:11px;color:var(--text3)">${p.totalSold} sold</div>
-                      </div>
-                    </div>`,
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+          <div style="font-family:Syne,sans-serif;font-size:16px;font-weight:800;color:var(--text3);width:20px;text-align:right">${i + 1}</div>
+          <img src="${p.product?.images?.[0]?.url || "https://via.placeholder.com/40x40?text=?"}" style="width:40px;height:40px;border-radius:8px;object-fit:cover;border:1px solid var(--border)">
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:600;margin-bottom:4px">${p.product?.name}</div>
+            <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${Math.round((p.revenue / maxRev) * 100)}%"></div></div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-size:13px;font-weight:700;color:var(--lime)">${formatCurrency(p.revenue)}</div>
+            <div style="font-size:11px;color:var(--text3)">${p.totalSold} sold</div>
+          </div>
+        </div>`,
                 )
                 .join("")
             : '<p style="color:var(--text3);font-size:13px;text-align:center;padding:24px">No sales data yet</p>';
+
+          // Update status chart
           const statusCounts = {};
           allOrders.forEach((o) => {
             statusCounts[o.orderStatus] =
@@ -2194,6 +2207,7 @@
               },
               options: {
                 responsive: true,
+                maintainAspectRatio: true,
                 cutout: "72%",
                 plugins: {
                   legend: {
@@ -2209,9 +2223,19 @@
             });
             activeCharts.push(ch);
           }
+
+          // Load sales chart
           await loadSalesChartPeriod("monthly");
         } catch (e) {
           showToast(e.message, "error");
+          // Show error state in dashboard
+          document.getElementById("statsGrid").innerHTML = `
+      <div class="card" style="grid-column:1/-1;text-align:center;padding:48px">
+        <i class="fas fa-exclamation-triangle" style="font-size:48px;color:var(--rose);margin-bottom:16px;display:block"></i>
+        <div class="card-title">Failed to load dashboard data</div>
+        <div class="card-sub">${e.message}</div>
+        <button class="btn btn-primary" style="margin-top:16px" onclick="loadPage('dashboard')">Retry</button>
+      </div>`;
         }
       }
 
@@ -3509,110 +3533,115 @@
           .slice(0, 2);
 
         document.getElementById("content").innerHTML = `
-          <div class="section-header fade-up"><h2>Settings</h2></div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-            <div class="card fade-up">
-              <div class="card-title" style="margin-bottom:4px">Profile</div>
-              <div class="card-sub" style="margin-bottom:20px">Update your admin details</div>
-              <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;padding:16px;background:var(--bg);border-radius:12px;border:1px solid var(--border)">
-                <div style="width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,var(--lime),var(--teal));display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-size:20px;font-weight:800;color:#0b0d0f;flex-shrink:0">${initials}</div>
-                <div><div style="font-weight:700;font-size:16px">${admin.name || "Admin"}</div><div style="font-size:12px;color:var(--text3)">${admin.email || ""}</div><div style="margin-top:4px"><span class="badge badge-lime">${admin.role || "Admin"}</span></div></div>
-              </div>
-              <form id="profileForm" style="display:flex;flex-direction:column;gap:12px">
-                <div class="form-group"><label class="form-label">Full Name</label><input class="inp" name="name" value="${admin.name || ""}" placeholder="Your name"></div>
-                <div class="form-group"><label class="form-label">Email</label><input class="inp" value="${admin.email || ""}" readonly style="opacity:.6;cursor:not-allowed"></div>
-                <div class="form-group"><label class="form-label">New Password</label><input class="inp" name="password" type="password" placeholder="Leave blank to keep current"></div>
-                <div class="form-group"><label class="form-label">Confirm Password</label><input class="inp" name="confirmPassword" type="password" placeholder="Repeat new password"></div>
-                <button type="submit" class="btn btn-primary" id="profileBtn"><i class="fas fa-save"></i> Save Changes</button>
-              </form>
-            </div>
-            <div style="display:flex;flex-direction:column;gap:16px">
-              <div class="card fade-up">
-                <div class="card-title" style="margin-bottom:16px">System Information</div>
-                <div class="info-block">
-                  <div class="info-row"><span>API Version</span><span class="badge badge-lime">v1.0.0</span></div>
-                  <div class="info-row"><span>Environment</span><span class="badge badge-amber">Development</span></div>
-                  <div class="info-row"><span>Admin Role</span><span>${admin.role || "Admin"}</span></div>
-                  <div class="info-row"><span>Last Login</span><span>${new Date().toLocaleString()}</span></div>
-                  <div class="info-row"><span>API Status</span><span class="badge badge-lime"><i class="fas fa-circle" style="font-size:8px"></i> Online</span></div>
-                </div>
-              </div>
-
-              <!-- Delivery Charge Management Card -->
-              <div class="card fade-up">
-                <div class="card-title" style="margin-bottom: 16px;">
-                  <i class="fas fa-truck"></i> Delivery Charge Management
-                </div>
-                <div class="card-sub" style="margin-bottom: 20px;">
-                  Configure delivery charges based on location and order value
-                </div>
-
-                <div id="deliveryChargesList"></div>
-
-                <button class="btn btn-primary" onclick="openDeliveryChargeModal()" style="margin-top: 16px; width: 100%;">
-                  <i class="fas fa-plus"></i> Add Delivery Charge
-                </button>
-              </div>
-
-              <div class="card fade-up">
-                <div class="card-title" style="margin-bottom:16px">Quick Actions</div>
-                <div style="display:flex;flex-direction:column;gap:8px">
-                  <button class="btn btn-ghost" onclick="loadPage('products')" style="justify-content:flex-start"><i class="fas fa-box-open" style="color:var(--teal)"></i> Manage Products</button>
-                  <button class="btn btn-ghost" onclick="loadPage('orders')" style="justify-content:flex-start"><i class="fas fa-shopping-bag" style="color:var(--lime)"></i> View Orders</button>
-                  <button class="btn btn-ghost" onclick="loadPage('categories')" style="justify-content:flex-start"><i class="fas fa-layer-group" style="color:var(--amber)"></i> Edit Categories</button>
-                  <button class="btn btn-danger" onclick="logout()" style="justify-content:flex-start"><i class="fas fa-sign-out-alt"></i> Logout</button>
-                </div>
-              </div>
-            </div>
+    <div class="section-header fade-up"><h2>Settings</h2></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="card fade-up">
+        <div class="card-title" style="margin-bottom:4px">Profile</div>
+        <div class="card-sub" style="margin-bottom:20px">Update your admin details</div>
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;padding:16px;background:var(--bg);border-radius:12px;border:1px solid var(--border)">
+          <div style="width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,var(--lime),var(--teal));display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-size:20px;font-weight:800;color:#0b0d0f;flex-shrink:0">${initials}</div>
+          <div><div style="font-weight:700;font-size:16px">${admin.name || "Admin"}</div><div style="font-size:12px;color:var(--text3)">${admin.email || ""}</div><div style="margin-top:4px"><span class="badge badge-lime">${admin.role || "Admin"}</span></div></div>
+        </div>
+        <form id="profileForm" style="display:flex;flex-direction:column;gap:12px">
+          <div class="form-group"><label class="form-label">Full Name</label><input class="inp" name="name" value="${admin.name || ""}" placeholder="Your name"></div>
+          <div class="form-group"><label class="form-label">Email</label><input class="inp" value="${admin.email || ""}" readonly style="opacity:.6;cursor:not-allowed"></div>
+          <div class="form-group"><label class="form-label">New Password</label><input class="inp" name="password" type="password" placeholder="Leave blank to keep current"></div>
+          <div class="form-group"><label class="form-label">Confirm Password</label><input class="inp" name="confirmPassword" type="password" placeholder="Repeat new password"></div>
+          <button type="submit" class="btn btn-primary" id="profileBtn"><i class="fas fa-save"></i> Save Changes</button>
+        </form>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="card fade-up">
+          <div class="card-title" style="margin-bottom:16px">System Information</div>
+          <div class="info-block">
+            <div class="info-row"><span>API Version</span><span class="badge badge-lime">v1.0.0</span></div>
+            <div class="info-row"><span>Environment</span><span class="badge badge-amber">Development</span></div>
+            <div class="info-row"><span>Admin Role</span><span>${admin.role || "Admin"}</span></div>
+            <div class="info-row"><span>Last Login</span><span>${new Date().toLocaleString()}</span></div>
+            <div class="info-row"><span>API Status</span><span class="badge badge-lime"><i class="fas fa-circle" style="font-size:8px"></i> Online</span></div>
           </div>
-        `;
+        </div>
 
-        // ✅ ADD THIS LINE HERE - AFTER HTML IS RENDERED, BEFORE PROFILE FORM HANDLER
+        <!-- Delivery Charge Management Card -->
+        <div class="card fade-up">
+          <div class="card-title" style="margin-bottom: 16px;">
+            <i class="fas fa-truck"></i> Delivery Charge Management
+          </div>
+          <div class="card-sub" style="margin-bottom: 20px;">
+            Configure delivery charges based on location and order value
+          </div>
+
+          <div id="deliveryChargesList"></div>
+
+          <button class="btn btn-primary" onclick="openDeliveryChargeModal()" style="margin-top: 16px; width: 100%;">
+            <i class="fas fa-plus"></i> Add Delivery Charge
+          </button>
+        </div>
+
+        <div class="card fade-up">
+          <div class="card-title" style="margin-bottom:16px">Quick Actions</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <button class="btn btn-ghost" onclick="loadPage('products')" style="justify-content:flex-start"><i class="fas fa-box-open" style="color:var(--teal)"></i> Manage Products</button>
+            <button class="btn btn-ghost" onclick="loadPage('orders')" style="justify-content:flex-start"><i class="fas fa-shopping-bag" style="color:var(--lime)"></i> View Orders</button>
+            <button class="btn btn-ghost" onclick="loadPage('categories')" style="justify-content:flex-start"><i class="fas fa-layer-group" style="color:var(--amber)"></i> Edit Categories</button>
+            <button class="btn btn-danger" onclick="logout()" style="justify-content:flex-start"><i class="fas fa-sign-out-alt"></i> Logout</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+        // Load delivery charges after HTML is rendered
         await loadDeliveryCharges();
 
         // Profile form handler
-        document.getElementById("profileForm").onsubmit = async (e) => {
-          e.preventDefault();
-          const btn = document.getElementById("profileBtn");
-          btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-          btn.disabled = true;
-          const formData = new FormData(e.target);
-          const data = {};
-          formData.forEach((v, k) => {
-            if (v && k !== "confirmPassword") data[k] = v;
-          });
-          if (
-            e.target.password.value &&
-            e.target.password.value !== e.target.confirmPassword.value
-          ) {
-            showToast("Passwords do not match", "error");
-            btn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
-            btn.disabled = false;
-            return;
-          }
-          try {
-            const res = await apiCall("/auth/update", {
-              method: "PUT",
-              body: JSON.stringify(data),
+        const profileForm = document.getElementById("profileForm");
+        if (profileForm) {
+          profileForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById("profileBtn");
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btn.disabled = true;
+            const formData = new FormData(e.target);
+            const data = {};
+            formData.forEach((v, k) => {
+              if (v && k !== "confirmPassword") data[k] = v;
             });
-            if (res.success) {
-              localStorage.setItem("adminData", JSON.stringify(res.data));
-              document.getElementById("adminName").textContent = res.data.name;
-              document.getElementById("sbInitials").textContent = res.data.name
-                .split(" ")
-                .map((w) => w[0])
-                .join("")
-                .toUpperCase()
-                .slice(0, 2);
-              showToast("Profile updated!");
+            if (
+              e.target.password.value &&
+              e.target.password.value !== e.target.confirmPassword.value
+            ) {
+              showToast("Passwords do not match", "error");
+              btn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+              btn.disabled = false;
+              return;
             }
-          } catch (err) {
-            showToast(err.message, "error");
-          } finally {
-            btn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
-            btn.disabled = false;
-          }
-        };
+            try {
+              const res = await apiCall("/auth/update", {
+                method: "PUT",
+                body: JSON.stringify(data),
+              });
+              if (res.success) {
+                localStorage.setItem("adminData", JSON.stringify(res.data));
+                document.getElementById("adminName").textContent =
+                  res.data.name;
+                document.getElementById("sbInitials").textContent =
+                  res.data.name
+                    .split(" ")
+                    .map((w) => w[0])
+                    .join("")
+                    .toUpperCase()
+                    .slice(0, 2);
+                showToast("Profile updated!");
+              }
+            } catch (err) {
+              showToast(err.message, "error");
+            } finally {
+              btn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+              btn.disabled = false;
+            }
+          };
+        }
       }
       function buildPosSlipHtml(order) {
         const date = new Date(order.createdAt);
