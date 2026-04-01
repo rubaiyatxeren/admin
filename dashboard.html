@@ -4653,93 +4653,147 @@
         }
 
         modal(`
-          <div class="modal-box">
-            <div class="modal-header">
-              <div>
-                <div class="modal-title">${id ? "Edit" : "Add"} Delivery Charge</div>
-                <div class="modal-sub">Configure delivery fees for different zones</div>
-              </div>
-              <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+    <div class="modal-box">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">${id ? "Edit" : "Add"} Delivery Charge</div>
+          <div class="modal-sub">Configure delivery fees for different zones</div>
+        </div>
+        <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+      </div>
+      <form id="deliveryChargeForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Zone Name</label>
+            ${
+              id
+                ? `
+              <input type="text" class="inp" value="${charge?.name === "inside_dhaka" ? "🏙️ Inside Dhaka" : charge?.name === "outside_dhaka" ? "🚚 Outside Dhaka" : "📦 Default"}" disabled>
+              <input type="hidden" name="name" value="${charge?.name}">
+            `
+                : `
+              <select class="inp" name="name" required>
+                <option value="inside_dhaka">Inside Dhaka</option>
+                <option value="outside_dhaka">Outside Dhaka</option>
+                <option value="default">Default (Fallback)</option>
+              </select>
+            `
+            }
+            <div style="font-size: 11px; color: var(--text3); margin-top: 4px;">
+              Inside Dhaka: For customers in Dhaka city<br>
+              Outside Dhaka: For customers outside Dhaka<br>
+              Default: Used when no other charge applies
             </div>
-            <form id="deliveryChargeForm">
-              <div class="modal-body">
-                <div class="form-group">
-                  <label class="form-label">Zone Name</label>
-                  ${
-                    id
-                      ? `
-                    <input type="text" class="inp" value="${charge?.name === "inside_dhaka" ? "🏙️ Inside Dhaka" : charge?.name === "outside_dhaka" ? "🚚 Outside Dhaka" : "📦 Default"}" disabled>
-                    <input type="hidden" name="name" value="${charge?.name}">
-                  `
-                      : `
-                    <select class="inp" name="name" required>
-                      <option value="inside_dhaka">Inside Dhaka</option>
-                      <option value="outside_dhaka">Outside Dhaka</option>
-                      <option value="default">Default (Fallback)</option>
-                    </select>
-                  `
-                  }
-                  <div style="font-size: 11px; color: var(--text3); margin-top: 4px;">
-                    Inside Dhaka: For customers in Dhaka city<br>
-                    Outside Dhaka: For customers outside Dhaka<br>
-                    Default: Used when no other charge applies
-                  </div>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">Delivery Charge (৳)</label>
-                  <input class="inp" name="amount" type="number" step="1" required value="${charge?.amount || 60}">
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">Minimum Order Amount (Optional)</label>
-                  <input class="inp" name="minOrderAmount" type="number" step="1" placeholder="0 = always applicable" value="${charge?.minOrderAmount || 0}">
-                  <div style="font-size: 11px; color: var(--text3); margin-top: 4px;">
-                    Only apply this charge when order total is above this amount
-                  </div>
-                </div>
-
-                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-top: 12px;">
-                  <label class="toggle">
-                    <input type="checkbox" name="isActive" value="true" ${charge?.isActive !== false ? "checked" : ""}>
-                    <span class="toggle-slider"></span>
-                  </label>
-                  <span style="font-size: 13px; font-weight: 500;">Active</span>
-                </label>
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-                <button type="submit" class="btn btn-primary">Save Delivery Charge</button>
-              </div>
-            </form>
           </div>
-        `);
-      }
 
-      document.getElementById("deliveryChargeForm").onsubmit = async (e) => {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        const data = {
-          name: formData.get("name"),
-          amount: parseInt(formData.get("amount")),
-          minOrderAmount: parseInt(formData.get("minOrderAmount")) || 0,
-          isActive: e.target.isActive?.checked || false,
-        };
+          <div class="form-group">
+            <label class="form-label">Delivery Charge (৳)</label>
+            <input class="inp" name="amount" type="number" step="1" required value="${charge?.amount || 60}">
+          </div>
 
-        try {
-          // ✅ Fixed: Remove leading slash
-          await apiCall("/delivery-charges", {
-            method: "POST",
-            body: JSON.stringify(data),
-          });
-          showToast("Delivery charge saved successfully!", "success");
-          closeModal();
-          loadDeliveryCharges();
-        } catch (err) {
-          console.error("Error saving delivery charge:", err);
-          showToast(err.message || "Failed to save delivery charge", "error");
+          <div class="form-group">
+            <label class="form-label">Minimum Order Amount (Optional)</label>
+            <input class="inp" name="minOrderAmount" type="number" step="1" placeholder="0 = always applicable" value="${charge?.minOrderAmount || 0}">
+            <div style="font-size: 11px; color: var(--text3); margin-top: 4px;">
+              Only apply this charge when order total is above this amount
+            </div>
+          </div>
+
+          <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-top: 12px;">
+            <label class="toggle">
+              <input type="checkbox" name="isActive" value="true" ${charge?.isActive !== false ? "checked" : ""}>
+              <span class="toggle-slider"></span>
+            </label>
+            <span style="font-size: 13px; font-weight: 500;">Active</span>
+          </label>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Delivery Charge</button>
+        </div>
+      </form>
+    </div>
+  `);
+
+        // Add the form submit handler here
+        const form = document.getElementById("deliveryChargeForm");
+        if (form) {
+          form.onsubmit = async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = {
+              name: formData.get("name"),
+              amount: parseInt(formData.get("amount")),
+              minOrderAmount: parseInt(formData.get("minOrderAmount")) || 0,
+              isActive: e.target.isActive?.checked || false,
+            };
+
+            // Validate required fields
+            if (!data.name) {
+              showToast("Zone name is required", "error");
+              return;
+            }
+            if (isNaN(data.amount) || data.amount < 0) {
+              showToast("Valid delivery charge amount is required", "error");
+              return;
+            }
+
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            btn.disabled = true;
+
+            try {
+              if (id) {
+                // For update - if PUT doesn't work, try POST with update flag or delete and recreate
+                // Option 1: Try PUT first (if your backend supports it)
+                try {
+                  await apiCall(`/delivery-charges/${id}`, {
+                    method: "PUT",
+                    body: JSON.stringify(data),
+                  });
+                } catch (putError) {
+                  // Option 2: If PUT fails, try DELETE then POST
+                  if (putError.message.includes("Cannot PUT")) {
+                    console.log("PUT not supported, trying DELETE + POST...");
+                    await apiCall(`/delivery-charges/${id}`, {
+                      method: "DELETE",
+                    });
+                    await apiCall("/delivery-charges", {
+                      method: "POST",
+                      body: JSON.stringify(data),
+                    });
+                  } else {
+                    throw putError;
+                  }
+                }
+              } else {
+                // Create new charge
+                await apiCall("/delivery-charges", {
+                  method: "POST",
+                  body: JSON.stringify(data),
+                });
+              }
+
+              showToast(
+                `Delivery charge ${id ? "updated" : "created"} successfully!`,
+                "success",
+              );
+              closeModal();
+              loadDeliveryCharges();
+            } catch (err) {
+              console.error("Error saving delivery charge:", err);
+              showToast(
+                err.message || "Failed to save delivery charge",
+                "error",
+              );
+            } finally {
+              btn.innerHTML = originalText;
+              btn.disabled = false;
+            }
+          };
         }
-      };
+      }
 
       async function editDeliveryCharge(id) {
         openDeliveryChargeModal(id);
