@@ -4714,48 +4714,6 @@
             </form>
           </div>
         `);
-
-        document.getElementById("deliveryChargeForm").onsubmit = async (e) => {
-          e.preventDefault();
-          const formData = new FormData(e.target);
-          const data = {
-            name: formData.get("name"),
-            amount: parseInt(formData.get("amount")),
-            minOrderAmount: parseInt(formData.get("minOrderAmount")) || 0,
-            isActive: e.target.isActive?.checked || false,
-          };
-
-          // Validate required fields
-          if (!data.name) {
-            showToast("Zone name is required", "error");
-            return;
-          }
-          if (isNaN(data.amount) || data.amount < 0) {
-            showToast("Valid delivery charge amount is required", "error");
-            return;
-          }
-
-          const btn = e.target.querySelector('button[type="submit"]');
-          const originalText = btn.innerHTML;
-          btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-          btn.disabled = true;
-
-          try {
-            await apiCall("/delivery-charges", {
-              method: "POST",
-              body: JSON.stringify(data),
-            });
-            showToast("Delivery charge saved successfully!", "success");
-            closeModal();
-            loadDeliveryCharges();
-          } catch (err) {
-            console.error("Error saving delivery charge:", err);
-            showToast(err.message || "Failed to save delivery charge", "error");
-          } finally {
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-          }
-        };
       }
 
       document.getElementById("deliveryChargeForm").onsubmit = async (e) => {
