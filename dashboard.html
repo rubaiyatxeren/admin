@@ -4935,7 +4935,7 @@
       <div class="card-title" style="margin-bottom: 4px;">Create Email Campaign</div>
       <div class="card-sub" style="margin-bottom: 20px;">Design your promotional email</div>
       
-      <form id="bulkEmailForm">
+      <form id="bulkEmailForm" onsubmit="return false;">
         <div class="form-group" style="margin-bottom: 16px;">
           <label class="form-label">Email Subject *</label>
           <input type="text" class="inp" name="subject" placeholder="e.g., 🎉 Special Offer: 20% Off on Organic Honey!" required>
@@ -4975,7 +4975,7 @@
         </div>
         
         <div style="display: flex; gap: 12px; margin-top: 20px;">
-          <button type="submit" class="btn btn-primary" id="sendBulkEmailBtn">
+          <button type="button" class="btn btn-primary" id="sendBulkEmailBtn" onclick="sendBulkEmail()">
             <i class="fas fa-paper-plane"></i> Send Campaign
           </button>
           <button type="button" class="btn btn-ghost" onclick="previewEmail()">
@@ -4999,7 +4999,7 @@
         </div>
       </div>
     </div>
-  `;
+  </div>`;
 
         // Load customers automatically
         await loadCustomerEmails();
@@ -5025,10 +5025,13 @@
           );
 
           // Update stats
-          document.getElementById("totalCustomers").textContent =
-            customers.length;
-          document.getElementById("totalRevenueCustomers").textContent =
-            formatCurrency(totalRevenue);
+          const totalCustomersEl = document.getElementById("totalCustomers");
+          const totalRevenueEl = document.getElementById(
+            "totalRevenueCustomers",
+          );
+          if (totalCustomersEl) totalCustomersEl.textContent = customers.length;
+          if (totalRevenueEl)
+            totalRevenueEl.textContent = formatCurrency(totalRevenue);
 
           // Update customer list preview
           const previewDiv = document.getElementById("customerListPreview");
@@ -5058,8 +5061,8 @@
                 .map(
                   (c) => `
                 <tr>
-                  <td>${c.name || "—"}</td>
-                  <td>${c._id}</td>
+                  <td>${escapeHtml(c.name || "—")}</td>
+                  <td>${escapeHtml(c._id)}</td>
                   <td>${c.totalOrders || 0}</td>
                   <td>${formatCurrency(c.totalSpent || 0)}</td>
                   <td>${formatDate(c.lastOrderDate)}</td>
@@ -5082,10 +5085,15 @@
       }
 
       // Send bulk email campaign
-      async function sendBulkEmail(event) {
-        event.preventDefault();
+      async function sendBulkEmail() {
+        // Get form directly by ID
+        const form = document.getElementById("bulkEmailForm");
+        if (!form) {
+          showToast("Form not found", "error");
+          return;
+        }
 
-        const form = event.target;
+        // Get form data
         const formData = new FormData(form);
         const sendType = formData.get("sendType");
         const sendToAll = sendType === "all";
@@ -5103,17 +5111,25 @@
           payload.testEmail = testEmail;
         }
 
-        if (!payload.subject || !payload.message) {
-          showToast("Please fill in subject and message", "warning");
+        // Validation
+        if (!payload.subject || !payload.subject.trim()) {
+          showToast("Please enter an email subject", "warning");
           return;
         }
 
-        if (!sendToAll && !testEmail) {
+        if (!payload.message || !payload.message.trim()) {
+          showToast("Please enter an email message", "warning");
+          return;
+        }
+
+        if (!sendToAll && (!testEmail || !testEmail.trim())) {
           showToast("Please enter a test email address", "warning");
           return;
         }
 
         const btn = document.getElementById("sendBulkEmailBtn");
+        if (!btn) return;
+
         const originalText = btn.innerHTML;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
         btn.disabled = true;
@@ -5126,8 +5142,8 @@
 
           if (res.success) {
             const msg = sendToAll
-              ? `Campaign sent to ${res.results?.sent || 0} customers! ${res.results?.failed > 0 ? `${res.results.failed} failed.` : ""}`
-              : `Test email sent to ${testEmail}`;
+              ? `✅ Campaign sent to ${res.results?.sent || 0} customers! ${res.results?.failed > 0 ? `${res.results.failed} failed.` : ""}`
+              : `✅ Test email sent to ${testEmail}`;
             showToast(msg, "success");
 
             // Reset form
@@ -5155,22 +5171,34 @@
         const couponCode =
           document.querySelector('[name="couponCode"]')?.value || "";
 
+        // Escape HTML to prevent XSS
+        const escapePreview = (str) => {
+          return str
+            .replace(/[&<>]/g, function (m) {
+              if (m === "&") return "&amp;";
+              if (m === "<") return "&lt;";
+              if (m === ">") return "&gt;";
+              return m;
+            })
+            .replace(/\n/g, "<br>");
+        };
+
         // Create preview modal
         modal(`
     <div class="modal-box wide" style="max-width: 700px;">
       <div class="modal-header">
         <div>
           <div class="modal-title">Email Preview</div>
-          <div class="modal-sub">${subject}</div>
+          <div class="modal-sub">${escapePreview(subject)}</div>
         </div>
         <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
       </div>
       <div class="modal-body" style="max-height: 60vh; overflow-y: auto;">
         <div style="background: #fff; color: #333; padding: 20px; border-radius: 12px;">
           <div style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">Preview:</div>
-          <div style="white-space: pre-wrap; font-size: 13px; line-height: 1.6;">${message.replace(/\n/g, "<br>")}</div>
-          ${offerDetails ? `<div style="margin-top: 16px; padding: 12px; background: #f0f9ff; border-radius: 8px;"><strong>🎁 Offer:</strong> ${offerDetails}</div>` : ""}
-          ${couponCode ? `<div style="margin-top: 12px; padding: 12px; background: #fef3c7; border-radius: 8px; font-family: monospace; font-size: 18px; font-weight: bold; text-align: center;">Coupon: ${couponCode}</div>` : ""}
+          <div style="white-space: pre-wrap; font-size: 13px; line-height: 1.6;">${escapePreview(message)}</div>
+          ${offerDetails ? `<div style="margin-top: 16px; padding: 12px; background: #f0f9ff; border-radius: 8px;"><strong>🎁 Offer:</strong> ${escapePreview(offerDetails)}</div>` : ""}
+          ${couponCode ? `<div style="margin-top: 12px; padding: 12px; background: #fef3c7; border-radius: 8px; font-family: monospace; font-size: 18px; font-weight: bold; text-align: center;">Coupon: ${escapePreview(couponCode)}</div>` : ""}
         </div>
       </div>
       <div class="modal-footer">
@@ -5192,13 +5220,16 @@
         }
       }
 
-      // Add event listener for bulk email form
-      document.addEventListener("DOMContentLoaded", () => {
-        const form = document.getElementById("bulkEmailForm");
-        if (form) {
-          form.addEventListener("submit", sendBulkEmail);
-        }
-      });
+      // Helper function to escape HTML
+      function escapeHtml(str) {
+        if (!str) return "";
+        return str
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
       // ═══════════════════════════════════════════
       // INIT
       // ═══════════════════════════════════════════
