@@ -4889,7 +4889,7 @@
 
       // Add this function to your admin panel JavaScript
 
-      // ========== BULK EMAIL CAMPAIGN MANAGER ==========
+      // ========== BULK EMAIL CAMPAIGN MANAGER (UPDATED) ==========
       async function loadBulkEmailManager() {
         const content = document.getElementById("content");
         if (!content) return;
@@ -4916,6 +4916,7 @@
           <div>
             <div style="font-size: 11px; color: var(--text3);">Total Customers</div>
             <div style="font-size: 24px; font-weight: 800;" id="totalCustomers">—</div>
+            <div style="font-size: 10px; color: var(--lime);" id="totalCustomersNote"></div>
           </div>
         </div>
         <div style="display: flex; align-items: center; gap: 12px;">
@@ -4925,6 +4926,16 @@
           <div>
             <div style="font-size: 11px; color: var(--text3);">Total Revenue</div>
             <div style="font-size: 24px; font-weight: 800;" id="totalRevenueCustomers">—</div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(245, 166, 35, 0.15); display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-chart-line" style="color: var(--amber); font-size: 20px;"></i>
+          </div>
+          <div>
+            <div style="font-size: 11px; color: var(--text3);">Batch Size</div>
+            <div style="font-size: 24px; font-weight: 800; color: var(--amber);">10</div>
+            <div style="font-size: 10px; color: var(--text3);">emails per batch</div>
           </div>
         </div>
       </div>
@@ -4990,13 +5001,16 @@
     
     <!-- Customer List Preview -->
     <div class="card fade-up">
-      <div class="card-title" style="margin-bottom: 8px;">Customer List Preview</div>
-      <div class="card-sub" style="margin-bottom: 16px;">First 10 customers who will receive the email</div>
+      <div class="card-title" style="margin-bottom: 8px;">Customer List Preview <span style="font-size: 11px; color: var(--amber);">(First 10 customers shown for preview only)</span></div>
+      <div class="card-sub" style="margin-bottom: 16px;">⚠️ <strong>All customers</strong> will receive the email when you click "Send Campaign" - this is just a preview of the first 10 customers</div>
       <div id="customerListPreview" style="max-height: 400px; overflow-y: auto;">
         <div style="text-align: center; padding: 40px;">
           <div class="spinner" style="margin: 0 auto;"></div>
           <p style="margin-top: 12px; color: var(--text3);">Click "Fetch Customers" to load customer list</p>
         </div>
+      </div>
+      <div id="totalCustomersInfo" style="margin-top: 12px; padding: 10px; background: var(--lime-dim); border-radius: 8px; text-align: center; display: none;">
+        <i class="fas fa-info-circle"></i> <strong id="totalCustomersCount">0</strong> total customers will receive this email when sent.
       </div>
     </div>
   </div>`;
@@ -5014,6 +5028,7 @@
       }
 
       // Load customer emails from backend
+      // Load customer emails from backend (UPDATED)
       async function loadCustomerEmails() {
         try {
           showToast("Fetching customer list...", "info");
@@ -5029,9 +5044,23 @@
           const totalRevenueEl = document.getElementById(
             "totalRevenueCustomers",
           );
+          const totalCustomersNote =
+            document.getElementById("totalCustomersNote");
+          const totalCustomersInfo =
+            document.getElementById("totalCustomersInfo");
+          const totalCustomersCount = document.getElementById(
+            "totalCustomersCount",
+          );
+
           if (totalCustomersEl) totalCustomersEl.textContent = customers.length;
+          if (totalCustomersNote)
+            totalCustomersNote.textContent = `✨ ${customers.length} customers will receive emails`;
           if (totalRevenueEl)
             totalRevenueEl.textContent = formatCurrency(totalRevenue);
+          if (totalCustomersCount)
+            totalCustomersCount.textContent = customers.length;
+          if (totalCustomersInfo && customers.length > 0)
+            totalCustomersInfo.style.display = "block";
 
           // Update customer list preview
           const previewDiv = document.getElementById("customerListPreview");
@@ -5045,6 +5074,9 @@
         `;
             } else {
               previewDiv.innerHTML = `
+          <div style="margin-bottom: 10px; padding: 8px; background: var(--amber); border-radius: 8px; text-align: center;">
+            <span style="color: #0b0d0f; font-weight: 600;">📧 Showing first 10 of ${customers.length} total customers</span>
+          </div>
           <table class="data-table">
             <thead>
               <tr>
@@ -5072,18 +5104,20 @@
                 .join("")}
             </tbody>
           </table>
-          ${customers.length > 10 ? `<div style="margin-top: 12px; text-align: center; font-size: 12px; color: var(--text3);">+ ${customers.length - 10} more customers</div>` : ""}
+          ${customers.length > 10 ? `<div style="margin-top: 12px; text-align: center; font-size: 12px; color: var(--lime);">+ ${customers.length - 10} more customers not shown in preview</div>` : ""}
         `;
             }
           }
 
-          showToast(`Loaded ${customers.length} customers`, "success");
+          showToast(
+            `Loaded ${customers.length} customers. ALL will receive the email when sent.`,
+            "success",
+          );
         } catch (error) {
           console.error("Error loading customers:", error);
           showToast("Failed to load customer list: " + error.message, "error");
         }
       }
-
       // Send bulk email campaign
       async function sendBulkEmail() {
         // Get form directly by ID
