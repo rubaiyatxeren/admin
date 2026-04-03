@@ -1594,6 +1594,20 @@
           <i class="fas fa-exclamation-triangle"></i> Stock Alerts
         </a>
 
+        <!-- Add this to your sidebar navigation -->
+        <div class="nav-section-label" style="margin-top: 12px">Marketing</div>
+        <a
+          class="nav-link"
+          data-page="bulk-email"
+          onclick="
+            loadPage('bulk-email');
+            return false;
+          "
+          href="#"
+        >
+          <i class="fas fa-envelope-open-text"></i> Bulk Email
+        </a>
+
         <div class="nav-section-label" style="margin-top: 12px">System</div>
         <a
           class="nav-link"
@@ -2045,7 +2059,8 @@
           orders: loadOrders,
           banners: loadBanners,
           settings: loadSettings,
-          testing: loadTesting, // ← ADD THIS
+          testing: loadTesting,
+          "bulk-email": loadBulkEmailManager,
         };
         (pages[page] || loadDashboard)();
       }
@@ -4871,6 +4886,319 @@
           );
         }
       }
+
+      // Add this function to your admin panel JavaScript
+
+      // ========== BULK EMAIL CAMPAIGN MANAGER ==========
+      async function loadBulkEmailManager() {
+        const content = document.getElementById("content");
+        if (!content) return;
+
+        content.innerHTML = `
+    <div class="section-header fade-up">
+      <h2><i class="fas fa-envelope-open-text"></i> Bulk Email Campaign</h2>
+      <div>
+        <button class="btn btn-ghost btn-sm" onclick="loadCustomerEmails()">
+          <i class="fas fa-users"></i> Fetch Customers
+        </button>
+      </div>
+    </div>
+    
+    <!-- Customer Stats Card -->
+    <div class="card fade-up" style="margin-bottom: 20px;">
+      <div class="card-title" style="margin-bottom: 8px;">Customer Email List</div>
+      <div class="card-sub" style="margin-bottom: 16px;">Manage and send promotional emails to your customers</div>
+      <div id="customerStats" style="display: flex; gap: 20px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 48px; height: 48px; border-radius: 12px; background: var(--lime-dim); display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-users" style="color: var(--lime); font-size: 20px;"></i>
+          </div>
+          <div>
+            <div style="font-size: 11px; color: var(--text3);">Total Customers</div>
+            <div style="font-size: 24px; font-weight: 800;" id="totalCustomers">—</div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(56, 189, 248, 0.15); display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-dollar-sign" style="color: var(--sky); font-size: 20px;"></i>
+          </div>
+          <div>
+            <div style="font-size: 11px; color: var(--text3);">Total Revenue</div>
+            <div style="font-size: 24px; font-weight: 800;" id="totalRevenueCustomers">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Email Campaign Form -->
+    <div class="card fade-up" style="margin-bottom: 20px;">
+      <div class="card-title" style="margin-bottom: 4px;">Create Email Campaign</div>
+      <div class="card-sub" style="margin-bottom: 20px;">Design your promotional email</div>
+      
+      <form id="bulkEmailForm">
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label class="form-label">Email Subject *</label>
+          <input type="text" class="inp" name="subject" placeholder="e.g., 🎉 Special Offer: 20% Off on Organic Honey!" required>
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label class="form-label">Email Message *</label>
+          <textarea class="inp" name="message" rows="6" placeholder="Write your promotional message here... Use {name} to personalize with customer name" required></textarea>
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label class="form-label">Offer Details (Optional)</label>
+          <input type="text" class="inp" name="offerDetails" placeholder="e.g., 20% OFF on all honey products">
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label class="form-label">Coupon Code (Optional)</label>
+          <input type="text" class="inp" name="couponCode" placeholder="e.g., HARVEST20">
+        </div>
+        
+        <div style="display: flex; gap: 20px; margin-bottom: 20px; padding: 16px; background: var(--bg); border-radius: 12px;">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="radio" name="sendType" value="all" checked onchange="toggleTestEmailField(false)">
+            <span>Send to All Customers</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="radio" name="sendType" value="test" onchange="toggleTestEmailField(true)">
+            <span>Send Test Email Only</span>
+          </label>
+        </div>
+        
+        <div id="testEmailField" style="display: none; margin-bottom: 20px;">
+          <div class="form-group">
+            <label class="form-label">Test Email Address</label>
+            <input type="email" class="inp" name="testEmail" placeholder="admin@example.com">
+          </div>
+        </div>
+        
+        <div style="display: flex; gap: 12px; margin-top: 20px;">
+          <button type="submit" class="btn btn-primary" id="sendBulkEmailBtn">
+            <i class="fas fa-paper-plane"></i> Send Campaign
+          </button>
+          <button type="button" class="btn btn-ghost" onclick="previewEmail()">
+            <i class="fas fa-eye"></i> Preview
+          </button>
+          <button type="button" class="btn btn-ghost" onclick="resetForm()">
+            <i class="fas fa-undo"></i> Reset
+          </button>
+        </div>
+      </form>
+    </div>
+    
+    <!-- Customer List Preview -->
+    <div class="card fade-up">
+      <div class="card-title" style="margin-bottom: 8px;">Customer List Preview</div>
+      <div class="card-sub" style="margin-bottom: 16px;">First 10 customers who will receive the email</div>
+      <div id="customerListPreview" style="max-height: 400px; overflow-y: auto;">
+        <div style="text-align: center; padding: 40px;">
+          <div class="spinner" style="margin: 0 auto;"></div>
+          <p style="margin-top: 12px; color: var(--text3);">Click "Fetch Customers" to load customer list</p>
+        </div>
+      </div>
+    </div>
+  `;
+
+        // Load customers automatically
+        await loadCustomerEmails();
+      }
+
+      // Toggle test email field
+      function toggleTestEmailField(show) {
+        const field = document.getElementById("testEmailField");
+        if (field) {
+          field.style.display = show ? "block" : "none";
+        }
+      }
+
+      // Load customer emails from backend
+      async function loadCustomerEmails() {
+        try {
+          showToast("Fetching customer list...", "info");
+          const res = await apiCall("/orders/customers/emails");
+          const customers = res.data || [];
+          const totalRevenue = customers.reduce(
+            (sum, c) => sum + (c.totalSpent || 0),
+            0,
+          );
+
+          // Update stats
+          document.getElementById("totalCustomers").textContent =
+            customers.length;
+          document.getElementById("totalRevenueCustomers").textContent =
+            formatCurrency(totalRevenue);
+
+          // Update customer list preview
+          const previewDiv = document.getElementById("customerListPreview");
+          if (previewDiv) {
+            if (customers.length === 0) {
+              previewDiv.innerHTML = `
+          <div style="text-align: center; padding: 40px; color: var(--text3);">
+            <i class="fas fa-inbox" style="font-size: 48px; margin-bottom: 12px; display: block;"></i>
+            No customers found
+          </div>
+        `;
+            } else {
+              previewDiv.innerHTML = `
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Customer Name</th>
+                <th>Email</th>
+                <th>Orders</th>
+                <th>Total Spent</th>
+                <th>Last Order</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${customers
+                .slice(0, 10)
+                .map(
+                  (c) => `
+                <tr>
+                  <td>${c.name || "—"}</td>
+                  <td>${c._id}</td>
+                  <td>${c.totalOrders || 0}</td>
+                  <td>${formatCurrency(c.totalSpent || 0)}</td>
+                  <td>${formatDate(c.lastOrderDate)}</td>
+                </tr>
+              `,
+                )
+                .join("")}
+            </tbody>
+          </table>
+          ${customers.length > 10 ? `<div style="margin-top: 12px; text-align: center; font-size: 12px; color: var(--text3);">+ ${customers.length - 10} more customers</div>` : ""}
+        `;
+            }
+          }
+
+          showToast(`Loaded ${customers.length} customers`, "success");
+        } catch (error) {
+          console.error("Error loading customers:", error);
+          showToast("Failed to load customer list: " + error.message, "error");
+        }
+      }
+
+      // Send bulk email campaign
+      async function sendBulkEmail(event) {
+        event.preventDefault();
+
+        const form = event.target;
+        const formData = new FormData(form);
+        const sendType = formData.get("sendType");
+        const sendToAll = sendType === "all";
+        const testEmail = formData.get("testEmail");
+
+        const payload = {
+          subject: formData.get("subject"),
+          message: formData.get("message"),
+          offerDetails: formData.get("offerDetails") || "",
+          couponCode: formData.get("couponCode") || "",
+          sendToAll,
+        };
+
+        if (!sendToAll && testEmail) {
+          payload.testEmail = testEmail;
+        }
+
+        if (!payload.subject || !payload.message) {
+          showToast("Please fill in subject and message", "warning");
+          return;
+        }
+
+        if (!sendToAll && !testEmail) {
+          showToast("Please enter a test email address", "warning");
+          return;
+        }
+
+        const btn = document.getElementById("sendBulkEmailBtn");
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+        btn.disabled = true;
+
+        try {
+          const res = await apiCall("/orders/customers/bulk-email", {
+            method: "POST",
+            body: JSON.stringify(payload),
+          });
+
+          if (res.success) {
+            const msg = sendToAll
+              ? `Campaign sent to ${res.results?.sent || 0} customers! ${res.results?.failed > 0 ? `${res.results.failed} failed.` : ""}`
+              : `Test email sent to ${testEmail}`;
+            showToast(msg, "success");
+
+            // Reset form
+            resetForm();
+          } else {
+            showToast(res.message || "Failed to send campaign", "error");
+          }
+        } catch (error) {
+          console.error("Error sending bulk email:", error);
+          showToast("Failed to send campaign: " + error.message, "error");
+        } finally {
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        }
+      }
+
+      // Preview email before sending
+      function previewEmail() {
+        const subject =
+          document.querySelector('[name="subject"]')?.value || "No Subject";
+        const message =
+          document.querySelector('[name="message"]')?.value || "No message";
+        const offerDetails =
+          document.querySelector('[name="offerDetails"]')?.value || "";
+        const couponCode =
+          document.querySelector('[name="couponCode"]')?.value || "";
+
+        // Create preview modal
+        modal(`
+    <div class="modal-box wide" style="max-width: 700px;">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">Email Preview</div>
+          <div class="modal-sub">${subject}</div>
+        </div>
+        <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body" style="max-height: 60vh; overflow-y: auto;">
+        <div style="background: #fff; color: #333; padding: 20px; border-radius: 12px;">
+          <div style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">Preview:</div>
+          <div style="white-space: pre-wrap; font-size: 13px; line-height: 1.6;">${message.replace(/\n/g, "<br>")}</div>
+          ${offerDetails ? `<div style="margin-top: 16px; padding: 12px; background: #f0f9ff; border-radius: 8px;"><strong>🎁 Offer:</strong> ${offerDetails}</div>` : ""}
+          ${couponCode ? `<div style="margin-top: 12px; padding: 12px; background: #fef3c7; border-radius: 8px; font-family: monospace; font-size: 18px; font-weight: bold; text-align: center;">Coupon: ${couponCode}</div>` : ""}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+      </div>
+    </div>
+  `);
+      }
+
+      // Reset the email form
+      function resetForm() {
+        const form = document.getElementById("bulkEmailForm");
+        if (form) {
+          form.reset();
+          // Reset radio to default
+          const allRadio = document.querySelector('input[value="all"]');
+          if (allRadio) allRadio.checked = true;
+          toggleTestEmailField(false);
+        }
+      }
+
+      // Add event listener for bulk email form
+      document.addEventListener("DOMContentLoaded", () => {
+        const form = document.getElementById("bulkEmailForm");
+        if (form) {
+          form.addEventListener("submit", sendBulkEmail);
+        }
+      });
       // ═══════════════════════════════════════════
       // INIT
       // ═══════════════════════════════════════════
