@@ -1744,10 +1744,17 @@
           delivered: "✅",
           cancelled: "✗",
         };
-        return `<span class="badge ${map[status] || "badge-text"}">${dots[status] || ""} ${status}</span>`;
+        // Handle undefined/null
+        const safeStatus = status || "pending";
+        return `<span class="badge ${map[safeStatus] || "badge-text"}">${dots[safeStatus] || ""} ${safeStatus}</span>`;
       }
       function payBadge(status) {
-        return `<span class="badge ${status === "paid" ? "badge-lime" : "badge-amber"}">${status}</span>`;
+        const s =
+          !status || status === "undefined" || status === "null"
+            ? "pending"
+            : String(status).toLowerCase().trim();
+        const label = s.charAt(0).toUpperCase() + s.slice(1);
+        return `<span class="badge ${s === "paid" ? "badge-lime" : "badge-amber"}">${label}</span>`;
       }
 
       function destroyCharts() {
@@ -2829,7 +2836,7 @@
                       </td>
                       <td><div style="font-size:13px">${o.items?.length} item${o.items?.length !== 1 ? "s" : ""}</div></td>
                       <td><div style="font-weight:700;color:var(--lime);font-family:Syne,sans-serif">${formatCurrency(o.total)}</div></td>
-                      <td>${payBadge(o.paymentStatus)}<div style="font-size:11px;color:var(--text3);margin-top:4px">${o.paymentMethod}</div></td>
+                      <td>${payBadge(o.paymentStatus)}<div style="font-size:11px;color:var(--text3);margin-top:4px">${o.paymentMethod || "—"}</div></td>
                       <td onclick="event.stopPropagation()">
                         <select class="status-select" id="status-${o._id}" data-order-id="${o._id}" onchange="handleStatusChange(this, '${o._id}')">
                           ${["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"].map((s) => `<option value="${s}" ${o.orderStatus === s ? "selected" : ""}>${s.charAt(0).toUpperCase() + s.slice(1)}</option>`).join("")}
