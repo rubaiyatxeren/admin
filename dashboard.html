@@ -1549,6 +1549,17 @@
         >
           <i class="fas fa-images"></i> Banners
         </a>
+        <a
+          class="nav-link"
+          data-page="coupons"
+          onclick="
+            loadPage('coupons');
+            return false;
+          "
+          href="#"
+        >
+          <i class="fas fa-ticket"></i> Coupons
+        </a>
         <div class="nav-section-label" style="margin-top: 12px">Sales</div>
         <a
           class="nav-link"
@@ -2045,6 +2056,7 @@
           dashboard: "Dashboard",
           products: "Products",
           categories: "Categories",
+          coupons: "🎟️ Coupons",
           orders: "Orders",
           banners: "Banners",
           settings: "Settings",
@@ -2056,6 +2068,7 @@
           dashboard: loadDashboard,
           products: loadProducts,
           categories: loadCategories,
+          coupons: loadCoupons,
           orders: loadOrders,
           banners: loadBanners,
           settings: loadSettings,
@@ -5304,6 +5317,483 @@
           .replace(/>/g, "&gt;")
           .replace(/"/g, "&quot;")
           .replace(/'/g, "&#39;");
+      }
+
+      // ─── Coupon state ──────────────────────────────────────────────────────────
+      let couponPage = 1;
+      let couponTotalPages = 1;
+      let couponFilter = { search: "", isActive: "" };
+
+      // ─── Main page loader ──────────────────────────────────────────────────────
+      async function loadCoupons() {
+        const c = document.getElementById("content");
+
+        c.innerHTML = `
+    <div class="section-header fade-up">
+      <h2>🎟️ Coupons</h2>
+      <button class="btn btn-primary" onclick="openCouponModal()">
+        <i class="fas fa-plus"></i> New Coupon
+      </button>
+    </div>
+ 
+    <!-- Stats row -->
+    <div class="stat-grid fade-up" id="couponStatsGrid" style="margin-bottom:20px">
+      ${[1, 2, 3, 4]
+        .map(
+          (i) => `
+        <div class="stat-card stagger-${i}">
+          <div class="skel" style="height:42px;width:42px;border-radius:12px;margin-bottom:16px"></div>
+          <div class="skel" style="height:26px;width:70%;margin-bottom:8px"></div>
+          <div class="skel" style="height:13px;width:45%"></div>
+        </div>`,
+        )
+        .join("")}
+    </div>
+ 
+    <!-- Toolbar -->
+    <div class="card fade-up" style="margin-bottom:16px">
+      <div style="display:grid;grid-template-columns:1fr auto auto auto;gap:10px;align-items:center">
+        <div class="inp-group">
+          <i class="fas fa-search"></i>
+          <input class="inp" id="couponSearch" placeholder="Search coupon code…"
+            oninput="couponFilter.search=this.value;couponPage=1;loadCouponList()">
+        </div>
+        <select class="inp" style="width:auto"
+          onchange="couponFilter.isActive=this.value;couponPage=1;loadCouponList()">
+          <option value="">All Status</option>
+          <option value="true">Active</option>
+          <option value="false">Inactive</option>
+        </select>
+        <button class="btn btn-ghost btn-sm"
+          onclick="couponFilter={search:'',isActive:''};couponPage=1;loadCoupons()">
+          <i class="fas fa-rotate-right"></i>
+        </button>
+      </div>
+    </div>
+ 
+    <!-- Table -->
+    <div class="card fade-up" style="padding:0;overflow:hidden">
+      <table class="data-table">
+        <thead><tr>
+          <th>Code</th>
+          <th>Type</th>
+          <th>Value</th>
+          <th>Min Order</th>
+          <th>Used / Limit</th>
+          <th>Validity</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr></thead>
+        <tbody id="couponTableBody">
+          <tr><td colspan="8" style="text-align:center;padding:48px">
+            <div class="spinner" style="margin:0 auto"></div>
+          </td></tr>
+        </tbody>
+      </table>
+      <div style="padding:16px 20px;border-top:1px solid var(--border);
+                  display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:13px;color:var(--text3)" id="couponInfo"></div>
+        <div class="pagination" id="couponPages"></div>
+      </div>
+    </div>`;
+
+        // Load stats + list in parallel
+        await Promise.all([loadCouponStats(), loadCouponList()]);
+      }
+
+      // ─── Stats ─────────────────────────────────────────────────────────────────
+      async function loadCouponStats() {
+        try {
+          const res = await apiCall("/coupons/stats");
+          const s = res.data;
+
+          document.getElementById("couponStatsGrid").innerHTML = `
+      ${couponStatCard("Total", s.total, "fa-ticket", "var(--lime)", "rgba(198,241,53,.15)", "All coupons")}
+      ${couponStatCard("Active", s.active, "fa-circle-check", "var(--teal)", "rgba(45,212,191,.15)", "Live & valid")}
+      ${couponStatCard("Expired", s.expired, "fa-clock", "var(--amber)", "rgba(245,166,35,.15)", "Past end date")}
+      ${couponStatCard("Exhausted", s.exhausted, "fa-ban", "var(--rose)", "rgba(244,63,94,.15)", "Usage limit hit")}`;
+
+          // Top used mini-list (if any)
+          if (s.topUsed?.length) {
+            // inject quietly — don't break layout if element doesn't exist yet
+          }
+        } catch (e) {
+          console.error("coupon stats:", e.message);
+        }
+      }
+
+      function couponStatCard(label, value, icon, color, bg, sub) {
+        return `
+    <div class="stat-card fade-up" style="--accent:${color}">
+      <div class="stat-icon" style="background:${bg};color:${color}">
+        <i class="fas ${icon}"></i>
+      </div>
+      <div class="stat-value">${value ?? "—"}</div>
+      <div class="stat-label">${label}</div>
+      <div class="stat-sub" style="color:${color}"><i class="fas fa-info-circle"></i> ${sub}</div>
+    </div>`;
+      }
+
+      // ─── List ──────────────────────────────────────────────────────────────────
+      async function loadCouponList() {
+        try {
+          const qs = new URLSearchParams({ page: couponPage, limit: 15 });
+          if (couponFilter.search) qs.set("search", couponFilter.search);
+          if (couponFilter.isActive) qs.set("isActive", couponFilter.isActive);
+
+          const res = await apiCall(`/coupons?${qs}`);
+          couponTotalPages = res.pagination?.pages || 1;
+          const coupons = res.data || [];
+
+          document.getElementById("couponTableBody").innerHTML = coupons.length
+            ? coupons.map(renderCouponRow).join("")
+            : `<tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text3)">
+           <i class="fas fa-ticket" style="font-size:32px;margin-bottom:12px;display:block"></i>
+           No coupons found
+         </td></tr>`;
+
+          document.getElementById("couponInfo").textContent =
+            `${coupons.length} coupon${coupons.length !== 1 ? "s" : ""} · Page ${couponPage} of ${couponTotalPages}`;
+
+          renderPagination("couponPages", couponPage, couponTotalPages, (p) => {
+            couponPage = p;
+            loadCouponList();
+          });
+        } catch (e) {
+          showToast(e.message, "error");
+        }
+      }
+
+      function renderCouponRow(c) {
+        const now = new Date();
+        const expired = c.endDate && new Date(c.endDate) < now;
+        const exhausted = c.usageLimit != null && c.usedCount >= c.usageLimit;
+
+        // Validity range
+        const startStr = c.startDate
+          ? new Date(c.startDate).toLocaleDateString("en-GB", {
+              day: "numeric",
+              month: "short",
+            })
+          : "—";
+        const endStr = c.endDate
+          ? new Date(c.endDate).toLocaleDateString("en-GB", {
+              day: "numeric",
+              month: "short",
+              year: "2-digit",
+            })
+          : "∞";
+
+        // Status badge
+        let statusBadgeHtml;
+        if (!c.isActive)
+          statusBadgeHtml = `<span class="badge badge-rose">Inactive</span>`;
+        else if (exhausted)
+          statusBadgeHtml = `<span class="badge badge-rose">Exhausted</span>`;
+        else if (expired)
+          statusBadgeHtml = `<span class="badge badge-amber">Expired</span>`;
+        else statusBadgeHtml = `<span class="badge badge-lime">Active</span>`;
+
+        // Usage bar
+        const usagePct = c.usageLimit
+          ? Math.min(100, Math.round((c.usedCount / c.usageLimit) * 100))
+          : 0;
+
+        return `
+    <tr onclick="openCouponModal('${c._id}')">
+      <td>
+        <span style="font-family:'Space Mono',monospace;font-size:13px;
+                     font-weight:700;color:var(--lime);letter-spacing:1px;
+                     background:var(--lime-dim);padding:4px 10px;border-radius:8px">
+          ${c.code}
+        </span>
+        ${c.description ? `<div style="font-size:11px;color:var(--text3);margin-top:5px">${c.description}</div>` : ""}
+      </td>
+      <td>
+        <span class="badge ${c.discountType === "percentage" ? "badge-sky" : "badge-teal"}">
+          ${c.discountType === "percentage" ? "% Percent" : "৳ Fixed"}
+        </span>
+      </td>
+      <td>
+        <span style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--text)">
+          ${c.discountType === "percentage" ? c.discountValue + "%" : "৳" + c.discountValue}
+        </span>
+        ${c.maximumDiscount ? `<div style="font-size:10px;color:var(--text3)">max ৳${c.maximumDiscount}</div>` : ""}
+      </td>
+      <td style="color:var(--text2);font-size:13px">
+        ${c.minimumOrder > 0 ? "৳" + c.minimumOrder : '<span style="color:var(--text3)">—</span>'}
+      </td>
+      <td>
+        <div style="font-size:13px;font-weight:600;margin-bottom:5px">
+          ${c.usedCount}${c.usageLimit != null ? " / " + c.usageLimit : " / ∞"}
+        </div>
+        ${
+          c.usageLimit
+            ? `
+          <div class="progress-bar-wrap" style="width:80px">
+            <div class="progress-bar-fill"
+              style="width:${usagePct}%;background:${usagePct >= 100 ? "var(--rose)" : usagePct > 70 ? "var(--amber)" : "var(--lime)"}">
+            </div>
+          </div>`
+            : ""
+        }
+      </td>
+      <td style="font-size:12px;color:var(--text2)">
+        ${startStr} → ${endStr}
+        ${expired ? `<div class="badge badge-amber" style="margin-top:4px;font-size:9px">Expired</div>` : ""}
+      </td>
+      <td>${statusBadgeHtml}</td>
+      <td onclick="event.stopPropagation()">
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-ghost btn-sm btn-icon"
+            onclick="openCouponModal('${c._id}')" title="Edit">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button class="btn btn-ghost btn-sm btn-icon"
+            onclick="toggleCouponStatus('${c._id}', ${c.isActive})"
+            title="${c.isActive ? "Deactivate" : "Activate"}"
+            style="color:${c.isActive ? "var(--amber)" : "var(--lime)"}">
+            <i class="fas fa-${c.isActive ? "pause" : "play"}"></i>
+          </button>
+          <button class="btn btn-danger btn-sm btn-icon"
+            onclick="deleteCoupon('${c._id}')" title="Delete">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </td>
+    </tr>`;
+      }
+
+      // ─── Modal (create / edit) ─────────────────────────────────────────────────
+      async function openCouponModal(id = null) {
+        let coupon = null;
+        if (id) {
+          try {
+            coupon = (await apiCall(`/coupons/${id}`)).data;
+          } catch (e) {
+            showToast(e.message, "error");
+            return;
+          }
+        }
+
+        // Format dates for <input type="date">
+        const fmtDate = (d) =>
+          d ? new Date(d).toISOString().split("T")[0] : "";
+
+        modal(`
+    <div class="modal-box">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">${id ? "✏️ Edit Coupon" : "🎟️ New Coupon"}</div>
+          <div class="modal-sub">${id ? "Update coupon settings" : "Create a discount coupon"}</div>
+        </div>
+        <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+      </div>
+ 
+      <form id="couponForm">
+        <div class="modal-body">
+          <div class="form-grid">
+ 
+            <!-- Code -->
+            <div class="form-group">
+              <label class="form-label">Coupon Code *</label>
+              <div class="inp-group">
+                <i class="fas fa-tag"></i>
+                <input class="inp" name="code" placeholder="e.g. HARVEST20"
+                  required style="text-transform:uppercase;letter-spacing:1.5px;font-weight:700"
+                  value="${coupon?.code || ""}"
+                  oninput="this.value=this.value.toUpperCase()">
+              </div>
+            </div>
+ 
+            <!-- Discount Type -->
+            <div class="form-group">
+              <label class="form-label">Discount Type *</label>
+              <select class="inp" name="discountType" id="couponDiscountType"
+                onchange="toggleMaxDiscount(this.value)" required>
+                <option value="percentage" ${!coupon || coupon.discountType === "percentage" ? "selected" : ""}>% Percentage</option>
+                <option value="fixed" ${coupon?.discountType === "fixed" ? "selected" : ""}>৳ Fixed Amount</option>
+              </select>
+            </div>
+ 
+            <!-- Discount Value -->
+            <div class="form-group">
+              <label class="form-label">Discount Value *</label>
+              <div class="inp-group">
+                <i class="fas fa-percent" id="couponValueIcon"></i>
+                <input class="inp" name="discountValue" type="number" step="0.01"
+                  min="0" placeholder="e.g. 20" required value="${coupon?.discountValue ?? ""}">
+              </div>
+            </div>
+ 
+            <!-- Max Discount (only for %) -->
+            <div class="form-group" id="maxDiscountGroup"
+              style="display:${!coupon || coupon.discountType === "percentage" ? "" : "none"}">
+              <label class="form-label">Max Discount Cap (৳)</label>
+              <div class="inp-group">
+                <i class="fas fa-arrow-down-to-line"></i>
+                <input class="inp" name="maximumDiscount" type="number" step="1"
+                  min="0" placeholder="Leave blank = no cap"
+                  value="${coupon?.maximumDiscount ?? ""}">
+              </div>
+            </div>
+ 
+            <!-- Min Order -->
+            <div class="form-group">
+              <label class="form-label">Minimum Order (৳)</label>
+              <div class="inp-group">
+                <i class="fas fa-cart-shopping"></i>
+                <input class="inp" name="minimumOrder" type="number" step="1"
+                  min="0" placeholder="0 = no minimum"
+                  value="${coupon?.minimumOrder ?? 0}">
+              </div>
+            </div>
+ 
+            <!-- Usage Limit -->
+            <div class="form-group">
+              <label class="form-label">Usage Limit</label>
+              <div class="inp-group">
+                <i class="fas fa-users"></i>
+                <input class="inp" name="usageLimit" type="number" step="1"
+                  min="0" placeholder="Leave blank = unlimited"
+                  value="${coupon?.usageLimit ?? ""}">
+              </div>
+            </div>
+ 
+            <!-- Start Date -->
+            <div class="form-group">
+              <label class="form-label">Start Date</label>
+              <input class="inp" name="startDate" type="date"
+                value="${fmtDate(coupon?.startDate)}">
+            </div>
+ 
+            <!-- End Date -->
+            <div class="form-group">
+              <label class="form-label">End Date</label>
+              <input class="inp" name="endDate" type="date"
+                value="${fmtDate(coupon?.endDate)}">
+            </div>
+ 
+            <!-- Description -->
+            <div class="form-group full">
+              <label class="form-label">Description (internal note)</label>
+              <input class="inp" name="description"
+                placeholder="e.g. Eid sale 2025"
+                value="${coupon?.description || ""}">
+            </div>
+ 
+            <!-- Active toggle -->
+            <div class="form-group full">
+              <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;font-weight:500">
+                <label class="toggle">
+                  <input type="checkbox" name="isActive"
+                    ${!coupon || coupon.isActive !== false ? "checked" : ""}>
+                  <span class="toggle-slider"></span>
+                </label>
+                Active (customers can use this coupon)
+              </label>
+            </div>
+ 
+          </div>
+        </div>
+ 
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="couponSubmitBtn">
+            <i class="fas fa-${id ? "save" : "plus"}"></i>
+            ${id ? "Save Changes" : "Create Coupon"}
+          </button>
+        </div>
+      </form>
+    </div>`);
+
+        // Toggle max-discount field based on type
+        window.toggleMaxDiscount = (type) => {
+          document.getElementById("maxDiscountGroup").style.display =
+            type === "percentage" ? "" : "none";
+        };
+
+        // Form submit
+        document.getElementById("couponForm").onsubmit = async (e) => {
+          e.preventDefault();
+          const btn = document.getElementById("couponSubmitBtn");
+          btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
+          btn.disabled = true;
+
+          const fd = new FormData(e.target);
+          const payload = {
+            code: fd.get("code").toUpperCase().trim(),
+            discountType: fd.get("discountType"),
+            discountValue: parseFloat(fd.get("discountValue")),
+            minimumOrder: parseFloat(fd.get("minimumOrder")) || 0,
+            description: fd.get("description") || undefined,
+            isActive: e.target.isActive.checked,
+          };
+
+          const maxD = fd.get("maximumDiscount");
+          if (maxD) payload.maximumDiscount = parseFloat(maxD);
+
+          const limit = fd.get("usageLimit");
+          if (limit) payload.usageLimit = parseInt(limit);
+
+          const start = fd.get("startDate");
+          if (start) payload.startDate = start;
+
+          const end = fd.get("endDate");
+          if (end) payload.endDate = end;
+
+          try {
+            if (id) {
+              await apiCall(`/coupons/${id}`, {
+                method: "PUT",
+                body: JSON.stringify(payload),
+              });
+              showToast("✅ Coupon updated!");
+            } else {
+              await apiCall("/coupons", {
+                method: "POST",
+                body: JSON.stringify(payload),
+              });
+              showToast("✅ Coupon created!");
+            }
+            closeModal();
+            loadCoupons();
+          } catch (err) {
+            showToast(err.message, "error");
+            btn.innerHTML = `<i class="fas fa-${id ? "save" : "plus"}"></i> ${id ? "Save Changes" : "Create Coupon"}`;
+            btn.disabled = false;
+          }
+        };
+      }
+
+      // ─── Toggle active ─────────────────────────────────────────────────────────
+      async function toggleCouponStatus(id, currentlyActive) {
+        try {
+          const res = await apiCall(`/coupons/${id}/toggle`, {
+            method: "PATCH",
+          });
+          showToast(
+            res.data.isActive ? "✅ Coupon activated" : "⏸ Coupon deactivated",
+            res.data.isActive ? "success" : "warning",
+          );
+          loadCouponList();
+        } catch (e) {
+          showToast(e.message, "error");
+        }
+      }
+
+      // ─── Delete ────────────────────────────────────────────────────────────────
+      async function deleteCoupon(id) {
+        if (!confirm("Permanently delete this coupon? This cannot be undone."))
+          return;
+        try {
+          await apiCall(`/coupons/${id}`, { method: "DELETE" });
+          showToast("🗑️ Coupon deleted");
+          loadCouponList();
+          loadCouponStats();
+        } catch (e) {
+          showToast(e.message, "error");
+        }
       }
       // ═══════════════════════════════════════════
       // INIT
