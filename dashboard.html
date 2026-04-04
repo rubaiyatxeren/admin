@@ -1604,6 +1604,17 @@
         >
           <i class="fas fa-exclamation-triangle"></i> Stock Alerts
         </a>
+        <a
+          class="nav-link"
+          data-page="chatbot"
+          onclick="
+            loadPage('chatbot');
+            return false;
+          "
+          href="#"
+        >
+          <i class="fas fa-robot"></i> Chatbot
+        </a>
 
         <!-- Add this to your sidebar navigation -->
         <div class="nav-section-label" style="margin-top: 12px">Marketing</div>
@@ -2059,6 +2070,7 @@
           coupons: "🎟️ Coupons",
           orders: "Orders",
           banners: "Banners",
+          chatbot: "🤖 Chatbot Manager",
           settings: "Settings",
           testing: "⚗️ Load Testing", // ← ADD THIS
         };
@@ -2073,6 +2085,7 @@
           banners: loadBanners,
           settings: loadSettings,
           testing: loadTesting,
+          chatbot: loadChatbotManager,
           "bulk-email": loadBulkEmailManager,
         };
         (pages[page] || loadDashboard)();
@@ -5794,6 +5807,572 @@
         } catch (e) {
           showToast(e.message, "error");
         }
+      }
+
+      // ═══════════════════════════════════════════
+      // CHATBOT MANAGER
+      // ═══════════════════════════════════════════
+      async function loadChatbotManager() {
+        const c = document.getElementById("content");
+        c.innerHTML = `
+    <div class="section-header fade-up">
+      <h2>🤖 Chatbot Manager</h2>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" onclick="testChatbotIntent()">
+          <i class="fas fa-flask"></i> Test Intent
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="openLiveChatPreview()">
+          <i class="fas fa-eye"></i> Live Preview
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stat-grid fade-up" style="margin-bottom:20px">
+      <div class="stat-card" style="--accent:var(--lime)">
+        <div class="stat-icon" style="background:var(--lime-dim);color:var(--lime)">
+          <i class="fas fa-robot"></i>
+        </div>
+        <div class="stat-value" id="cbIntentCount">9</div>
+        <div class="stat-label">Supported Intents</div>
+        <div class="stat-sub up"><i class="fas fa-check"></i> NLP-powered</div>
+      </div>
+      <div class="stat-card" style="--accent:var(--sky)">
+        <div class="stat-icon" style="background:rgba(56,189,248,.15);color:var(--sky)">
+          <i class="fas fa-brain"></i>
+        </div>
+        <div class="stat-value">Live</div>
+        <div class="stat-label">Pattern Matching</div>
+        <div class="stat-sub up"><i class="fas fa-database"></i> DB-powered</div>
+      </div>
+      <div class="stat-card" style="--accent:var(--teal)">
+        <div class="stat-icon" style="background:rgba(45,212,191,.15);color:var(--teal)">
+          <i class="fas fa-layer-group"></i>
+        </div>
+        <div class="stat-value" id="cbProductCount">—</div>
+        <div class="stat-label">Products in KB</div>
+        <div class="stat-sub up"><i class="fas fa-box"></i> From database</div>
+      </div>
+      <div class="stat-card" style="--accent:var(--amber)">
+        <div class="stat-icon" style="background:rgba(245,166,35,.15);color:var(--amber)">
+          <i class="fas fa-ticket"></i>
+        </div>
+        <div class="stat-value" id="cbCouponCount">—</div>
+        <div class="stat-label">Active Coupons</div>
+        <div class="stat-sub up"><i class="fas fa-gift"></i> In bot knowledge</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:16px">
+
+      <!-- Left: Intent Tester -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="card fade-up">
+          <div class="card-title" style="margin-bottom:4px">🧪 Intent Tester</div>
+          <div class="card-sub" style="margin-bottom:16px">Send test messages to the chatbot and inspect responses</div>
+
+          <div style="background:var(--bg);border-radius:14px;padding:16px;height:340px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:14px" id="cbTestMessages">
+            <div style="text-align:center;padding:40px 0;color:var(--text3)">
+              <i class="fas fa-comments" style="font-size:32px;margin-bottom:10px;display:block"></i>
+              Send a test message below
+            </div>
+          </div>
+
+          <div style="display:flex;gap:8px">
+            <input class="inp" id="cbTestInput" placeholder="Type a message… e.g. আমার অর্ডার ট্র্যাক করুন"
+              onkeydown="if(event.key==='Enter')sendChatbotTest()">
+            <button class="btn btn-primary" onclick="sendChatbotTest()">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </div>
+
+          <!-- Quick test buttons -->
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px">
+            ${[
+              "আমার অর্ডার",
+              "ডেলিভারি চার্জ কত?",
+              "কুপন আছে?",
+              "পেমেন্ট পদ্ধতি",
+              "রিটার্ন পলিসি",
+              "hello",
+              "01712345678",
+            ]
+              .map(
+                (q) => `
+              <button class="btn btn-ghost btn-sm" style="font-size:11px"
+                onclick="document.getElementById('cbTestInput').value='${q}';sendChatbotTest()">
+                ${q}
+              </button>`,
+              )
+              .join("")}
+          </div>
+        </div>
+
+        <!-- Intent Map -->
+        <div class="card fade-up">
+          <div class="card-title" style="margin-bottom:16px">🗺️ Intent Map</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            ${[
+              {
+                intent: "TRACK_ORDER",
+                icon: "fa-box-open",
+                color: "var(--lime)",
+                desc: "Order tracking by number or phone",
+                patterns:
+                  "অর্ডার ট্র্যাক, order status, ORD-XXXXXX, 01XXXXXXXXX",
+              },
+              {
+                intent: "PRODUCT_SEARCH",
+                icon: "fa-search",
+                color: "var(--sky)",
+                desc: "Product availability & pricing",
+                patterns: "পণ্য আছে, দাম কত, price of, available products",
+              },
+              {
+                intent: "DELIVERY_INFO",
+                icon: "fa-truck",
+                color: "var(--teal)",
+                desc: "Delivery charges & timing",
+                patterns: "ডেলিভারি চার্জ, shipping cost, কতদিনে পাব",
+              },
+              {
+                intent: "COUPON_INFO",
+                icon: "fa-ticket",
+                color: "var(--amber)",
+                desc: "Active coupons & validation",
+                patterns: "কুপন, coupon, ছাড়, discount, PROMO20",
+              },
+              {
+                intent: "RETURN_REFUND",
+                icon: "fa-rotate-left",
+                color: "var(--rose)",
+                desc: "Return & refund policy",
+                patterns: "রিটার্ন, return, refund, ফেরত, cancel",
+              },
+              {
+                intent: "PAYMENT_INFO",
+                icon: "fa-credit-card",
+                color: "var(--sky)",
+                desc: "Payment methods",
+                patterns: "পেমেন্ট, bkash, নগদ, cash on delivery",
+              },
+              {
+                intent: "CONTACT",
+                icon: "fa-headset",
+                color: "var(--teal)",
+                desc: "Support & contact info",
+                patterns: "যোগাযোগ, contact, support, সাহায্য",
+              },
+              {
+                intent: "GREETING",
+                icon: "fa-hand-wave",
+                color: "var(--lime)",
+                desc: "Greetings",
+                patterns: "hi, hello, হ্যালো, সালাম",
+              },
+              {
+                intent: "THANKS",
+                icon: "fa-heart",
+                color: "var(--rose)",
+                desc: "Gratitude responses",
+                patterns: "ধন্যবাদ, thanks, শুকরিয়া",
+              },
+            ]
+              .map(
+                (i) => `
+              <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;
+                          background:var(--bg);border-radius:10px;border:1px solid var(--border)">
+                <div style="width:32px;height:32px;border-radius:8px;
+                            background:rgba(255,255,255,.05);
+                            display:flex;align-items:center;justify-content:center;
+                            color:${i.color};flex-shrink:0">
+                  <i class="fas ${i.icon}" style="font-size:13px"></i>
+                </div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:12px;font-weight:700;color:${i.color};
+                              font-family:'Space Mono',monospace">${i.intent}</div>
+                  <div style="font-size:11px;color:var(--text3);margin-top:1px;
+                              white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                    ${i.patterns}
+                  </div>
+                </div>
+                <span class="badge badge-text" style="font-size:10px;flex-shrink:0">
+                  ${i.desc.split(" ")[0]}
+                </span>
+              </div>`,
+              )
+              .join("")}
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Config & Embed -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+
+        <!-- API Health -->
+        <div class="card fade-up">
+          <div class="card-title" style="margin-bottom:16px">⚡ API Health</div>
+          <div class="info-block">
+            <div class="info-row">
+              <span>Endpoint</span>
+              <span style="font-family:monospace;font-size:11px">POST /api/chatbot/message</span>
+            </div>
+            <div class="info-row">
+              <span>Suggestions</span>
+              <span style="font-family:monospace;font-size:11px">GET /api/chatbot/suggestions</span>
+            </div>
+            <div class="info-row">
+              <span>Session Memory</span>
+              <span class="badge badge-lime">30 min TTL</span>
+            </div>
+            <div class="info-row">
+              <span>DB Integration</span>
+              <span class="badge badge-lime">Live</span>
+            </div>
+            <div class="info-row">
+              <span>Status</span>
+              <span id="cbApiStatus"><span class="badge badge-amber">Checking…</span></span>
+            </div>
+          </div>
+          <button class="btn btn-ghost btn-sm" style="margin-top:12px;width:100%"
+            onclick="checkChatbotHealth()">
+            <i class="fas fa-rotate-right"></i> Check Health
+          </button>
+        </div>
+
+        <!-- Widget Embed Code -->
+        <div class="card fade-up">
+          <div class="card-title" style="margin-bottom:4px">📋 Embed Code</div>
+          <div class="card-sub" style="margin-bottom:16px">Add this before &lt;/body&gt; in your storefront</div>
+          <div style="background:var(--bg);border-radius:10px;padding:14px;
+                      font-family:monospace;font-size:11px;color:var(--teal);
+                      line-height:1.7;overflow-x:auto;white-space:pre" id="cbEmbedCode"></div>
+          <button class="btn btn-ghost btn-sm" style="margin-top:10px;width:100%"
+            onclick="copyEmbedCode()">
+            <i class="fas fa-copy"></i> Copy Embed Code
+          </button>
+        </div>
+
+        <!-- Response Preview -->
+        <div class="card fade-up">
+          <div class="card-title" style="margin-bottom:4px">📦 Last Response</div>
+          <div class="card-sub" style="margin-bottom:12px">Raw JSON from chatbot API</div>
+          <div style="background:var(--bg);border-radius:10px;padding:14px;
+                      font-family:monospace;font-size:10px;color:var(--text2);
+                      line-height:1.6;max-height:220px;overflow-y:auto;
+                      white-space:pre-wrap" id="cbJsonPreview">
+Send a test message to see the response…
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+        // Populate embed code
+        const apiBase = API_URL.replace("/api", "");
+        document.getElementById("cbEmbedCode").textContent =
+          `<script src="${apiBase}/chatbot-widget.js"><\/script>
+<script>
+  BeeChatbot.init({
+    apiUrl: "${API_URL}",
+    shopUrl: "${apiBase}"
+  });
+<\/script>`;
+
+        // Load live stats
+        checkChatbotHealth();
+        loadChatbotStats();
+      }
+
+      // ── Health check ──────────────────────────────────────────────────────────────
+      async function checkChatbotHealth() {
+        const el = document.getElementById("cbApiStatus");
+        if (!el) return;
+        el.innerHTML = `<span class="badge badge-amber">Checking…</span>`;
+        try {
+          const res = await apiCall("/chatbot/suggestions");
+          if (res.success) {
+            el.innerHTML = `<span class="badge badge-lime"><i class="fas fa-circle" style="font-size:8px"></i> Online</span>`;
+            const { productCount, activeOffers } = res.stats || {};
+            if (document.getElementById("cbProductCount"))
+              document.getElementById("cbProductCount").textContent =
+                productCount ?? "—";
+            if (document.getElementById("cbCouponCount"))
+              document.getElementById("cbCouponCount").textContent =
+                activeOffers ?? "—";
+          }
+        } catch (e) {
+          if (el)
+            el.innerHTML = `<span class="badge badge-rose"><i class="fas fa-circle" style="font-size:8px"></i> Offline</span>`;
+        }
+      }
+
+      async function loadChatbotStats() {
+        try {
+          const res = await apiCall("/chatbot/suggestions");
+          if (res.stats) {
+            if (document.getElementById("cbProductCount"))
+              document.getElementById("cbProductCount").textContent =
+                res.stats.productCount ?? "—";
+            if (document.getElementById("cbCouponCount"))
+              document.getElementById("cbCouponCount").textContent =
+                res.stats.activeOffers ?? "—";
+          }
+        } catch (e) {}
+      }
+
+      // ── Intent tester ─────────────────────────────────────────────────────────────
+      async function sendChatbotTest() {
+        const input = document.getElementById("cbTestInput");
+        const msg = input?.value?.trim();
+        if (!msg) return;
+
+        const box = document.getElementById("cbTestMessages");
+
+        // User bubble
+        box.innerHTML += `
+    <div style="display:flex;justify-content:flex-end">
+      <div style="background:linear-gradient(135deg,var(--navy,#0D1B3E),#1A2E5A);
+                  color:white;padding:9px 13px;border-radius:14px 14px 3px 14px;
+                  font-size:13px;max-width:75%;line-height:1.5">
+        ${escapeHtml(msg)}
+      </div>
+    </div>`;
+        box.scrollTop = box.scrollHeight;
+        input.value = "";
+
+        // Typing indicator
+        const typingId = "typing_" + Date.now();
+        box.innerHTML += `
+    <div id="${typingId}" style="display:flex;gap:8px;align-items:flex-end">
+      <div style="width:28px;height:28px;border-radius:50%;background:var(--lime-dim);
+                  display:flex;align-items:center;justify-content:center;font-size:13px">🐝</div>
+      <div style="background:var(--surface);border:1px solid var(--border);
+                  padding:10px 14px;border-radius:14px;font-size:13px;color:var(--text3)">
+        <i class="fas fa-ellipsis fa-fade"></i>
+      </div>
+    </div>`;
+        box.scrollTop = box.scrollHeight;
+
+        try {
+          const res = await apiCall("/chatbot/message", {
+            method: "POST",
+            body: JSON.stringify({ message: msg, sessionId: "admin_test" }),
+          });
+
+          // Remove typing indicator
+          document.getElementById(typingId)?.remove();
+
+          // Update JSON preview
+          const jsonEl = document.getElementById("cbJsonPreview");
+          if (jsonEl) jsonEl.textContent = JSON.stringify(res, null, 2);
+
+          // Render bot response
+          const r = res.response;
+          let html = `<div style="font-size:13px;line-height:1.6;margin-bottom:6px">
+      ${r.text?.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>") || ""}
+    </div>`;
+
+          // Render rich data
+          if (r.order) {
+            html += renderCbOrderCard(r.order);
+          }
+          if (r.orders?.length) {
+            html += r.orders
+              .map(
+                (o) => `
+        <div style="background:var(--bg);border-radius:8px;padding:8px 12px;
+                    margin-top:4px;font-size:12px;display:flex;
+                    justify-content:space-between;align-items:center">
+          <span style="font-family:monospace;color:var(--lime)">${o.number}</span>
+          ${statusBadge(o.status)}
+          <span style="color:var(--text2)">${formatCurrency(o.total)}</span>
+        </div>`,
+              )
+              .join("");
+          }
+          if (r.products?.length) {
+            html += r.products
+              .map(
+                (p) => `
+        <div style="background:var(--bg);border-radius:8px;padding:8px 12px;
+                    margin-top:4px;font-size:12px;display:flex;
+                    justify-content:space-between;align-items:center">
+          <span>${escapeHtml(p.name)}</span>
+          <span style="color:var(--lime);font-weight:700">${formatCurrency(p.price)}</span>
+          <span class="badge ${p.inStock ? "badge-lime" : "badge-rose"}">
+            ${p.inStock ? p.stock + " left" : "Out of stock"}
+          </span>
+        </div>`,
+              )
+              .join("");
+          }
+          if (r.charges) {
+            html += `
+        <div style="background:var(--bg);border-radius:8px;padding:10px 12px;margin-top:6px">
+          <div style="font-size:12px;display:flex;justify-content:space-between;padding:4px 0">
+            <span style="color:var(--text3)">🏙️ Inside Dhaka</span>
+            <span style="font-weight:700;color:var(--lime)">৳${r.charges.insideDhaka}</span>
+          </div>
+          <div style="font-size:12px;display:flex;justify-content:space-between;padding:4px 0">
+            <span style="color:var(--text3)">🚚 Outside Dhaka</span>
+            <span style="font-weight:700;color:var(--amber)">৳${r.charges.outsideDhaka}</span>
+          </div>
+          ${
+            r.charges.special
+              ? `
+          <div style="font-size:12px;display:flex;justify-content:space-between;padding:4px 0;
+                      border-top:1px solid var(--border);margin-top:4px">
+            <span style="color:var(--text3)">🎁 Special (min ৳${r.charges.special.minOrder})</span>
+            <span style="font-weight:700;color:var(--teal)">৳${r.charges.special.amount}</span>
+          </div>`
+              : ""
+          }
+        </div>`;
+          }
+          if (r.coupons?.length) {
+            html += r.coupons
+              .map(
+                (cp) => `
+        <div style="background:var(--bg);border-radius:8px;padding:8px 12px;
+                    margin-top:4px;font-size:12px;display:flex;
+                    justify-content:space-between;align-items:center">
+          <span style="font-family:monospace;color:var(--lime);font-weight:700">${cp.code}</span>
+          <span class="badge badge-sky">
+            ${cp.type === "percentage" ? cp.value + "%" : "৳" + cp.value} OFF
+          </span>
+          ${cp.minOrder > 0 ? `<span style="color:var(--text3)">Min ৳${cp.minOrder}</span>` : ""}
+        </div>`,
+              )
+              .join("");
+          }
+          if (r.methods?.length) {
+            html += `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">
+        ${r.methods
+          .map(
+            (m) => `
+          <div style="background:var(--bg);border-radius:8px;padding:6px 10px;font-size:11px">
+            <div style="font-weight:700">${m.name}</div>
+            <div style="color:var(--text3)">${m.desc}</div>
+          </div>`,
+          )
+          .join("")}
+      </div>`;
+          }
+          if (r.points?.length) {
+            html += `<div style="margin-top:8px;display:flex;flex-direction:column;gap:4px">
+        ${r.points.map((p) => `<div style="font-size:12px;color:var(--text2)">${p}</div>`).join("")}
+      </div>`;
+          }
+
+          // Intent badge
+          html += `<div style="margin-top:8px">
+      <span style="background:var(--lime-dim);color:var(--lime);font-size:10px;
+                   padding:2px 8px;border-radius:20px;font-family:monospace">
+        ${res.intent}
+      </span>
+    </div>`;
+
+          // Suggestions
+          if (r.suggestions?.length) {
+            html += `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:8px">
+        ${r.suggestions
+          .map(
+            (s) => `
+          <button onclick="document.getElementById('cbTestInput').value='${escapeHtml(s)}';sendChatbotTest()"
+            style="background:var(--surface2);border:1px solid var(--border);
+                   color:var(--text2);padding:4px 10px;border-radius:20px;
+                   font-size:11px;cursor:pointer;transition:.2s"
+            onmouseover="this.style.borderColor='var(--lime)';this.style.color='var(--lime)'"
+            onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">
+            ${escapeHtml(s)}
+          </button>`,
+          )
+          .join("")}
+      </div>`;
+          }
+
+          box.innerHTML += `
+      <div style="display:flex;gap:8px;align-items:flex-end">
+        <div style="width:28px;height:28px;border-radius:50%;
+                    background:linear-gradient(135deg,var(--lime),var(--teal));
+                    display:flex;align-items:center;justify-content:center;
+                    font-size:13px;flex-shrink:0">🐝</div>
+        <div style="background:var(--surface);border:1px solid var(--border);
+                    padding:10px 13px;border-radius:14px 14px 14px 3px;
+                    max-width:80%">
+          ${html}
+        </div>
+      </div>`;
+          box.scrollTop = box.scrollHeight;
+        } catch (err) {
+          document.getElementById(typingId)?.remove();
+          box.innerHTML += `
+      <div style="display:flex;gap:8px;align-items:flex-end">
+        <div style="width:28px;height:28px;border-radius:50%;
+                    background:var(--rose);opacity:.7;
+                    display:flex;align-items:center;justify-content:center;
+                    font-size:13px">🐝</div>
+        <div style="background:rgba(244,63,94,.1);border:1px solid rgba(244,63,94,.2);
+                    padding:10px 13px;border-radius:14px;font-size:12px;color:var(--rose)">
+          ❌ ${escapeHtml(err.message)}
+        </div>
+      </div>`;
+          box.scrollTop = box.scrollHeight;
+        }
+      }
+
+      function renderCbOrderCard(order) {
+        const statusColors = {
+          pending: "var(--amber)",
+          confirmed: "var(--sky)",
+          processing: "var(--sky)",
+          shipped: "var(--teal)",
+          delivered: "var(--lime)",
+          cancelled: "var(--rose)",
+        };
+        const color = statusColors[order.status] || "var(--text2)";
+        return `
+    <div style="background:var(--bg);border-radius:10px;padding:12px;margin-top:8px;
+                border:1px solid var(--border)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-family:monospace;font-size:12px;font-weight:700;color:var(--lime)">
+          ${order.number}
+        </span>
+        <span style="background:rgba(255,255,255,.06);color:${color};
+                     padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700">
+          ${order.statusEmoji} ${order.statusBn}
+        </span>
+      </div>
+      <div style="font-size:11px;color:var(--text3);display:flex;flex-direction:column;gap:3px">
+        <div>${order.customerName} · ${formatCurrency(order.total)}</div>
+        ${order.trackingNumber ? `<div>Tracking: <span style="color:var(--amber)">${order.trackingNumber}</span></div>` : ""}
+        ${order.items ? `<div>Items: ${order.items}</div>` : ""}
+      </div>
+    </div>`;
+      }
+
+      function copyEmbedCode() {
+        const code = document.getElementById("cbEmbedCode")?.textContent;
+        if (!code) return;
+        navigator.clipboard
+          .writeText(code)
+          .then(() => showToast("Embed code copied!", "success"));
+      }
+
+      function openLiveChatPreview() {
+        modal(`
+    <div class="modal-box" style="max-width:440px">
+      <div class="modal-header">
+        <div><div class="modal-title">Live Chat Preview</div></div>
+        <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body" style="padding:0;height:520px;overflow:hidden">
+        <iframe
+          srcdoc='<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{margin:0;background:#F5F0E8;display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif;color:#0D1B3E}</style></head><body><div style="text-align:center;padding:32px"><div style="font-size:48px;margin-bottom:16px">🐝</div><div style="font-size:18px;font-weight:700;margin-bottom:8px">BeeHarvest Chatbot</div><div style="font-size:13px;color:#6B7A99;max-width:280px;margin:0 auto">Embed the widget script in your customer storefront to see the live chat interface</div><div style="margin-top:20px;background:#FFF9F0;border:1px solid #EDE5D8;border-radius:12px;padding:14px;font-family:monospace;font-size:11px;color:#C47F11;text-align:left">POST /api/chatbot/message<br>GET /api/chatbot/suggestions</div></div></body></html>'
+          style="width:100%;height:100%;border:none">
+        </iframe>
+      </div>
+    </div>`);
       }
       // ═══════════════════════════════════════════
       // INIT
