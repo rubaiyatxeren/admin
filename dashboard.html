@@ -15,15 +15,11 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
       rel="stylesheet"
     />
-    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link
       href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap"
       rel="stylesheet"
     />
- </head> 
-<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <style>
       :root {
         --bg: #0b0d0f;
@@ -174,6 +170,52 @@
         padding: 1px 6px;
         border-radius: 99px;
         font-weight: 700;
+      }
+      /* Enhanced POS Slip Styles for Thermal Printing */
+      .pos-slip-container {
+        background: #ffffff;
+        color: #1a1a1a;
+        font-family: "Space Mono", "Courier New", monospace;
+        width: 280px;
+        margin: 0 auto;
+        padding: 16px 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border-radius: 4px;
+      }
+
+      .pos-slip {
+        width: 100%;
+        font-size: 11px;
+        line-height: 1.4;
+      }
+
+      .pos-slip .center {
+        text-align: center;
+      }
+
+      .pos-slip .row {
+        display: flex;
+        justify-content: space-between;
+        margin: 5px 0;
+      }
+
+      .pos-slip .total-line {
+        border-top: 1px solid #aaa;
+        margin-top: 8px;
+        padding-top: 8px;
+        font-weight: 800;
+        font-size: 13px;
+      }
+
+      .pos-slip .items-table td {
+        padding: 3px 0;
+        vertical-align: top;
+      }
+
+      .pos-slip hr {
+        border: none;
+        border-top: 1px dashed #ccc;
+        margin: 6px 0;
       }
       .nav-link:hover {
         background: var(--surface);
@@ -1683,7 +1725,6 @@
         }
       }
     </style>
-
   </head>
   <body>
     <!-- SIDEBAR -->
@@ -3665,36 +3706,7 @@
           showToast(e.message, "error");
         }
       }
-      // ═══════════════════════════════════════════
-      // PAGINATION HELPER
-      // ═══════════════════════════════════════════
-      function renderPagination(containerId, current, total, onPage) {
-        const el = document.getElementById(containerId);
-        if (!el) return;
-        let html = `<button class="page-btn" ${current === 1 ? "disabled" : ""} onclick="(${onPage})(${current - 1})"><i class="fas fa-chevron-left"></i></button>`;
-        const range = [];
-        for (
-          let i = Math.max(1, current - 2);
-          i <= Math.min(total, current + 2);
-          i++
-        )
-          range.push(i);
-        if (range[0] > 1) {
-          html += `<button class="page-btn" onclick="(${onPage})(1)">1</button>`;
-          if (range[0] > 2)
-            html += `<span style="color:var(--text3);padding:0 4px">…</span>`;
-        }
-        range.forEach((p) => {
-          html += `<button class="page-btn ${p === current ? "active" : ""}" onclick="(${onPage})(${p})">${p}</button>`;
-        });
-        if (range[range.length - 1] < total) {
-          if (range[range.length - 1] < total - 1)
-            html += `<span style="color:var(--text3);padding:0 4px">…</span>`;
-          html += `<button class="page-btn" onclick="(${onPage})(${total})">${total}</button>`;
-        }
-        html += `<button class="page-btn" ${current === total ? "disabled" : ""} onclick="(${onPage})(${current + 1})"><i class="fas fa-chevron-right"></i></button>`;
-        el.innerHTML = html;
-      }
+
       async function openBannerModal(id = null) {
         let banner = null;
         if (id) {
@@ -3914,260 +3926,313 @@
           };
         }
       }
-     function buildPosSlipHtml(order) {
-  const adminData = JSON.parse(localStorage.getItem("adminData") || "{}");
-  const terminalId = "BH-" + (order.customer?.address?.city || "DHAKA").toUpperCase().replace(/\s+/g, "-").slice(0, 8) + "-01";
-  const date = new Date(order.createdAt);
-  const dateStr = date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
-  const timeStr = date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true });
-  const totalItems = (order.items || []).reduce((sum, i) => sum + i.quantity, 0);
-  const addressParts = [order.customer?.address?.street, order.customer?.address?.area, order.customer?.address?.city].filter(Boolean).join(", ") || "Dhaka, Bangladesh";
-  const payMethod = (order.paymentMethod || "Cash on Delivery");
-  const payStatus = (order.paymentStatus || "PENDING").toUpperCase();
+      // ═══════════════════════════════════════════
+      // UPDATED POS SLIP WITH QR CODE AND EMAIL FIELD
+      // ═══════════════════════════════════════════
 
-  const svgSerrated = `<svg width="280" height="12" viewBox="0 0 280 12" style="display:block">
-    <path d="M0,12 L0,6 L7,0 L14,6 L21,0 L28,6 L35,0 L42,6 L49,0 L56,6 L63,0 L70,6 L77,0 L84,6 L91,0 L98,6 L105,0 L112,6 L119,0 L126,6 L133,0 L140,6 L147,0 L154,6 L161,0 L168,6 L175,0 L182,6 L189,0 L196,6 L203,0 L210,6 L217,0 L224,6 L231,0 L238,6 L245,0 L252,6 L259,0 L266,6 L273,0 L280,6 L280,12 Z" fill="#fff"/>
-  </svg>`;
+      function buildPosSlipHtml(order) {
+        const date = new Date(order.createdAt);
+        const formattedDate = date.toLocaleDateString("en-GB", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
 
-  const svgSerratedFlip = `<svg width="280" height="12" viewBox="0 0 280 12" style="display:block;transform:rotate(180deg)">
-    <path d="M0,12 L0,6 L7,0 L14,6 L21,0 L28,6 L35,0 L42,6 L49,0 L56,6 L63,0 L70,6 L77,0 L84,6 L91,0 L98,6 L105,0 L112,6 L119,0 L126,6 L133,0 L140,6 L147,0 L154,6 L161,0 L168,6 L175,0 L182,6 L189,0 L196,6 L203,0 L210,6 L217,0 L224,6 L231,0 L238,6 L245,0 L252,6 L259,0 L266,6 L273,0 L280,6 L280,12 Z" fill="#fff"/>
-  </svg>`;
+        // Calculate totals
+        const totalItems = (order.items || []).reduce(
+          (sum, item) => sum + item.quantity,
+          0,
+        );
+        const subtotal = order.subtotal || 0;
+        const deliveryCharge = order.deliveryCharge || 0;
+        const discount = order.discount || 0;
+        const total = order.total || 0;
 
-  return `
-<div class="pos-slip-container" style="background:#fff;color:#111;font-family:'Courier New',Courier,monospace;width:280px;margin:0 auto;padding:0;box-shadow:0 4px 16px rgba(0,0,0,0.15);border-radius:2px;overflow:hidden">
+        // Generate barcode using multiple reliable sources (fallback chain)
+        const orderNumber = order.orderNumber || `ORD-${order._id?.slice(-8)}`;
 
-  ${svgSerrated}
+        // Primary: Use barcode.tec-it.com (reliable)
+        const barcodeUrl1 = `https://barcode.tec-it.com/barcode.ashx?data=${encodeURIComponent(orderNumber)}&code=Code128&dpi=120&datatype=Code128`;
 
-  <!-- HEADER -->
-  <div style="padding:18px 14px 12px;text-align:center;background:#fff;border-bottom:1px dashed #bbb">
-    <div style="font-size:17px;font-weight:900;color:#111;letter-spacing:3px;margin-bottom:2px;font-family:'Courier New',monospace">BEEYOND HARVEST</div>
-    <div style="font-size:8px;letter-spacing:2.5px;color:#777;margin-bottom:10px">ORGANIC · NATURAL · PURE</div>
-    <div style="font-size:8.5px;color:#555;line-height:1.9">
-      Dhaka, Bangladesh &nbsp;|&nbsp; beeharvest.vercel.app<br>
-      +880 1812-345678
-    </div>
-  </div>
+        // Fallback: Use barcodeapi.org
+        const barcodeUrl2 = `https://barcodeapi.org/api/128/${encodeURIComponent(orderNumber)}`;
 
-  <!-- ORDER META -->
-  <div style="padding:10px 14px;border-bottom:1px dashed #bbb;background:#fff">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
-      <div>
-        <div style="font-size:8px;letter-spacing:1.5px;color:#888;margin-bottom:1px">ORDER NUMBER</div>
-        <div style="font-size:13px;font-weight:900;color:#111;letter-spacing:0.5px">${order.orderNumber}</div>
-      </div>
-      <div style="text-align:right">
-        <div style="font-size:8px;letter-spacing:1.5px;color:#888;margin-bottom:1px">DATE &amp; TIME</div>
-        <div style="font-size:9px;font-weight:700;color:#333">${dateStr}</div>
-        <div style="font-size:8px;color:#777">${timeStr}</div>
-      </div>
-    </div>
-    <div style="border-top:1px dashed #ccc;padding-top:8px;display:flex;justify-content:space-between">
-      <div>
-        <div style="font-size:8px;color:#888;margin-bottom:1px">TERMINAL</div>
-        <div style="font-size:8.5px;font-weight:700">${terminalId}</div>
-      </div>
-      <div style="text-align:center">
-        <div style="font-size:8px;color:#888;margin-bottom:1px">REF #</div>
-        <div style="font-size:8.5px;font-weight:700">${order._id?.slice(-6).toUpperCase()}</div>
-      </div>
-      <div style="text-align:right">
-        <div style="font-size:8px;color:#888;margin-bottom:1px">SERVED BY</div>
-        <div style="font-size:8.5px;font-weight:700">Beeyond Team</div>
-      </div>
-    </div>
-  </div>
+        // Fallback 2: Use quickchart.io
+        const barcodeUrl3 = `https://quickchart.io/barcode?text=${encodeURIComponent(orderNumber)}&format=png&width=200&height=50&code=Code128`;
 
-  <!-- CUSTOMER -->
-  <div style="padding:10px 14px;border-bottom:1px dashed #bbb;background:#fff">
-    <div style="font-size:8px;letter-spacing:1.5px;color:#888;margin-bottom:6px">CUSTOMER DETAILS</div>
-    <div style="display:flex;justify-content:space-between;font-size:9.5px;margin-bottom:2px">
-      <span style="color:#777">Name:</span>
-      <span style="font-weight:700">${order.customer?.name || "—"}</span>
-    </div>
-    <div style="display:flex;justify-content:space-between;font-size:9.5px;margin-bottom:2px">
-      <span style="color:#777">Phone:</span>
-      <span style="font-weight:700">${order.customer?.phone || "—"}</span>
-    </div>
-    ${order.customer?.email ? `<div style="display:flex;justify-content:space-between;font-size:9px;margin-bottom:2px"><span style="color:#777">Email:</span><span style="font-weight:700">${order.customer.email}</span></div>` : ""}
-    <div style="display:flex;justify-content:space-between;font-size:9.5px">
-      <span style="color:#777;flex-shrink:0">Delivery:</span>
-      <span style="font-weight:700;text-align:right;max-width:170px;font-size:9px">${addressParts}</span>
-    </div>
-  </div>
+        // QR Code for website link
+        const websiteUrl = "https://beeharvest.vercel.app";
+        const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(websiteUrl)}`;
 
-  <!-- ITEMS -->
-  <div style="padding:10px 14px;border-bottom:1px dashed #bbb;background:#fff">
-    <div style="font-size:8px;letter-spacing:1.5px;color:#888;margin-bottom:8px">ORDER ITEMS (${totalItems} pcs)</div>
-    <table style="width:100%;border-collapse:collapse;font-size:9.5px">
-      <thead>
-        <tr style="border-bottom:1px solid #ddd">
-          <th style="text-align:left;padding:0 0 4px;color:#777;font-weight:600;font-size:8px;letter-spacing:1px">ITEM</th>
-          <th style="text-align:center;padding:0 0 4px;color:#777;font-weight:600;font-size:8px;letter-spacing:1px">QTY</th>
-          <th style="text-align:right;padding:0 0 4px;color:#777;font-weight:600;font-size:8px;letter-spacing:1px">PRICE</th>
-          <th style="text-align:right;padding:0 0 4px;color:#777;font-weight:600;font-size:8px;letter-spacing:1px">TOTAL</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${(order.items || []).map(item => `
-        <tr style="border-bottom:1px dashed #eee">
-          <td style="padding:4px 0;line-height:1.4">
-            <div style="font-weight:700;font-size:9.5px">${item.name}</div>
-            ${item.sku ? `<div style="font-size:7.5px;color:#999">SKU: ${item.sku}</div>` : ""}
-          </td>
-          <td style="text-align:center;padding:4px 0;font-weight:700">x${item.quantity}</td>
-          <td style="text-align:right;padding:4px 0">${formatCurrency(item.price)}</td>
-          <td style="text-align:right;padding:4px 0;font-weight:700">${formatCurrency(item.total)}</td>
-        </tr>`).join("")}
-      </tbody>
-    </table>
-  </div>
+        // Alternative QR API fallback
+        const qrCodeUrl2 = `https://quickchart.io/qr?text=${encodeURIComponent(websiteUrl)}&size=100`;
 
-  <!-- TOTALS -->
-  <div style="padding:10px 14px;border-bottom:1px dashed #bbb;background:#fff">
-    <div style="display:flex;justify-content:space-between;font-size:9.5px;margin-bottom:4px">
-      <span style="color:#777">Subtotal</span>
-      <span style="font-weight:700">${formatCurrency(order.subtotal)}</span>
-    </div>
-    <div style="display:flex;justify-content:space-between;font-size:9.5px;margin-bottom:4px">
-      <span style="color:#777">Delivery</span>
-      <span style="font-weight:700">${formatCurrency(order.deliveryCharge)}</span>
-    </div>
-    ${order.discount ? `
-    <div style="display:flex;justify-content:space-between;font-size:9.5px;margin-bottom:4px">
-      <span style="color:#333;font-weight:700">Discount</span>
-      <span style="font-weight:700">-${formatCurrency(order.discount)}</span>
-    </div>` : ""}
-    <div style="height:1.5px;background:#111;margin:8px 0"></div>
-    <div style="display:flex;justify-content:space-between;align-items:baseline">
-      <span style="font-size:11px;font-weight:900;letter-spacing:1px">TOTAL PAID</span>
-      <span style="font-size:20px;font-weight:900;color:#111">${formatCurrency(order.total)}</span>
-    </div>
-    <div style="height:1px;background:#111;margin:6px 0 0"></div>
-  </div>
+        // Customer email (from order data or placeholder)
+        const customerEmail = order.customer?.email || "Not provided";
+        const customerPhone = order.customer?.phone || "N/A";
 
-  <!-- PAYMENT -->
-  <div style="padding:10px 14px;border-bottom:1px dashed #bbb;background:#fff">
-    <div style="font-size:8px;letter-spacing:1.5px;color:#888;margin-bottom:7px">PAYMENT</div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-      <div style="font-size:9.5px;font-weight:700">${payMethod}</div>
-      <div style="border:1.5px solid #111;color:#111;font-size:8px;font-weight:900;padding:2px 8px;letter-spacing:1px">${payStatus}</div>
-    </div>
-    <div style="display:flex;justify-content:space-between;font-size:8.5px;color:#666;border-top:1px dashed #ccc;padding-top:6px">
-      <span>Status: <strong style="color:#111">${(order.orderStatus || "pending").toUpperCase()}</strong></span>
-      <span>Est. delivery: <strong style="color:#111">2-3 Days</strong></span>
-    </div>
-    ${order.notes ? `<div style="margin-top:6px;font-size:8.5px;color:#555;border-top:1px dashed #ccc;padding-top:6px">Note: ${order.notes}</div>` : ""}
-  </div>
+        return `
+    <div class="pos-slip-container" style="
+      background: #ffffff;
+      color: #1a1a1a;
+      font-family: 'Space Mono', 'Courier New', monospace;
+      width: 280px;
+      margin: 0 auto;
+      padding: 16px 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    ">
+      <div class="pos-slip" style="width: 100%; font-size: 11px; line-height: 1.4;">
+        
+        <!-- Header -->
+        <div class="center" style="text-align: center;">
+          <div class="shop-title" style="font-size: 14px; font-weight: 800; letter-spacing: -0.3px; margin-bottom: 4px;">
+            🌿 BEEYOND HARVEST
+          </div>
+          <div style="font-size: 9px; letter-spacing: 1px; color: #666;">ORGANIC & NATURAL</div>
+          <div style="font-size: 8px; color: #888;">📞 09612 345678 | 📧 hello@beeharvest.com</div>
+          <div style="font-size: 8px; color: #888;">🌐 beeharvest.vercel.app</div>
+          <hr style="border: none; border-top: 1px dashed #ccc; margin: 8px 0;" />
+        </div>
 
-  <!-- QR CODE -->
-  <div style="padding:14px 14px 8px;background:#fff;text-align:center">
-    <div style="font-size:8px;letter-spacing:1.5px;color:#888;margin-bottom:8px">SCAN TO SHOP ONLINE</div>
-    <div id="posQrCanvas" style="display:flex;justify-content:center;align-items:center;margin:0 auto;width:110px;height:110px"></div>
-    <div style="margin-top:6px;font-size:8px;color:#888;letter-spacing:0.5px">beeharvest.vercel.app</div>
-  </div>
+        <!-- Transaction Info -->
+        <div class="row" style="display: flex; justify-content: space-between; margin: 5px 0;">
+          <span>Date:</span>
+          <span>${formattedDate}</span>
+        </div>
+        <div class="row" style="display: flex; justify-content: space-between; margin: 5px 0;">
+          <span>Order #:</span>
+          <span style="font-weight: 700;">${orderNumber}</span>
+        </div>
+        <div class="row" style="display: flex; justify-content: space-between; margin: 5px 0;">
+          <span>Cashier:</span>
+          <span>${order.cashierName || "Admin"}</span>
+        </div>
 
-  <!-- BARCODE -->
-  <div style="padding:4px 14px 12px;background:#fff;text-align:center">
-    <canvas id="posBarcodeCanvas" width="252" height="48" style="display:block;margin:0 auto"></canvas>
-    <div style="font-size:7.5px;letter-spacing:2px;color:#aaa;margin-top:3px">${order.orderNumber}</div>
-  </div>
+        <hr style="border: none; border-top: 1px dashed #ccc; margin: 6px 0;" />
 
-  <!-- FOOTER -->
-  <div style="padding:12px 14px 16px;background:#fff;text-align:center;border-top:1px dashed #ccc">
-    <div style="font-size:10px;font-weight:900;color:#111;margin-bottom:4px;letter-spacing:1px">THANK YOU FOR YOUR ORDER</div>
-    <div style="font-size:8px;color:#777;line-height:1.9">
-      support@beeyondharvestbd.com<br>
-      Hotline: +880 1812-345678 (10am-8pm)
-    </div>
-    <div style="height:1px;background:#ddd;margin:8px 0"></div>
-    <div style="font-size:7.5px;color:#aaa;line-height:1.7">
-      Beeyond Harvest Ltd. · Dhaka, Bangladesh<br>
-      This receipt is your proof of purchase.
-    </div>
-  </div>
-
-  ${svgSerratedFlip}
-</div>`;
-}
-
-      // ─── Draw QR code pointing to beeharvest.vercel.app ───────────────────────────
-      function drawPosQR(containerId, url) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-  container.innerHTML = ""; // clear previous
-  new QRCode(container, {
-    text: url,
-    width: 130,
-    height: 130,
-    colorDark: "#111111",
-    colorLight: "#ffffff",
-    correctLevel: QRCode.CorrectLevel.M,
-  });
-}
-      // ─── Draw barcode (Code-39 style visual) ──────────────────────────────────────
-      function drawPosBarcode(canvasId, text) {
-        const canvas = document.getElementById(canvasId);
-        if (!canvas) return;
-        const ctx = canvas.getContext("2d");
-        const W = 252,
-          H = 52;
-
-        ctx.fillStyle = "#fff";
-        ctx.fillRect(0, 0, W, H);
-
-        // Generate a deterministic bar pattern from the text
-        const seed = text.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
-        const totalBars = 72;
-        const bars = [];
-        for (let i = 0; i < totalBars; i++) {
-          bars.push(((seed * (i * 31 + 7)) % 4) + 1);
+        <!-- Customer Info with EMAIL -->
+        <div class="row" style="display: flex; justify-content: space-between; margin: 5px 0;">
+          <span>Customer:</span>
+          <span>${order.customer?.name || "Walk-in Customer"}</span>
+        </div>
+        <div class="row" style="display: flex; justify-content: space-between; margin: 5px 0;">
+          <span>Phone:</span>
+          <span>${customerPhone}</span>
+        </div>
+        <div class="row" style="display: flex; justify-content: space-between; margin: 5px 0;">
+          <span>Email:</span>
+          <span style="font-size: 11px; word-break: break-all; max-width: 160px;">${customerEmail}</span>
+        </div>
+        ${
+          order.customer?.address
+            ? `
+        <div class="row" style="display: flex; justify-content: space-between; margin: 5px 0;">
+          <span>Address:</span>
+          <span style="text-align: right; max-width: 180px;">${order.customer.address.street || ""} ${order.customer.address.area || ""}</span>
+        </div>
+        `
+            : ""
         }
 
-        // Force start/end quiet zones + start/stop bars
-        const quietZone = 6;
-        let x = quietZone;
-        const barH = H - 8;
-        const availW = W - quietZone * 2;
-        const totalUnits = bars.reduce((a, b) => a + b, 0);
-        const unitW = availW / totalUnits;
+        <hr style="border: none; border-top: 1px dashed #ccc; margin: 6px 0;" />
 
-        bars.forEach((units, i) => {
-          const w = unitW * units;
-          if (i % 2 === 0) {
-            ctx.fillStyle = "#111";
-            ctx.fillRect(
-              Math.round(x),
-              2,
-              Math.max(1, Math.round(w) - 1),
-              barH,
-            );
-          }
-          x += w;
-        });
-      }
-
-      async function openSlipModal(orderId) {
-        modal(`
-    <div class="modal-box wide" style="max-width: 400px;">
-      <div class="modal-header">
-        <div>
-          <div class="modal-title">🧾 POS Slip</div>
-          <div class="modal-sub">Thermal receipt · Scan QR to visit store</div>
+        <!-- Items Header -->
+        <div class="row" style="font-weight: 700; margin: 8px 0 4px 0;">
+          <span>ITEM</span>
+          <span>QTY × PRICE</span>
+          <span>TOTAL</span>
         </div>
-        <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
-      </div>
-      <div class="modal-body" id="slipModalBody" style="background:#e8e4dd;display:flex;justify-content:center;padding:24px 16px;">
-        <div class="spinner"></div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-ghost" onclick="closeModal()">Close</button>
-        <button class="btn btn-ghost" onclick="printPosSlip()"><i class="fas fa-print"></i> Print</button>
-        <button class="btn-slip" id="downloadSlipBtn" onclick="downloadPosSlipAsPng()">
-          <i class="fas fa-download"></i> Download PNG
-        </button>
+
+        <!-- Items List -->
+        <table class="items-table" style="width: 100%; margin: 5px 0; border-collapse: collapse;">
+          ${(order.items || [])
+            .map(
+              (item) => `
+            <tr>
+              <td style="padding: 3px 0; vertical-align: top; max-width: 140px; word-break: break-word;">
+                ${item.name.length > 25 ? item.name.substring(0, 22) + "..." : item.name}
+                ${item.sku ? `<div style="font-size: 8px; color: #888;">SKU: ${item.sku}</div>` : ""}
+              </td>
+              <td style="padding: 3px 0; text-align: center; white-space: nowrap;">
+                ${item.quantity} × ${formatCurrency(item.price)}
+              </td>
+              <td style="padding: 3px 0; text-align: right; white-space: nowrap;">
+                ${formatCurrency(item.total)}
+              </td>
+            </tr>
+          `,
+            )
+            .join("")}
+        </table>
+
+        <hr style="border: none; border-top: 1px dashed #ccc; margin: 6px 0;" />
+
+        <!-- Totals Section -->
+        <div class="row" style="display: flex; justify-content: space-between; margin: 5px 0;">
+          <span>Subtotal (${totalItems} items):</span>
+          <span>${formatCurrency(subtotal)}</span>
+        </div>
+        <div class="row" style="display: flex; justify-content: space-between; margin: 5px 0;">
+          <span>Delivery Charge:</span>
+          <span>${formatCurrency(deliveryCharge)}</span>
+        </div>
+        ${
+          discount > 0
+            ? `
+        <div class="row" style="display: flex; justify-content: space-between; margin: 5px 0;">
+          <span style="color: #e53e3e;">Discount:</span>
+          <span style="color: #e53e3e;">-${formatCurrency(discount)}</span>
+        </div>
+        `
+            : ""
+        }
+        
+        <div class="row total-line" style="border-top: 1px solid #aaa; margin-top: 8px; padding-top: 8px; font-weight: 800; font-size: 13px;">
+          <span>TOTAL</span>
+          <span>${formatCurrency(total)}</span>
+        </div>
+
+        <hr style="border: none; border-top: 1px dashed #ccc; margin: 6px 0;" />
+
+        <!-- Payment Details -->
+        <div class="row" style="display: flex; justify-content: space-between; margin: 5px 0;">
+          <span>Payment Method:</span>
+          <span>${order.paymentMethod?.toUpperCase() || "CASH"}</span>
+        </div>
+        <div class="row" style="display: flex; justify-content: space-between; margin: 5px 0;">
+          <span>Payment Status:</span>
+          <span style="color: ${order.paymentStatus === "paid" ? "#10b981" : "#f59e0b"}">
+            ${order.paymentStatus?.toUpperCase() || "PENDING"}
+          </span>
+        </div>
+        <div class="row" style="display: flex; justify-content: space-between; margin: 5px 0;">
+          <span>Order Status:</span>
+          <span style="color: ${order.orderStatus === "delivered" ? "#10b981" : "#3b82f6"}">
+            ${order.orderStatus?.toUpperCase() || "PENDING"}
+          </span>
+        </div>
+
+        ${
+          order.trackingNumber
+            ? `
+        <div class="row" style="display: flex; justify-content: space-between; margin: 5px 0;">
+          <span>Tracking #:</span>
+          <span style="font-size: 9px;">${order.trackingNumber}</span>
+        </div>
+        `
+            : ""
+        }
+
+        <hr style="border: none; border-top: 1px dashed #ccc; margin: 6px 0;" />
+
+        <!-- Notes -->
+        ${
+          order.notes
+            ? `
+        <div style="margin: 8px 0;">
+          <div style="font-weight: 700; font-size: 10px;">📝 NOTES:</div>
+          <div style="font-size: 9px; color: #666; margin-top: 3px;">${order.notes}</div>
+        </div>
+        <hr style="border: none; border-top: 1px dashed #ccc; margin: 6px 0;" />
+        `
+            : ""
+        }
+
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!-- QR CODE SECTION - Scan to visit website                       -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <div class="center" style="text-align: center; margin: 8px 0;">
+          <div style="font-size: 8px; color: #888; margin-bottom: 4px; letter-spacing: 1px;">SCAN TO VISIT OUR WEBSITE</div>
+          <img 
+            src="${qrCodeUrl}" 
+            alt="QR Code" 
+            style="width: 70px; height: 70px; margin: 0 auto; display: block;"
+            onerror="this.onerror=null; this.src='${qrCodeUrl2}';"
+            crossorigin="anonymous"
+          />
+          <div style="font-size: 7px; color: #aaa; margin-top: 4px;">beeharvest.vercel.app</div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!-- BARCODE SECTION - RIGHT BEFORE THANK YOU AREA               -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <div class="center" style="text-align: center; margin: 8px 0 4px 0;">
+          <div style="font-size: 8px; color: #888; margin-bottom: 4px; letter-spacing: 1px;">SCAN TO TRACK ORDER</div>
+          <img 
+            src="${barcodeUrl1}" 
+            alt="Barcode" 
+            style="width: 200px; height: auto; margin: 0 auto; display: block;"
+            onerror="this.onerror=null; this.src='${barcodeUrl2}';"
+            onerror2="this.onerror=null; this.src='${barcodeUrl3}';"
+            crossorigin="anonymous"
+          />
+          
+        </div>
+        <!-- ═══════════════════════════════════════════════════════════ -->
+
+        <!-- Footer / Thank You Area -->
+        <div class="center" style="text-align: center;">
+          <hr style="border: none; border-top: 1px dashed #ccc; margin: 6px 0;" />
+          <div style="font-size: 8px; margin: 4px 0;">
+            ⭐⭐⭐⭐⭐
+          </div>
+          <div style="font-size: 11px; font-weight: 700; color: #1a1a1a;">Thank you for shopping with us!</div>
+          <div style="font-size: 9px; color: #5a5a5a; margin-top: 4px;">
+            🌱 Pure. Natural. Sustainable. 🌱
+          </div>
+          <div style="font-size: 8px; color: #aaa; margin-top: 8px;">
+            For support: support@beeharvest.com | 09612 345678
+          </div>
+          <div style="font-size: 8px; color: #aaa; margin-top: 4px;">
+            Follow us: @beeyondharvest
+          </div>
+          <div style="font-size: 8px; color: #ccc; margin-top: 8px;">
+            This is a computer generated receipt
+          </div>
+        </div>
       </div>
     </div>
-  `);
+  `;
+      }
+
+      // Open POS slip modal with download button
+      async function openSlipModal(orderId) {
+        modal(`
+          <div class="modal-box wide" style="max-width: 380px;">
+            <div class="modal-header">
+              <div>
+                <div class="modal-title">🧾 POS Slip (Thermal Style)</div>
+                <div class="modal-sub">Receipt format • 280px width</div>
+              </div>
+              <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" id="slipModalBody" style="background:#f5f5f5; display:flex; justify-content:center;">
+              <div class="spinner"></div>
+            </div>
+           
+<div class="modal-footer">
+  <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+  <button class="btn-slip" id="downloadSlipBtn" onclick="downloadPosSlipAsPng()" style="
+    background: #c6f135;
+    color: #0b0d0f;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 20px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+  ">
+    <i class="fas fa-download"></i> Download PNG (Thermal Slip)
+  </button>
+</div>
+          </div>
+        `);
 
         try {
           const order = (await apiCall(`/orders/${orderId}`)).data;
@@ -4175,17 +4240,13 @@
           const slipHtml = buildPosSlipHtml(order);
           document.getElementById("slipModalBody").innerHTML =
             `<div id="posSlipToCapture">${slipHtml}</div>`;
-
-          setTimeout(() => {
-  drawPosQR("posQrCanvas", "https://beeharvest.vercel.app/");
-  drawPosBarcode("posBarcodeCanvas", order.orderNumber);
-}, 150);
         } catch (err) {
           showToast(err.message, "error");
           closeModal();
         }
       }
 
+      // Update the downloadPosSlipAsPng function
       async function downloadPosSlipAsPng() {
         const element = document.getElementById("posSlipToCapture");
         if (!element || !window._currentPosOrder) {
@@ -4199,86 +4260,76 @@
         btn.disabled = true;
 
         try {
-          // Re-draw canvases right before capture to ensure they're painted
-          drawPosQR("posQrCanvas", "https://beeharvest.vercel.app/");
-          drawPosBarcode(
-            "posBarcodeCanvas",
-            window._currentPosOrder.orderNumber,
+          // Wait a bit for images to load
+          await new Promise((resolve) => setTimeout(resolve, 800));
+
+          const canvas = await html2canvas(
+            element.querySelector(".pos-slip-container") || element,
+            {
+              scale: 2.5,
+              backgroundColor: "#ffffff",
+              logging: false,
+              useCORS: true,
+              allowTaint: false,
+              foreignObjectRendering: false,
+              onclone: (clonedDoc, element) => {
+                // Ensure all images are properly loaded in the cloned document
+                const images = clonedDoc.querySelectorAll("img");
+                images.forEach((img) => {
+                  if (img.src && !img.complete) {
+                    img.crossOrigin = "anonymous";
+                  }
+                });
+              },
+            },
           );
 
-          await new Promise((r) => setTimeout(r, 120)); // let canvas paint flush
-
-          const target =
-            element.querySelector(".pos-slip-container") || element;
-          const canvas = await html2canvas(target, {
-            scale: 3,
-            backgroundColor: "#ffffff",
-            logging: false,
-            useCORS: true,
-            allowTaint: false,
-            onclone: (clonedDoc) => {
-  // Re-render QR code in cloned doc
-  const qrDiv = clonedDoc.getElementById("posQrCanvas");
-  if (qrDiv) {
-    qrDiv.innerHTML = "";
-    new QRCode(qrDiv, {
-      text: "https://beeharvest.vercel.app/",
-      width: 130,
-      height: 130,
-      colorDark: "#111111",
-      colorLight: "#ffffff",
-      correctLevel: QRCode.CorrectLevel.M,
-    });
-  }
-  // Copy barcode canvas
-  const bc = clonedDoc.getElementById("posBarcodeCanvas");
-  const origBc = document.getElementById("posBarcodeCanvas");
-  if (bc && origBc) {
-    bc.getContext("2d").drawImage(origBc, 0, 0);
-  }
-},
-          });
-
-          const url = canvas.toDataURL("image/png");
+          const pngUrl = canvas.toDataURL("image/png");
           const a = document.createElement("a");
-          a.href = url;
           a.download = `pos_slip_${window._currentPosOrder.orderNumber}.png`;
+          a.href = pngUrl;
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
-          showToast("POS Slip downloaded!", "success");
-        } catch (err) {
-          console.error(err);
-          showToast("Failed to generate PNG: " + err.message, "error");
+
+          showToast("POS Slip downloaded with QR code & barcode!", "success");
+        } catch (error) {
+          console.error(error);
+          showToast("Failed to generate PNG", "error");
         } finally {
           btn.innerHTML = originalText;
           btn.disabled = false;
         }
       }
-
-      // ─── OPTIONAL: print helper ───────────────────────────────────────────────────
-      function printPosSlip() {
-        const order = window._currentPosOrder;
-        if (!order) {
-          showToast("No slip loaded", "warning");
-          return;
+      // ═══════════════════════════════════════════
+      // PAGINATION HELPER
+      // ═══════════════════════════════════════════
+      function renderPagination(containerId, current, total, onPage) {
+        const el = document.getElementById(containerId);
+        if (!el) return;
+        let html = `<button class="page-btn" ${current === 1 ? "disabled" : ""} onclick="(${onPage})(${current - 1})"><i class="fas fa-chevron-left"></i></button>`;
+        const range = [];
+        for (
+          let i = Math.max(1, current - 2);
+          i <= Math.min(total, current + 2);
+          i++
+        )
+          range.push(i);
+        if (range[0] > 1) {
+          html += `<button class="page-btn" onclick="(${onPage})(1)">1</button>`;
+          if (range[0] > 2)
+            html += `<span style="color:var(--text3);padding:0 4px">…</span>`;
         }
-        const printArea = document.getElementById("invoicePrintArea");
-        printArea.style.display = "block";
-        printArea.innerHTML =
-          `<style>body{margin:0;padding:20px;background:#e8e4dd;display:flex;justify-content:center}
-     *{-webkit-print-color-adjust:exact;print-color-adjust:exact}</style>` +
-          buildPosSlipHtml(order);
-        window.print();
-        setTimeout(() => {
-          printArea.style.display = "none";
-          printArea.innerHTML = "";
-          // Re-draw canvases in modal after print
-          setTimeout(() => {
-            drawPosQR("posQrCanvas", "https://beeharvest.vercel.app/");
-            drawPosBarcode("posBarcodeCanvas", order.orderNumber);
-          }, 200);
-        }, 800);
+        range.forEach((p) => {
+          html += `<button class="page-btn ${p === current ? "active" : ""}" onclick="(${onPage})(${p})">${p}</button>`;
+        });
+        if (range[range.length - 1] < total) {
+          if (range[range.length - 1] < total - 1)
+            html += `<span style="color:var(--text3);padding:0 4px">…</span>`;
+          html += `<button class="page-btn" onclick="(${onPage})(${total})">${total}</button>`;
+        }
+        html += `<button class="page-btn" ${current === total ? "disabled" : ""} onclick="(${onPage})(${current + 1})"><i class="fas fa-chevron-right"></i></button>`;
+        el.innerHTML = html;
       }
 
       // ═══════════════════════════════════════════
