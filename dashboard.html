@@ -1460,7 +1460,7 @@
         }
       }
 
-      /* RESPONSIVE */
+      /* RESPONSIVE FIXES - POS BUTTON ALWAYS VISIBLE ON MOBILE */
       @media (max-width: 1200px) {
         .stat-grid {
           grid-template-columns: repeat(2, 1fr);
@@ -1469,6 +1469,7 @@
           grid-template-columns: repeat(2, 1fr);
         }
       }
+
       @media (max-width: 768px) {
         .stat-grid {
           grid-template-columns: 1fr;
@@ -1487,6 +1488,194 @@
         }
         #topbar {
           left: 0;
+          padding: 0 16px;
+          gap: 10px;
+        }
+        .topbar-search {
+          width: 160px;
+        }
+        .topbar-search:focus-within {
+          width: 180px;
+        }
+        #content {
+          padding: 16px;
+        }
+
+        /* Orders filter bar — stack to 2 columns */
+        #content
+          .card
+          > div[style*="grid-template-columns:1fr auto auto auto auto auto"] {
+          grid-template-columns: 1fr 1fr !important;
+        }
+
+        /* Orders table — hide less important columns */
+        .data-table thead th:nth-child(3),
+        .data-table thead th:nth-child(6),
+        .data-table thead th:nth-child(7),
+        .data-table tbody td:nth-child(3),
+        .data-table tbody td:nth-child(6),
+        .data-table tbody td:nth-child(7) {
+          display: none;
+        }
+
+        /* Actions column - horizontal layout */
+        .data-table tbody td:last-child > div,
+        .data-table tbody td:nth-child(8) > div {
+          display: flex !important;
+          flex-direction: row !important;
+          flex-wrap: wrap !important;
+          gap: 6px !important;
+          justify-content: flex-start !important;
+          align-items: center !important;
+        }
+
+        /* POS BUTTON - FORCE VISIBLE (override any display:none) */
+        .btn-slip {
+          display: inline-flex !important;
+          visibility: visible !important;
+          opacity: 1 !important;
+          font-size: 11px !important;
+          padding: 5px 12px !important;
+          background: #c6f135 !important;
+          color: #0b0d0f !important;
+          border-radius: 20px !important;
+          font-weight: 600 !important;
+          align-items: center !important;
+          gap: 5px !important;
+          white-space: nowrap !important;
+        }
+
+        .btn-slip i {
+          font-size: 11px !important;
+        }
+
+        /* Other action buttons */
+        .data-table tbody td:last-child .btn-icon,
+        .data-table tbody td:nth-child(8) .btn-icon {
+          width: 32px !important;
+          height: 32px !important;
+          padding: 0 !important;
+        }
+
+        .data-table tbody td:last-child .btn-sm,
+        .data-table tbody td:nth-child(8) .btn-sm {
+          padding: 5px 10px !important;
+          font-size: 11px !important;
+        }
+
+        /* Order number styling */
+        .data-table tbody td:first-child div:first-child {
+          font-size: 11px;
+        }
+
+        /* Total amount */
+        .data-table tbody td:nth-child(4) div {
+          font-size: 13px;
+        }
+
+        /* Table container scroll */
+        .card[style*="padding:0;overflow:hidden"] {
+          overflow-x: auto !important;
+        }
+
+        /* Full screen modal on mobile */
+        .modal-overlay {
+          padding: 0;
+          align-items: flex-end;
+        }
+        .modal-box,
+        .modal-box.wide {
+          max-width: 100% !important;
+          border-radius: 20px 20px 0 0;
+          max-height: 95vh;
+        }
+
+        /* Section headers */
+        .section-header {
+          flex-wrap: wrap;
+          gap: 10px;
+        }
+        .section-header > div:last-child {
+          flex-wrap: wrap;
+          gap: 6px;
+        }
+
+        /* POS slip modal */
+        .pos-slip-container {
+          width: 100% !important;
+          max-width: 320px;
+        }
+
+        /* Status timeline */
+        .timeline-dot {
+          width: 22px;
+          height: 22px;
+          font-size: 10px;
+        }
+        .timeline-label {
+          font-size: 8px;
+        }
+
+        /* Hide topbar time on small screens */
+        .topbar-time {
+          display: none;
+        }
+      }
+
+      /* Extra small screens (up to 480px) - POS STAYS VISIBLE */
+      @media (max-width: 480px) {
+        .data-table thead th:nth-child(5),
+        .data-table tbody td:nth-child(5) {
+          display: none;
+        }
+
+        .topbar-search {
+          width: 120px;
+        }
+
+        /* POS button - smaller but VISIBLE (no display:none!) */
+        .btn-slip {
+          display: inline-flex !important;
+          font-size: 10px !important;
+          padding: 4px 10px !important;
+        }
+
+        .btn-slip i {
+          font-size: 10px !important;
+        }
+
+        /* Action buttons row */
+        .data-table tbody td:last-child > div,
+        .data-table tbody td:nth-child(8) > div {
+          gap: 5px !important;
+        }
+
+        /* Make invoice button smaller */
+        .data-table tbody td:last-child .btn-sm,
+        .data-table tbody td:nth-child(8) .btn-sm {
+          padding: 4px 8px !important;
+          font-size: 10px !important;
+        }
+
+        .data-table tbody td:last-child .btn-icon,
+        .data-table tbody td:nth-child(8) .btn-icon {
+          width: 28px !important;
+          height: 28px !important;
+        }
+      }
+
+      /* Landscape mode */
+      @media (max-width: 768px) and (orientation: landscape) {
+        .data-table tbody td:last-child > div,
+        .data-table tbody td:nth-child(8) > div {
+          flex-direction: row !important;
+          gap: 8px !important;
+        }
+
+        .btn-slip {
+          display: inline-flex !important;
+          padding: 4px 12px !important;
+          font-size: 10px !important;
         }
       }
     </style>
@@ -3471,7 +3660,36 @@
           showToast(e.message, "error");
         }
       }
-
+      // ═══════════════════════════════════════════
+      // PAGINATION HELPER
+      // ═══════════════════════════════════════════
+      function renderPagination(containerId, current, total, onPage) {
+        const el = document.getElementById(containerId);
+        if (!el) return;
+        let html = `<button class="page-btn" ${current === 1 ? "disabled" : ""} onclick="(${onPage})(${current - 1})"><i class="fas fa-chevron-left"></i></button>`;
+        const range = [];
+        for (
+          let i = Math.max(1, current - 2);
+          i <= Math.min(total, current + 2);
+          i++
+        )
+          range.push(i);
+        if (range[0] > 1) {
+          html += `<button class="page-btn" onclick="(${onPage})(1)">1</button>`;
+          if (range[0] > 2)
+            html += `<span style="color:var(--text3);padding:0 4px">…</span>`;
+        }
+        range.forEach((p) => {
+          html += `<button class="page-btn ${p === current ? "active" : ""}" onclick="(${onPage})(${p})">${p}</button>`;
+        });
+        if (range[range.length - 1] < total) {
+          if (range[range.length - 1] < total - 1)
+            html += `<span style="color:var(--text3);padding:0 4px">…</span>`;
+          html += `<button class="page-btn" onclick="(${onPage})(${total})">${total}</button>`;
+        }
+        html += `<button class="page-btn" ${current === total ? "disabled" : ""} onclick="(${onPage})(${current + 1})"><i class="fas fa-chevron-right"></i></button>`;
+        el.innerHTML = html;
+      }
       async function openBannerModal(id = null) {
         let banner = null;
         if (id) {
@@ -3693,129 +3911,393 @@
       }
       function buildPosSlipHtml(order) {
         const date = new Date(order.createdAt);
-        const formattedDate = date.toLocaleDateString("en-GB", {
+        const dateStr = date.toLocaleDateString("en-GB", {
           day: "2-digit",
-          month: "2-digit",
-          year: "2-digit",
-          hour: "2-digit",
-          minute: "2-digit",
+          month: "short",
+          year: "numeric",
         });
-
-        // Calculate item count
+        const timeStr = date.toLocaleTimeString("en-GB");
         const totalItems = (order.items || []).reduce(
-          (sum, item) => sum + item.quantity,
+          (sum, i) => sum + i.quantity,
           0,
         );
 
+        const addressParts =
+          [
+            order.customer?.address?.street,
+            order.customer?.address?.area,
+            order.customer?.address?.city,
+          ]
+            .filter(Boolean)
+            .join(", ") || "Dhaka, Bangladesh";
+
+        const payMethod = (order.paymentMethod || "CASH").toUpperCase();
+        const payStatus = (order.paymentStatus || "PENDING").toUpperCase();
+
+        const payChipColor = payMethod.includes("BKASH")
+          ? "#e6007a"
+          : payMethod.includes("NAGAD")
+            ? "#f6851f"
+            : "#1a1a1a";
+
+        const payChipLabel = payMethod.includes("BKASH")
+          ? "bK"
+          : payMethod.includes("NAGAD")
+            ? "NG"
+            : "CD";
+
+        const svgSerrated = `<svg width="280" height="16" viewBox="0 0 280 16" style="display:block">
+    <path d="M0,16 L0,8 L8,0 L16,8 L24,0 L32,8 L40,0 L48,8 L56,0 L64,8 L72,0 L80,8 L88,0 L96,8 L104,0 L112,8 L120,0 L128,8 L136,0 L144,8 L152,0 L160,8 L168,0 L176,8 L184,0 L192,8 L200,0 L208,8 L216,0 L224,8 L232,0 L240,8 L248,0 L256,8 L264,0 L272,8 L280,0 L280,16 Z" fill="#fff"/>
+  </svg>`;
+
+        const svgSerratedFlip = `<svg width="280" height="16" viewBox="0 0 280 16" style="display:block;transform:rotate(180deg)">
+    <path d="M0,16 L0,8 L8,0 L16,8 L24,0 L32,8 L40,0 L48,8 L56,0 L64,8 L72,0 L80,8 L88,0 L96,8 L104,0 L112,8 L120,0 L128,8 L136,0 L144,8 L152,0 L160,8 L168,0 L176,8 L184,0 L192,8 L200,0 L208,8 L216,0 L224,8 L232,0 L240,8 L248,0 L256,8 L264,0 L272,8 L280,0 L280,16 Z" fill="#fff"/>
+  </svg>`;
+
         return `
-          <div class="pos-slip-container">
-            <div class="pos-slip">
-              <div class="center">
-                <div class="shop-title">🌿 Beeyond Harvest</div>
-                <div style="font-size:9px; letter-spacing:1px;">ORGANIC & NATURAL</div>
-                <div style="font-size:9px; color:#666;">📍 Dhaka, Bangladesh</div>
-                <div style="font-size:9px;">📞 09612 345678</div>
-                <hr />
-                <div>${formattedDate}</div>
-                <div><strong>Order #${order.orderNumber}</strong></div>
-                <hr />
-              </div>
-
-              <div class="row">
-                <span>${order.customer?.name || "Valued Customer"}</span>
-                <span>${order.customer?.phone || ""}</span>
-              </div>
-
-              <hr style="margin:4px 0;" />
-
-              <table class="items-table">
-                ${(order.items || [])
-                  .map(
-                    (item) => `
-                  <tr>
-                    <td>${item.name}${item.name.length > 22 ? "…" : ""}</td>
-                    <td>${item.quantity} × ${formatCurrency(item.price)}</span></td>
-                    <td>${formatCurrency(item.total)}</span></td>
-                  </tr>
-                  `,
-                  )
-                  .join("")}
-              </table>
-
-              <hr />
-
-              <div class="row">
-                <span>Subtotal (${totalItems} items)</span>
-                <span>${formatCurrency(order.subtotal)}</span>
-              </div>
-
-              <div class="row">
-                <span>Delivery</span>
-                <span>${formatCurrency(order.deliveryCharge)}</span>
-              </div>
-
-              ${
-                order.discount
-                  ? `
-              <div class="row">
-                <span>Discount</span>
-                <span style="color:#e53e3e;">-${formatCurrency(order.discount)}</span>
-              </div>
-              `
-                  : ""
-              }
-
-              <div class="row total-line">
-                <span class="bold">TOTAL</span>
-                <span class="bold">${formatCurrency(order.total)}</span>
-              </div>
-
-              <hr />
-
-              <div class="center">
-                <div class="row" style="justify-content:center; gap:12px;">
-                  <span>💳 ${order.paymentMethod?.toUpperCase() || "CASH"}</span>
-                  <span>✓ ${order.paymentStatus?.toUpperCase() || "PAID"}</span>
-                </div>
-                <div style="margin-top:4px;">
-                  <span style="background:#c6f13520; padding:2px 10px; border-radius:20px; font-size:9px; font-weight:600;">
-                    Status: ${order.orderStatus}
-                  </span>
-                </div>
-                <hr style="margin:8px 0;" />
-                <div class="footer-text">
-                  Thank you for shopping with us!<br />
-                  🌱 Pure. Natural. Sustainable. 🌱<br />
-
-                </div>
-              </div>
-            </div>
+  <div class="pos-slip-container" style="background:#fff;color:#111;font-family:'Courier New',Courier,monospace;width:280px;margin:0 auto;padding:0;box-shadow:0 8px 32px rgba(0,0,0,0.2);border-radius:4px;overflow:hidden">
+ 
+    ${svgSerrated}
+ 
+    <!-- BRAND HEADER -->
+    <div style="background:#1a1a1a;padding:18px 16px 14px;text-align:center">
+      <div style="width:48px;height:48px;background:#c6f135;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:22px;line-height:1">🌿</div>
+      <div style="font-size:20px;font-weight:900;color:#c6f135;letter-spacing:-0.3px;margin-bottom:1px;font-family:Arial,sans-serif">BEEYOND HARVEST</div>
+      <div style="font-size:8px;letter-spacing:3px;color:#888;margin-bottom:6px">ORGANIC · NATURAL · PURE</div>
+      <div style="height:1px;background:linear-gradient(90deg,transparent,#444,transparent);margin:8px 0"></div>
+      <div style="font-size:9px;color:#888;line-height:1.8">
+        Dhaka, Bangladesh<br>
+        beeharvest.vercel.app<br>
+        +880 1812-345678
+      </div>
+    </div>
+ 
+    <!-- ORDER META -->
+    <div style="background:#f7f4ef;padding:10px 14px;border-bottom:1px dashed #ccc">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+        <div>
+          <div style="font-size:8px;letter-spacing:1.5px;color:#999;margin-bottom:1px">ORDER NUMBER</div>
+          <div style="font-size:13px;font-weight:900;color:#111;letter-spacing:0.5px">${order.orderNumber}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:8px;letter-spacing:1.5px;color:#999;margin-bottom:1px">DATE &amp; TIME</div>
+          <div style="font-size:9px;font-weight:700;color:#333">${dateStr}</div>
+          <div style="font-size:8px;color:#888">${timeStr}</div>
+        </div>
+      </div>
+      <div style="border-top:1px dashed #ddd;padding-top:8px;display:flex;justify-content:space-between">
+        <div>
+          <div style="font-size:8px;color:#999;margin-bottom:1px">TERMINAL</div>
+          <div style="font-size:9px;font-weight:700">BH-DHAKA-01</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:8px;color:#999;margin-bottom:1px">SERVED BY</div>
+          <div style="font-size:9px;font-weight:700">Admin Panel</div>
+        </div>
+      </div>
+    </div>
+ 
+    <!-- CUSTOMER INFO -->
+    <div style="padding:10px 14px;border-bottom:1px dashed #ccc;background:#fff">
+      <div style="font-size:8px;letter-spacing:1.5px;color:#999;margin-bottom:6px">CUSTOMER DETAILS</div>
+      <div style="display:flex;justify-content:space-between;font-size:9.5px;margin-bottom:2px">
+        <span style="color:#888">Name:</span>
+        <span style="font-weight:700">${order.customer?.name || "—"}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:9.5px;margin-bottom:2px">
+        <span style="color:#888">Phone:</span>
+        <span style="font-weight:700">${order.customer?.phone || "—"}</span>
+      </div>
+      ${order.customer?.email ? `<div style="display:flex;justify-content:space-between;font-size:9.5px;margin-bottom:2px"><span style="color:#888">Email:</span><span style="font-weight:700;font-size:8.5px">${order.customer.email}</span></div>` : ""}
+      <div style="display:flex;justify-content:space-between;font-size:9.5px">
+        <span style="color:#888;flex-shrink:0">Address:</span>
+        <span style="font-weight:700;text-align:right;max-width:170px;font-size:9px">${addressParts}</span>
+      </div>
+    </div>
+ 
+    <!-- ITEMS TABLE -->
+    <div style="padding:10px 14px;border-bottom:1px dashed #ccc;background:#fff">
+      <div style="font-size:8px;letter-spacing:1.5px;color:#999;margin-bottom:8px">ORDER ITEMS (${totalItems} pcs)</div>
+      <table style="width:100%;border-collapse:collapse;font-size:9.5px">
+        <thead>
+          <tr style="border-bottom:1px solid #eee">
+            <th style="text-align:left;padding:0 0 4px;color:#999;font-weight:600;font-size:8px;letter-spacing:1px">ITEM</th>
+            <th style="text-align:center;padding:0 0 4px;color:#999;font-weight:600;font-size:8px;letter-spacing:1px">QTY</th>
+            <th style="text-align:right;padding:0 0 4px;color:#999;font-weight:600;font-size:8px;letter-spacing:1px">PRICE</th>
+            <th style="text-align:right;padding:0 0 4px;color:#999;font-weight:600;font-size:8px;letter-spacing:1px">TOTAL</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${(order.items || [])
+            .map(
+              (item) => `
+          <tr style="border-bottom:1px dashed #f0f0f0">
+            <td style="padding:4px 0;line-height:1.4">
+              <div style="font-weight:700;font-size:9.5px">${item.name}</div>
+              ${item.sku ? `<div style="font-size:7.5px;color:#aaa">SKU: ${item.sku}</div>` : ""}
+            </td>
+            <td style="text-align:center;padding:4px 0;font-weight:700">×${item.quantity}</td>
+            <td style="text-align:right;padding:4px 0">${formatCurrency(item.price)}</td>
+            <td style="text-align:right;padding:4px 0;font-weight:700">${formatCurrency(item.total)}</td>
+          </tr>`,
+            )
+            .join("")}
+        </tbody>
+      </table>
+    </div>
+ 
+    <!-- TOTALS -->
+    <div style="padding:10px 14px;border-bottom:1px dashed #ccc;background:#fff">
+      <div style="display:flex;justify-content:space-between;font-size:9.5px;margin-bottom:4px">
+        <span style="color:#888">Subtotal</span>
+        <span style="font-weight:700">${formatCurrency(order.subtotal)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:9.5px;margin-bottom:4px">
+        <span style="color:#888">Delivery</span>
+        <span style="font-weight:700">${formatCurrency(order.deliveryCharge)}</span>
+      </div>
+      ${
+        order.discount
+          ? `
+      <div style="display:flex;justify-content:space-between;font-size:9.5px;margin-bottom:4px">
+        <span style="color:#22a87a;font-weight:700">Discount Applied</span>
+        <span style="color:#22a87a;font-weight:700">-${formatCurrency(order.discount)}</span>
+      </div>`
+          : ""
+      }
+      <div style="height:1.5px;background:#1a1a1a;margin:8px 0"></div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline">
+        <span style="font-size:11px;font-weight:900;letter-spacing:1px">TOTAL PAID</span>
+        <span style="font-size:18px;font-weight:900;color:#1a1a1a">${formatCurrency(order.total)}</span>
+      </div>
+      <div style="height:1.5px;background:#1a1a1a;margin:8px 0 0"></div>
+    </div>
+ 
+    <!-- PAYMENT INFO -->
+    <div style="padding:10px 14px;border-bottom:1px dashed #ccc;background:#f7f4ef">
+      <div style="font-size:8px;letter-spacing:1.5px;color:#999;margin-bottom:7px">PAYMENT METHOD</div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="display:flex;align-items:center;gap:7px">
+          <div style="width:26px;height:26px;background:${payChipColor};border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <span style="color:#fff;font-size:7.5px;font-weight:900;letter-spacing:-0.5px">${payChipLabel}</span>
           </div>
-        `;
+          <div>
+            <div style="font-size:9.5px;font-weight:700">${order.paymentMethod || "Cash on Delivery"}</div>
+            ${order.notes ? `<div style="font-size:8px;color:#888">${order.notes.slice(0, 28)}</div>` : ""}
+          </div>
+        </div>
+        <div style="background:${payStatus === "PAID" ? "#1a1a1a" : "#f5a623"};color:${payStatus === "PAID" ? "#c6f135" : "#fff"};font-size:8px;font-weight:900;padding:3px 8px;border-radius:3px;letter-spacing:1px">${payStatus}</div>
+      </div>
+      <div style="margin-top:7px;padding-top:7px;border-top:1px dashed #ddd;display:flex;justify-content:space-between;font-size:8.5px;color:#888">
+        <span>Status: <strong style="color:${order.orderStatus === "delivered" ? "#22a87a" : "#f5a623"}">${(order.orderStatus || "pending").toUpperCase()} ✓</strong></span>
+        <span>Delivery: <strong style="color:#111">2–3 Days</strong></span>
+      </div>
+    </div>
+ 
+    <!-- PROMO BANNER -->
+    <div style="background:#c6f135;padding:12px 14px;text-align:center;border-bottom:1px dashed #bbb">
+      <div style="font-size:8px;letter-spacing:2px;color:#5a6300;margin-bottom:3px">EXCLUSIVE NEXT ORDER OFFER</div>
+      <div style="font-size:14px;font-weight:900;color:#1a1a1a;margin-bottom:2px;font-family:Arial,sans-serif">GET 10% OFF NEXT ORDER</div>
+      <div style="font-size:8.5px;color:#4a5200;margin-bottom:6px">Use this code at checkout</div>
+      <div style="display:inline-block;background:#1a1a1a;color:#c6f135;font-size:13px;font-weight:900;letter-spacing:3px;padding:5px 16px;border-radius:3px;font-family:Arial,sans-serif">BEEMORE10</div>
+      <div style="font-size:7.5px;color:#6a7300;margin-top:4px">*Valid 30 days · Min order ৳1000 · T&amp;C apply</div>
+    </div>
+ 
+    <!-- WHY US GRID -->
+    <div style="padding:12px 14px;border-bottom:1px dashed #ccc;background:#fff">
+      <div style="font-size:8px;letter-spacing:1.5px;color:#999;margin-bottom:8px;text-align:center">WHY CUSTOMERS LOVE US</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <div style="background:#f7f4ef;border-radius:4px;padding:7px;text-align:center">
+          <div style="font-size:14px;margin-bottom:2px">🌿</div>
+          <div style="font-size:8px;font-weight:700;color:#333">100% Natural</div>
+          <div style="font-size:7px;color:#888;margin-top:1px">No additives</div>
+        </div>
+        <div style="background:#f7f4ef;border-radius:4px;padding:7px;text-align:center">
+          <div style="font-size:14px;margin-bottom:2px">🔬</div>
+          <div style="font-size:8px;font-weight:700;color:#333">Homemade</div>
+          <div style="font-size:7px;color:#888;margin-top:1px">Quality certified</div>
+        </div>
+        <div style="background:#f7f4ef;border-radius:4px;padding:7px;text-align:center">
+          <div style="font-size:14px;margin-bottom:2px">🚚</div>
+          <div style="font-size:8px;font-weight:700;color:#333">Fast Delivery</div>
+          <div style="font-size:7px;color:#888;margin-top:1px">2–3 day BD-wide</div>
+        </div>
+        <div style="background:#f7f4ef;border-radius:4px;padding:7px;text-align:center">
+          <div style="font-size:14px;margin-bottom:2px">↩️</div>
+          <div style="font-size:8px;font-weight:700;color:#333">Easy Return</div>
+          <div style="font-size:7px;color:#888;margin-top:1px">7-day policy</div>
+        </div>
+      </div>
+    </div>
+ 
+    <!-- SOCIAL PROMO -->
+    <div style="background:#1a1a1a;padding:12px 14px;text-align:center;border-bottom:1px solid #333">
+      <div style="font-size:8px;letter-spacing:2px;color:#888;margin-bottom:5px">SHARE &amp; EARN</div>
+      <div style="font-size:10px;color:#e0e0e0;line-height:1.6;margin-bottom:6px">Refer a friend &amp; get <strong style="color:#c6f135">৳100 store credit</strong></div>
+      <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap">
+        <div style="background:#333;border-radius:3px;padding:3px 8px;font-size:7.5px;color:#ccc;letter-spacing:0.5px">📘 /BeeyondHarvest</div>
+        <div style="background:#333;border-radius:3px;padding:3px 8px;font-size:7.5px;color:#ccc;letter-spacing:0.5px">📸 @beeyondharvest</div>
+      </div>
+    </div>
+ 
+    <!-- QR CODE -->
+    <div style="padding:14px 14px 8px;background:#fff;text-align:center">
+      <div style="font-size:8px;letter-spacing:1.5px;color:#999;margin-bottom:8px">SCAN TO SHOP · TRACK · REVIEW</div>
+      <canvas id="posQrCanvas" width="130" height="130" style="display:block;margin:0 auto;image-rendering:pixelated"></canvas>
+      <div style="margin-top:6px;font-size:8px;color:#888;letter-spacing:0.5px">beeharvest.vercel.app</div>
+    </div>
+ 
+    <!-- BARCODE -->
+    <div style="padding:4px 14px 12px;background:#fff;text-align:center">
+      <canvas id="posBarcodeCanvas" width="252" height="52" style="display:block;margin:0 auto;image-rendering:pixelated"></canvas>
+      <div style="font-size:7.5px;letter-spacing:2px;color:#aaa;margin-top:3px">${order.orderNumber}</div>
+    </div>
+ 
+    <!-- FOOTER -->
+    <div style="padding:12px 14px;background:#f7f4ef;text-align:center;border-top:1px dashed #ddd">
+      <div style="font-size:11px;font-weight:900;color:#1a1a1a;margin-bottom:2px;font-family:Arial,sans-serif">THANK YOU FOR YOUR ORDER!</div>
+      <div style="font-size:8px;color:#888;line-height:1.8;margin-bottom:6px">
+        support@beeyondharvestbd.com<br>
+        Hotline: +880 1812-345678 (10am–8pm)
+      </div>
+      <div style="height:1px;background:#ddd;margin:6px 0"></div>
+      <div style="font-size:7.5px;color:#bbb;line-height:1.7">
+        Beeyond Harvest Ltd. · Dhaka, Bangladesh<br>
+        TIN: 123456789 · BIN: 987654321<br>
+        This receipt is your proof of purchase.<br>
+        beeharvest.vercel.app
+      </div>
+    </div>
+ 
+    ${svgSerratedFlip}
+  </div>`;
       }
 
-      // Open POS slip modal with download button
+      // ─── Draw QR code pointing to beeharvest.vercel.app ───────────────────────────
+      function drawPosQR(canvasId, url) {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        const size = 130;
+        const modules = 25;
+        const cell = Math.floor(size / (modules + 4));
+        const offset = Math.floor((size - cell * (modules + 4)) / 2) + cell * 2;
+
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(0, 0, size, size);
+
+        const seed = url.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+        const pseudo = (r, c) => (seed * (r * 37 + c * 17 + 13)) % 97 < 40;
+
+        // Data modules
+        ctx.fillStyle = "#111";
+        for (let r = 0; r < modules; r++) {
+          for (let c = 0; c < modules; c++) {
+            if (pseudo(r, c))
+              ctx.fillRect(
+                offset + c * cell,
+                offset + r * cell,
+                cell - 1,
+                cell - 1,
+              );
+          }
+        }
+
+        // Finder pattern positions: top-left, top-right, bottom-left
+        const finderTL = [],
+          finderTR = [],
+          finderBL = [];
+        for (let r = 0; r < 7; r++)
+          for (let c = 0; c < 7; c++) {
+            finderTL.push([r, c]);
+            finderTR.push([r, modules - 7 + c]);
+            finderBL.push([modules - 7 + r, c]);
+          }
+
+        const drawFinder = (baseR, baseC) => {
+          for (let r = 0; r < 7; r++)
+            for (let c = 0; c < 7; c++) {
+              const outer = r === 0 || r === 6 || c === 0 || c === 6;
+              const inner = r >= 2 && r <= 4 && c >= 2 && c <= 4;
+              ctx.fillStyle = outer || inner ? "#111" : "#fff";
+              ctx.fillRect(
+                offset + (baseC + c) * cell,
+                offset + (baseR + r) * cell,
+                cell - 1,
+                cell - 1,
+              );
+            }
+        };
+
+        drawFinder(0, 0);
+        drawFinder(0, modules - 7);
+        drawFinder(modules - 7, 0);
+      }
+
+      // ─── Draw barcode (Code-39 style visual) ──────────────────────────────────────
+      function drawPosBarcode(canvasId, text) {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        const W = 252,
+          H = 52;
+
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(0, 0, W, H);
+
+        // Generate a deterministic bar pattern from the text
+        const seed = text.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+        const totalBars = 72;
+        const bars = [];
+        for (let i = 0; i < totalBars; i++) {
+          bars.push(((seed * (i * 31 + 7)) % 4) + 1);
+        }
+
+        // Force start/end quiet zones + start/stop bars
+        const quietZone = 6;
+        let x = quietZone;
+        const barH = H - 8;
+        const availW = W - quietZone * 2;
+        const totalUnits = bars.reduce((a, b) => a + b, 0);
+        const unitW = availW / totalUnits;
+
+        bars.forEach((units, i) => {
+          const w = unitW * units;
+          if (i % 2 === 0) {
+            ctx.fillStyle = "#111";
+            ctx.fillRect(
+              Math.round(x),
+              2,
+              Math.max(1, Math.round(w) - 1),
+              barH,
+            );
+          }
+          x += w;
+        });
+      }
+
       async function openSlipModal(orderId) {
         modal(`
-          <div class="modal-box wide" style="max-width: 380px;">
-            <div class="modal-header">
-              <div>
-                <div class="modal-title">🧾 POS Slip (Thermal Style)</div>
-                <div class="modal-sub">Receipt format • 280px width</div>
-              </div>
-              <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="modal-body" id="slipModalBody" style="background:#f5f5f5; display:flex; justify-content:center;">
-              <div class="spinner"></div>
-            </div>
-            <div class="modal-footer">
-              <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-              <button class="btn-slip" id="downloadSlipBtn" onclick="downloadPosSlipAsPng()">
-                <i class="fas fa-download"></i> Download PNG (Slip)
-              </button>
-            </div>
-          </div>
-        `);
+    <div class="modal-box wide" style="max-width: 400px;">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">🧾 POS Slip</div>
+          <div class="modal-sub">Thermal receipt · Scan QR to visit store</div>
+        </div>
+        <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body" id="slipModalBody" style="background:#e8e4dd;display:flex;justify-content:center;padding:24px 16px;">
+        <div class="spinner"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+        <button class="btn btn-ghost" onclick="printPosSlip()"><i class="fas fa-print"></i> Print</button>
+        <button class="btn-slip" id="downloadSlipBtn" onclick="downloadPosSlipAsPng()">
+          <i class="fas fa-download"></i> Download PNG
+        </button>
+      </div>
+    </div>
+  `);
 
         try {
           const order = (await apiCall(`/orders/${orderId}`)).data;
@@ -3823,13 +4305,18 @@
           const slipHtml = buildPosSlipHtml(order);
           document.getElementById("slipModalBody").innerHTML =
             `<div id="posSlipToCapture">${slipHtml}</div>`;
+
+          // Draw QR & barcode after DOM is ready
+          setTimeout(() => {
+            drawPosQR("posQrCanvas", "https://beeharvest.vercel.app/");
+            drawPosBarcode("posBarcodeCanvas", order.orderNumber);
+          }, 80);
         } catch (err) {
           showToast(err.message, "error");
           closeModal();
         }
       }
 
-      // Download POS slip as PNG (thermal receipt size ~280px wide)
       async function downloadPosSlipAsPng() {
         const element = document.getElementById("posSlipToCapture");
         if (!element || !window._currentPosOrder) {
@@ -3843,63 +4330,80 @@
         btn.disabled = true;
 
         try {
-          const canvas = await html2canvas(
-            element.querySelector(".pos-slip-container") || element,
-            {
-              scale: 2.5,
-              backgroundColor: "#ffffff",
-              logging: false,
-              useCORS: true,
-              allowTaint: false,
-            },
+          // Re-draw canvases right before capture to ensure they're painted
+          drawPosQR("posQrCanvas", "https://beeharvest.vercel.app/");
+          drawPosBarcode(
+            "posBarcodeCanvas",
+            window._currentPosOrder.orderNumber,
           );
 
-          const pngUrl = canvas.toDataURL("image/png");
+          await new Promise((r) => setTimeout(r, 120)); // let canvas paint flush
+
+          const target =
+            element.querySelector(".pos-slip-container") || element;
+          const canvas = await html2canvas(target, {
+            scale: 3,
+            backgroundColor: "#ffffff",
+            logging: false,
+            useCORS: true,
+            allowTaint: false,
+            onclone: (clonedDoc) => {
+              // Re-draw in cloned doc canvases
+              const qr = clonedDoc.getElementById("posQrCanvas");
+              const bc = clonedDoc.getElementById("posBarcodeCanvas");
+              if (qr) {
+                const ctx = qr.getContext("2d");
+                const orig = document.getElementById("posQrCanvas");
+                if (orig) ctx.drawImage(orig, 0, 0);
+              }
+              if (bc) {
+                const ctx = bc.getContext("2d");
+                const orig = document.getElementById("posBarcodeCanvas");
+                if (orig) ctx.drawImage(orig, 0, 0);
+              }
+            },
+          });
+
+          const url = canvas.toDataURL("image/png");
           const a = document.createElement("a");
-          a.href = pngUrl;
+          a.href = url;
           a.download = `pos_slip_${window._currentPosOrder.orderNumber}.png`;
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
-
           showToast("POS Slip downloaded!", "success");
-        } catch (error) {
-          console.error(error);
-          showToast("Failed to generate PNG", "error");
+        } catch (err) {
+          console.error(err);
+          showToast("Failed to generate PNG: " + err.message, "error");
         } finally {
           btn.innerHTML = originalText;
           btn.disabled = false;
         }
       }
-      // ═══════════════════════════════════════════
-      // PAGINATION HELPER
-      // ═══════════════════════════════════════════
-      function renderPagination(containerId, current, total, onPage) {
-        const el = document.getElementById(containerId);
-        if (!el) return;
-        let html = `<button class="page-btn" ${current === 1 ? "disabled" : ""} onclick="(${onPage})(${current - 1})"><i class="fas fa-chevron-left"></i></button>`;
-        const range = [];
-        for (
-          let i = Math.max(1, current - 2);
-          i <= Math.min(total, current + 2);
-          i++
-        )
-          range.push(i);
-        if (range[0] > 1) {
-          html += `<button class="page-btn" onclick="(${onPage})(1)">1</button>`;
-          if (range[0] > 2)
-            html += `<span style="color:var(--text3);padding:0 4px">…</span>`;
+
+      // ─── OPTIONAL: print helper ───────────────────────────────────────────────────
+      function printPosSlip() {
+        const order = window._currentPosOrder;
+        if (!order) {
+          showToast("No slip loaded", "warning");
+          return;
         }
-        range.forEach((p) => {
-          html += `<button class="page-btn ${p === current ? "active" : ""}" onclick="(${onPage})(${p})">${p}</button>`;
-        });
-        if (range[range.length - 1] < total) {
-          if (range[range.length - 1] < total - 1)
-            html += `<span style="color:var(--text3);padding:0 4px">…</span>`;
-          html += `<button class="page-btn" onclick="(${onPage})(${total})">${total}</button>`;
-        }
-        html += `<button class="page-btn" ${current === total ? "disabled" : ""} onclick="(${onPage})(${current + 1})"><i class="fas fa-chevron-right"></i></button>`;
-        el.innerHTML = html;
+        const printArea = document.getElementById("invoicePrintArea");
+        printArea.style.display = "block";
+        printArea.innerHTML =
+          `<style>body{margin:0;padding:20px;background:#e8e4dd;display:flex;justify-content:center}
+     *{-webkit-print-color-adjust:exact;print-color-adjust:exact}</style>` +
+          buildPosSlipHtml(order);
+        window.print();
+        setTimeout(() => {
+          printArea.style.display = "none";
+          printArea.innerHTML = "";
+          // Re-draw canvases in modal after print
+          setTimeout(() => {
+            drawPosQR("posQrCanvas", "https://beeharvest.vercel.app/");
+            drawPosBarcode("posBarcodeCanvas", order.orderNumber);
+          }, 200);
+        }, 800);
       }
 
       // ═══════════════════════════════════════════
