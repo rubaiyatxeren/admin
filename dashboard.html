@@ -20,6 +20,9 @@
       href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap"
       rel="stylesheet"
     />
+    // Add this script at the top of your HTML, before the closing </head> tag
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <style>
       :root {
         --bg: #0b0d0f;
@@ -1679,6 +1682,7 @@
         }
       }
     </style>
+
   </head>
   <body>
     <!-- SIDEBAR -->
@@ -3910,13 +3914,21 @@
         }
       }
       function buildPosSlipHtml(order) {
+const adminData = JSON.parse(localStorage.getItem("adminData") || "{}");
+const adminName = adminData.name || "Admin";
+const terminalId = "BH-" + (order.customer?.address?.city || "DHAKA").toUpperCase().replace(/\s+/g, "-").slice(0, 8) + "-01";
         const date = new Date(order.createdAt);
         const dateStr = date.toLocaleDateString("en-GB", {
           day: "2-digit",
           month: "short",
           year: "numeric",
         });
-        const timeStr = date.toLocaleTimeString("en-GB");
+        const timeStr = date.toLocaleTimeString("en-US", {
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hour12: true,
+});
         const totalItems = (order.items || []).reduce(
           (sum, i) => sum + i.quantity,
           0,
@@ -3962,7 +3974,7 @@
     <!-- BRAND HEADER -->
     <div style="background:#1a1a1a;padding:18px 16px 14px;text-align:center">
       <div style="width:48px;height:48px;background:#c6f135;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:22px;line-height:1">🌿</div>
-      <div style="font-size:20px;font-weight:900;color:#c6f135;letter-spacing:-0.3px;margin-bottom:1px;font-family:Arial,sans-serif">BEEYOND HARVEST</div>
+      <div style="font-size:18px;font-weight:700;color:#c6f135;letter-spacing:3px;margin-bottom:1px;font-family:'Space Mono','Courier New',monospace">BEEYOND HARVEST</div>
       <div style="font-size:8px;letter-spacing:3px;color:#888;margin-bottom:6px">ORGANIC · NATURAL · PURE</div>
       <div style="height:1px;background:linear-gradient(90deg,transparent,#444,transparent);margin:8px 0"></div>
       <div style="font-size:9px;color:#888;line-height:1.8">
@@ -3985,16 +3997,20 @@
           <div style="font-size:8px;color:#888">${timeStr}</div>
         </div>
       </div>
-      <div style="border-top:1px dashed #ddd;padding-top:8px;display:flex;justify-content:space-between">
-        <div>
-          <div style="font-size:8px;color:#999;margin-bottom:1px">TERMINAL</div>
-          <div style="font-size:9px;font-weight:700">BH-DHAKA-01</div>
-        </div>
-        <div style="text-align:right">
-          <div style="font-size:8px;color:#999;margin-bottom:1px">SERVED BY</div>
-          <div style="font-size:9px;font-weight:700">Admin Panel</div>
-        </div>
-      </div>
+     <div style="border-top:1px dashed #ddd;padding-top:8px;display:flex;justify-content:space-between">
+  <div>
+    <div style="font-size:8px;color:#999;margin-bottom:1px">TERMINAL</div>
+    <div style="font-size:9px;font-weight:700">${terminalId}</div>
+  </div>
+  <div style="text-align:right">
+    <div style="font-size:8px;color:#999;margin-bottom:1px">ORDER #</div>
+    <div style="font-size:9px;font-weight:700">${order._id?.slice(-6).toUpperCase()}</div>
+  </div>
+  <div style="text-align:right">
+    <div style="font-size:8px;color:#999;margin-bottom:1px">SERVED BY</div>
+    <div style="font-size:9px;font-weight:700">Beeyond Team</div>
+  </div>
+</div>
     </div>
  
     <!-- CUSTOMER INFO -->
@@ -4065,7 +4081,7 @@
       </div>`
           : ""
       }
-      <div style="height:1.5px;background:#1a1a1a;margin:8px 0"></div>
+      <div style="height:1px;background:#1a1a1a;margin:8px 0"></div>
       <div style="display:flex;justify-content:space-between;align-items:baseline">
         <span style="font-size:11px;font-weight:900;letter-spacing:1px">TOTAL PAID</span>
         <span style="font-size:18px;font-weight:900;color:#1a1a1a">${formatCurrency(order.total)}</span>
@@ -4143,7 +4159,7 @@
     <!-- QR CODE -->
     <div style="padding:14px 14px 8px;background:#fff;text-align:center">
       <div style="font-size:8px;letter-spacing:1.5px;color:#999;margin-bottom:8px">SCAN TO SHOP · TRACK · REVIEW</div>
-      <canvas id="posQrCanvas" width="130" height="130" style="display:block;margin:0 auto;image-rendering:pixelated"></canvas>
+      <div id="posQrCanvas" style="display:flex;justify-content:center;align-items:center;margin:0 auto;width:130px;height:130px"></div>
       <div style="margin-top:6px;font-size:8px;color:#888;letter-spacing:0.5px">beeharvest.vercel.app</div>
     </div>
  
@@ -4174,66 +4190,19 @@
       }
 
       // ─── Draw QR code pointing to beeharvest.vercel.app ───────────────────────────
-      function drawPosQR(canvasId, url) {
-        const canvas = document.getElementById(canvasId);
-        if (!canvas) return;
-        const ctx = canvas.getContext("2d");
-        const size = 130;
-        const modules = 25;
-        const cell = Math.floor(size / (modules + 4));
-        const offset = Math.floor((size - cell * (modules + 4)) / 2) + cell * 2;
-
-        ctx.fillStyle = "#fff";
-        ctx.fillRect(0, 0, size, size);
-
-        const seed = url.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
-        const pseudo = (r, c) => (seed * (r * 37 + c * 17 + 13)) % 97 < 40;
-
-        // Data modules
-        ctx.fillStyle = "#111";
-        for (let r = 0; r < modules; r++) {
-          for (let c = 0; c < modules; c++) {
-            if (pseudo(r, c))
-              ctx.fillRect(
-                offset + c * cell,
-                offset + r * cell,
-                cell - 1,
-                cell - 1,
-              );
-          }
-        }
-
-        // Finder pattern positions: top-left, top-right, bottom-left
-        const finderTL = [],
-          finderTR = [],
-          finderBL = [];
-        for (let r = 0; r < 7; r++)
-          for (let c = 0; c < 7; c++) {
-            finderTL.push([r, c]);
-            finderTR.push([r, modules - 7 + c]);
-            finderBL.push([modules - 7 + r, c]);
-          }
-
-        const drawFinder = (baseR, baseC) => {
-          for (let r = 0; r < 7; r++)
-            for (let c = 0; c < 7; c++) {
-              const outer = r === 0 || r === 6 || c === 0 || c === 6;
-              const inner = r >= 2 && r <= 4 && c >= 2 && c <= 4;
-              ctx.fillStyle = outer || inner ? "#111" : "#fff";
-              ctx.fillRect(
-                offset + (baseC + c) * cell,
-                offset + (baseR + r) * cell,
-                cell - 1,
-                cell - 1,
-              );
-            }
-        };
-
-        drawFinder(0, 0);
-        drawFinder(0, modules - 7);
-        drawFinder(modules - 7, 0);
-      }
-
+      function drawPosQR(containerId, url) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = ""; // clear previous
+  new QRCode(container, {
+    text: url,
+    width: 130,
+    height: 130,
+    colorDark: "#111111",
+    colorLight: "#ffffff",
+    correctLevel: QRCode.CorrectLevel.M,
+  });
+}
       // ─── Draw barcode (Code-39 style visual) ──────────────────────────────────────
       function drawPosBarcode(canvasId, text) {
         const canvas = document.getElementById(canvasId);
@@ -4306,11 +4275,10 @@
           document.getElementById("slipModalBody").innerHTML =
             `<div id="posSlipToCapture">${slipHtml}</div>`;
 
-          // Draw QR & barcode after DOM is ready
           setTimeout(() => {
-            drawPosQR("posQrCanvas", "https://beeharvest.vercel.app/");
-            drawPosBarcode("posBarcodeCanvas", order.orderNumber);
-          }, 80);
+  drawPosQR("posQrCanvas", "https://beeharvest.vercel.app/");
+  drawPosBarcode("posBarcodeCanvas", order.orderNumber);
+}, 150);
         } catch (err) {
           showToast(err.message, "error");
           closeModal();
@@ -4348,20 +4316,26 @@
             useCORS: true,
             allowTaint: false,
             onclone: (clonedDoc) => {
-              // Re-draw in cloned doc canvases
-              const qr = clonedDoc.getElementById("posQrCanvas");
-              const bc = clonedDoc.getElementById("posBarcodeCanvas");
-              if (qr) {
-                const ctx = qr.getContext("2d");
-                const orig = document.getElementById("posQrCanvas");
-                if (orig) ctx.drawImage(orig, 0, 0);
-              }
-              if (bc) {
-                const ctx = bc.getContext("2d");
-                const orig = document.getElementById("posBarcodeCanvas");
-                if (orig) ctx.drawImage(orig, 0, 0);
-              }
-            },
+  // Re-render QR code in cloned doc
+  const qrDiv = clonedDoc.getElementById("posQrCanvas");
+  if (qrDiv) {
+    qrDiv.innerHTML = "";
+    new QRCode(qrDiv, {
+      text: "https://beeharvest.vercel.app/",
+      width: 130,
+      height: 130,
+      colorDark: "#111111",
+      colorLight: "#ffffff",
+      correctLevel: QRCode.CorrectLevel.M,
+    });
+  }
+  // Copy barcode canvas
+  const bc = clonedDoc.getElementById("posBarcodeCanvas");
+  const origBc = document.getElementById("posBarcodeCanvas");
+  if (bc && origBc) {
+    bc.getContext("2d").drawImage(origBc, 0, 0);
+  }
+},
           });
 
           const url = canvas.toDataURL("image/png");
