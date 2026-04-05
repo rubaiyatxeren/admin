@@ -15,13 +15,13 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
       rel="stylesheet"
     />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
+    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link
       href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap"
       rel="stylesheet"
     />
-    // Add this script at the top of your HTML, before the closing </head> tag
+ </head> 
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <style>
@@ -4286,87 +4286,75 @@ const terminalId = "BH-" + (order.customer?.address?.city || "DHAKA").toUpperCas
         }
       }
 
-     async function downloadPosSlipAsPng() {
-  const element = document.getElementById("posSlipToCapture");
-  if (!element || !window._currentPosOrder) {
-    showToast("Slip not ready", "error");
-    return;
+      async function downloadPosSlipAsPng() {
+        const element = document.getElementById("posSlipToCapture");
+        if (!element || !window._currentPosOrder) {
+          showToast("Slip not ready", "error");
+          return;
+        }
+
+        const btn = document.getElementById("downloadSlipBtn");
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+        btn.disabled = true;
+
+        try {
+          // Re-draw canvases right before capture to ensure they're painted
+          drawPosQR("posQrCanvas", "https://beeharvest.vercel.app/");
+          drawPosBarcode(
+            "posBarcodeCanvas",
+            window._currentPosOrder.orderNumber,
+          );
+
+          await new Promise((r) => setTimeout(r, 120)); // let canvas paint flush
+
+          const target =
+            element.querySelector(".pos-slip-container") || element;
+          const canvas = await html2canvas(target, {
+            scale: 3,
+            backgroundColor: "#ffffff",
+            logging: false,
+            useCORS: true,
+            allowTaint: false,
+            onclone: (clonedDoc) => {
+  // Re-render QR code in cloned doc
+  const qrDiv = clonedDoc.getElementById("posQrCanvas");
+  if (qrDiv) {
+    qrDiv.innerHTML = "";
+    new QRCode(qrDiv, {
+      text: "https://beeharvest.vercel.app/",
+      width: 130,
+      height: 130,
+      colorDark: "#111111",
+      colorLight: "#ffffff",
+      correctLevel: QRCode.CorrectLevel.M,
+    });
   }
-
-  const btn = document.getElementById("downloadSlipBtn");
-  const originalText = btn.innerHTML;
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
-  btn.disabled = true;
-
-  try {
-    drawPosQR("posQrCanvas", "https://beeharvest.vercel.app/");
-    drawPosBarcode("posBarcodeCanvas", window._currentPosOrder.orderNumber);
-    await new Promise((r) => setTimeout(r, 300));
-
-    const target = element.querySelector(".pos-slip-container") || element;
-    let dataUrl;
-
-    // Try domtoimage first (better quality), fallback to html2canvas on mobile
-    try {
-      const rect = target.getBoundingClientRect();
-      const scale = 3;
-      dataUrl = await domtoimage.toPng(target, {
-        bgcolor: "#ffffff",
-        width: rect.width * scale,
-        height: rect.height * scale,
-        style: {
-          transform: `scale(${scale})`,
-          transformOrigin: "top left",
-          width: rect.width + "px",
-          height: rect.height + "px",
-        },
-      });
-    } catch (domErr) {
-      console.warn("domtoimage failed, trying html2canvas:", domErr);
-      // Fallback to html2canvas
-      const canvas = await html2canvas(target, {
-        scale: 3,
-        backgroundColor: "#ffffff",
-        useCORS: true,
-        allowTaint: true,
-        logging: false,
-        onclone: (clonedDoc) => {
-          const qrDiv = clonedDoc.getElementById("posQrCanvas");
-          if (qrDiv) {
-            qrDiv.innerHTML = "";
-            new QRCode(qrDiv, {
-              text: "https://beeharvest.vercel.app/",
-              width: 130,
-              height: 130,
-              colorDark: "#111111",
-              colorLight: "#ffffff",
-              correctLevel: QRCode.CorrectLevel.M,
-            });
-          }
-          const bc = clonedDoc.getElementById("posBarcodeCanvas");
-          const origBc = document.getElementById("posBarcodeCanvas");
-          if (bc && origBc) bc.getContext("2d").drawImage(origBc, 0, 0);
-        },
-      });
-      dataUrl = canvas.toDataURL("image/png");
-    }
-
-    const a = document.createElement("a");
-    a.href = dataUrl;
-    a.download = `pos_slip_${window._currentPosOrder.orderNumber}.png`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    showToast("POS Slip downloaded!", "success");
-
-  } catch (err) {
-    console.error(err);
-    showToast("Failed to generate slip: " + err.message, "error");
-  } finally {
-    btn.innerHTML = originalText;
-    btn.disabled = false;
+  // Copy barcode canvas
+  const bc = clonedDoc.getElementById("posBarcodeCanvas");
+  const origBc = document.getElementById("posBarcodeCanvas");
+  if (bc && origBc) {
+    bc.getContext("2d").drawImage(origBc, 0, 0);
   }
-}
+},
+          });
+
+          const url = canvas.toDataURL("image/png");
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `pos_slip_${window._currentPosOrder.orderNumber}.png`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          showToast("POS Slip downloaded!", "success");
+        } catch (err) {
+          console.error(err);
+          showToast("Failed to generate PNG: " + err.message, "error");
+        } finally {
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        }
+      }
 
       // ─── OPTIONAL: print helper ───────────────────────────────────────────────────
       function printPosSlip() {
