@@ -1,0 +1,2317 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Beeyond Harvest — Packaging Studio</title>
+
+    <!-- Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Space+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- html2canvas for PNG export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- jsPDF for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+      :root {
+        --bg: #0b0d0f;
+        --bg2: #111416;
+        --bg3: #181c1f;
+        --surface: #1e2328;
+        --surface2: #252b31;
+        --border: rgba(255, 255, 255, 0.07);
+        --border2: rgba(255, 255, 255, 0.12);
+        --lime: #c6f135;
+        --lime-dim: rgba(198, 241, 53, 0.12);
+        --lime-glow: rgba(198, 241, 53, 0.25);
+        --amber: #f5a623;
+        --rose: #f43f5e;
+        --sky: #38bdf8;
+        --teal: #2dd4bf;
+        --text: #e8ecef;
+        --text2: #8f9baa;
+        --text3: #5a6472;
+        --r: 16px;
+        --sidebar: 260px;
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: "DM Sans", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+      }
+      h1,
+      h2,
+      h3,
+      h4,
+      .syne {
+        font-family: "Syne", sans-serif;
+      }
+      ::-webkit-scrollbar {
+        width: 5px;
+        height: 5px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--surface2);
+        border-radius: 99px;
+      }
+
+      /* ── Page layout ── */
+      .page-wrap {
+        padding: 32px;
+      }
+      .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+      }
+      .section-header h2 {
+        font-family: "Syne", sans-serif;
+        font-size: 22px;
+        font-weight: 800;
+      }
+      .page-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--lime-dim);
+        color: var(--lime);
+        border: 1px solid rgba(198, 241, 53, 0.2);
+        border-radius: 99px;
+        padding: 4px 12px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+      }
+
+      /* ── Tab bar ── */
+      .tab-nav {
+        display: flex;
+        gap: 4px;
+        background: var(--bg3);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 5px;
+        margin-bottom: 24px;
+        overflow-x: auto;
+      }
+      .tab-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 16px;
+        border-radius: 10px;
+        border: none;
+        background: transparent;
+        color: var(--text3);
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+        font-family: "DM Sans", sans-serif;
+      }
+      .tab-btn i {
+        font-size: 13px;
+      }
+      .tab-btn:hover {
+        color: var(--text2);
+        background: var(--surface);
+      }
+      .tab-btn.active {
+        background: var(--surface);
+        color: var(--lime);
+        border: 1px solid rgba(198, 241, 53, 0.15);
+      }
+
+      /* ── Layout grid ── */
+      .editor-grid {
+        display: grid;
+        grid-template-columns: 340px 1fr;
+        gap: 20px;
+        align-items: start;
+      }
+      .controls-panel {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--r);
+        padding: 20px;
+        position: sticky;
+        top: 20px;
+      }
+      .controls-panel .panel-title {
+        font-family: "Syne", sans-serif;
+        font-size: 14px;
+        font-weight: 700;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .controls-panel .panel-title i {
+        color: var(--lime);
+      }
+
+      /* ── Form controls ── */
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        margin-bottom: 12px;
+      }
+      .form-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text3);
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+      }
+      .inp {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 9px 12px;
+        color: var(--text);
+        font-size: 13px;
+        font-family: "DM Sans", sans-serif;
+        width: 100%;
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
+        outline: none;
+      }
+      .inp:focus {
+        border-color: var(--lime);
+        box-shadow: 0 0 0 3px var(--lime-dim);
+      }
+      .inp::placeholder {
+        color: var(--text3);
+      }
+      select.inp {
+        cursor: pointer;
+      }
+      textarea.inp {
+        resize: vertical;
+        min-height: 72px;
+      }
+
+      /* ── Color picker ── */
+      .color-row {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .color-chip {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: all 0.15s;
+        flex-shrink: 0;
+      }
+      .color-chip:hover {
+        transform: scale(1.12);
+      }
+      .color-chip.sel {
+        border-color: var(--text);
+        transform: scale(1.18);
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08);
+      }
+
+      /* ── Buttons ── */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 18px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s;
+        font-family: "DM Sans", sans-serif;
+        white-space: nowrap;
+      }
+      .btn-primary {
+        background: var(--lime);
+        color: #0b0d0f;
+      }
+      .btn-primary:hover {
+        background: #d4f558;
+        transform: translateY(-1px);
+      }
+      .btn-ghost {
+        background: transparent;
+        color: var(--text2);
+        border: 1px solid var(--border);
+      }
+      .btn-ghost:hover {
+        background: var(--surface2);
+        color: var(--text);
+        border-color: var(--border2);
+      }
+      .btn-sky {
+        background: rgba(56, 189, 248, 0.15);
+        color: var(--sky);
+        border: 1px solid rgba(56, 189, 248, 0.25);
+      }
+      .btn-sky:hover {
+        background: var(--sky);
+        color: #0b0d0f;
+      }
+      .btn-amber {
+        background: rgba(245, 166, 35, 0.15);
+        color: var(--amber);
+        border: 1px solid rgba(245, 166, 35, 0.25);
+      }
+      .btn-amber:hover {
+        background: var(--amber);
+        color: #0b0d0f;
+      }
+      .btn-sm {
+        padding: 6px 12px;
+        font-size: 12px;
+      }
+      .btn-full {
+        width: 100%;
+        justify-content: center;
+      }
+      .btn-row {
+        display: flex;
+        gap: 8px;
+        margin-top: 14px;
+      }
+
+      /* ── Preview panel ── */
+      .preview-panel {
+        background: var(--bg3);
+        border: 1px solid var(--border);
+        border-radius: var(--r);
+        padding: 24px;
+        min-height: 400px;
+      }
+      .preview-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+      }
+      .preview-title {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: var(--text3);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .preview-title::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--lime);
+      }
+      .preview-badge {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 4px 10px;
+        font-size: 10px;
+        color: var(--text3);
+      }
+
+      .preview-stage {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px dashed var(--border);
+        border-radius: 12px;
+        padding: 28px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 14px;
+      }
+
+      /* ── Export actions ── */
+      .export-bar {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px 18px;
+        margin-top: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .export-info {
+        font-size: 12px;
+        color: var(--text3);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .export-info i {
+        color: var(--lime);
+      }
+
+      /* ── Divider ── */
+      .divider {
+        border: none;
+        border-top: 1px solid var(--border);
+        margin: 12px 0;
+      }
+
+      /* ── Toast ── */
+      #toastBox {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .toast {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+        min-width: 260px;
+        animation: toastIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      @keyframes toastIn {
+        from {
+          opacity: 0;
+          transform: translateX(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      .toast.success i {
+        color: var(--lime);
+      }
+      .toast.error i {
+        color: var(--rose);
+      }
+      .toast.info i {
+        color: var(--sky);
+      }
+      .spinner-sm {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 2px solid var(--surface2);
+        border-top-color: var(--lime);
+        animation: spin 0.7s linear infinite;
+        flex-shrink: 0;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* ── Section label ── */
+      .ctrl-section {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 1.2px;
+        text-transform: uppercase;
+        color: var(--text3);
+        margin: 14px 0 8px;
+        padding-bottom: 5px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      /* ── Quantity picker ── */
+      .qty-row {
+        display: flex;
+        gap: 6px;
+      }
+      .qty-chip {
+        padding: 5px 12px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--text3);
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.15s;
+        font-family: "DM Sans", sans-serif;
+      }
+      .qty-chip:hover {
+        border-color: var(--border2);
+        color: var(--text);
+      }
+      .qty-chip.sel {
+        background: var(--lime-dim);
+        border-color: rgba(198, 241, 53, 0.3);
+        color: var(--lime);
+      }
+
+      /* ══════════════════════════════════════
+       THERMAL LABEL DESIGNS (print-white)
+    ══════════════════════════════════════ */
+      .thermal-wrap {
+        width: 320px;
+      } /* 80mm ~ 302px at 96dpi */
+
+      /* Product label */
+      .plbl {
+        background: #fff;
+        color: #111;
+        font-family: "Space Mono", "Courier New", monospace;
+        border: 1px solid #ddd;
+        border-radius: 3px;
+        width: 320px;
+        overflow: hidden;
+      }
+      .plbl-bar {
+        padding: 7px 13px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .plbl-brand {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        color: #111;
+      }
+      .plbl-price {
+        font-size: 20px;
+        font-weight: 900;
+        color: #111;
+      }
+      .plbl-body {
+        padding: 8px 13px 10px;
+      }
+      .plbl-name {
+        font-size: 13px;
+        font-weight: 700;
+        margin-bottom: 2px;
+      }
+      .plbl-meta {
+        font-size: 8px;
+        color: #777;
+        margin-bottom: 6px;
+      }
+      .plbl-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        border-top: 1px dashed #ccc;
+        padding-top: 5px;
+        margin-top: 4px;
+      }
+      .plbl-batch {
+        font-size: 8px;
+        color: #999;
+      }
+      .barcode-svg {
+        height: 28px;
+      }
+
+      /* Thank you note */
+      .tynote {
+        background: #fff;
+        color: #222;
+        font-family: "Georgia", serif;
+        width: 320px;
+        padding: 14px 18px;
+        border: 1px solid #ddd;
+        border-radius: 3px;
+        text-align: center;
+      }
+      .tynote-icon {
+        font-size: 22px;
+        display: block;
+        margin-bottom: 5px;
+      }
+      .tynote-title {
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        margin-bottom: 5px;
+      }
+      .tynote-msg {
+        font-size: 9px;
+        color: #555;
+        line-height: 1.65;
+        margin-bottom: 8px;
+      }
+      .tynote-coupon {
+        border: 1.5px dashed;
+        border-radius: 5px;
+        padding: 6px 10px;
+        margin-bottom: 8px;
+      }
+      .tynote-coupon-label {
+        font-size: 7px;
+        color: #888;
+        letter-spacing: 1px;
+        margin-bottom: 2px;
+      }
+      .tynote-coupon-code {
+        font-size: 14px;
+        font-weight: 900;
+        letter-spacing: 3px;
+        font-family: "Space Mono", "Courier New", monospace;
+      }
+      .tynote-footer {
+        border-top: 1px solid #eee;
+        padding-top: 6px;
+        font-size: 8px;
+        color: #bbb;
+      }
+
+      /* Sticker */
+      .sticker-row {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .sticker-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        background: #fff;
+        border-radius: 10px;
+        padding: 8px 13px;
+        font-family: "Space Mono", "Courier New", monospace;
+        border: 2px solid;
+      }
+      .sticker-ico {
+        font-size: 18px;
+        flex-shrink: 0;
+      }
+      .sticker-main {
+        font-size: 11px;
+        font-weight: 700;
+        color: #111;
+      }
+      .sticker-sub {
+        font-size: 8px;
+        color: #777;
+        margin-top: 1px;
+      }
+
+      /* Fragile / warning */
+      .warnlbl {
+        background: #fff;
+        font-family: "Space Mono", "Courier New", monospace;
+        width: 320px;
+        border-radius: 3px;
+        padding: 9px 16px;
+        text-align: center;
+      }
+      .warnlbl-inner {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 4px;
+      }
+      .warnlbl-icon {
+        font-size: 20px;
+      }
+      .warnlbl-title {
+        font-size: 14px;
+        font-weight: 900;
+        letter-spacing: 2px;
+      }
+      .warnlbl-sub {
+        font-size: 8px;
+        color: #777;
+        border-top: 1px dashed;
+        padding-top: 5px;
+        margin-top: 4px;
+      }
+      .warnlbl-brand {
+        font-size: 7px;
+        color: #bbb;
+        margin-top: 3px;
+      }
+
+      /* Address label */
+      .addrlbl {
+        background: #fff;
+        color: #111;
+        font-family: "Space Mono", "Courier New", monospace;
+        width: 320px;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+        padding: 10px 14px;
+      }
+      .addrlbl-section {
+        font-size: 8px;
+        color: #aaa;
+        letter-spacing: 1px;
+        margin-bottom: 2px;
+      }
+      .addrlbl-from {
+        font-size: 9px;
+        color: #666;
+        border-bottom: 1px dashed #ddd;
+        padding-bottom: 6px;
+        margin-bottom: 8px;
+      }
+      .addrlbl-toname {
+        font-size: 14px;
+        font-weight: 700;
+      }
+      .addrlbl-toaddr {
+        font-size: 9px;
+        color: #444;
+        line-height: 1.6;
+        margin-top: 2px;
+      }
+      .addrlbl-footer {
+        border-top: 1px dashed #ddd;
+        padding-top: 6px;
+        margin-top: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .addrlbl-order {
+        font-size: 9px;
+        font-weight: 700;
+      }
+      .addrlbl-pay {
+        font-size: 8px;
+        font-weight: 700;
+        color: #fff;
+        padding: 3px 8px;
+        border-radius: 4px;
+      }
+
+      /* QR code placeholder */
+      .qr-mini {
+        width: 44px;
+        height: 44px;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5px;
+        flex-shrink: 0;
+      }
+      .qr-row {
+        display: flex;
+        gap: 1.5px;
+      }
+      .qr-cell {
+        border-radius: 1px;
+      }
+
+      @media (max-width: 960px) {
+        .editor-grid {
+          grid-template-columns: 1fr;
+        }
+        .controls-panel {
+          position: static;
+        }
+      }
+      @media print {
+        body * {
+          visibility: hidden;
+        }
+        #printMount,
+        #printMount * {
+          visibility: visible;
+        }
+        #printMount {
+          position: fixed;
+          left: 0;
+          top: 0;
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page-wrap">
+      <div class="section-header">
+        <div style="display: flex; align-items: center; gap: 14px">
+          <div>
+            <h2 style="display: flex; align-items: center; gap: 10px">
+              <i
+                class="fas fa-print"
+                style="color: var(--lime); font-size: 20px"
+              ></i>
+              Packaging Design Studio
+            </h2>
+            <div style="font-size: 12px; color: var(--text3); margin-top: 3px">
+              Thermal-ready labels · 80mm roll · PNG &amp; PDF export
+            </div>
+          </div>
+        </div>
+        <div class="page-badge">
+          <i class="fas fa-thermometer-half"></i> 80mm Thermal
+        </div>
+      </div>
+
+      <!-- Tab navigation -->
+      <div class="tab-nav">
+        <button class="tab-btn active" onclick="switchTab('product', this)">
+          <i class="fas fa-tag"></i> Product Label
+        </button>
+        <button class="tab-btn" onclick="switchTab('thankyou', this)">
+          <i class="fas fa-heart"></i> Thank You Note
+        </button>
+        <button class="tab-btn" onclick="switchTab('sticker', this)">
+          <i class="fas fa-circle-dot"></i> Stickers
+        </button>
+        <button class="tab-btn" onclick="switchTab('fragile', this)">
+          <i class="fas fa-triangle-exclamation"></i> Fragile / Warning
+        </button>
+        <button class="tab-btn" onclick="switchTab('address', this)">
+          <i class="fas fa-location-dot"></i> Address Label
+        </button>
+      </div>
+
+      <!-- ═══════════════ PRODUCT LABEL ═══════════════ -->
+      <div id="tab-product" class="editor-grid">
+        <div class="controls-panel">
+          <div class="panel-title">
+            <i class="fas fa-sliders"></i> Product Label Settings
+          </div>
+
+          <div class="ctrl-section">Brand Info</div>
+          <div class="form-group">
+            <label class="form-label">Brand Name</label>
+            <input
+              class="inp"
+              id="pl-brand"
+              value="BEEYOND HARVEST"
+              oninput="renderProduct()"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tagline</label>
+            <input
+              class="inp"
+              id="pl-tag"
+              value="Pure · Natural · Sustainable"
+              oninput="renderProduct()"
+            />
+          </div>
+
+          <div class="ctrl-section">Product Details</div>
+          <div class="form-group">
+            <label class="form-label">Product Name</label>
+            <input
+              class="inp"
+              id="pl-name"
+              value="Raw Forest Honey"
+              oninput="renderProduct()"
+            />
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px">
+            <div class="form-group">
+              <label class="form-label">Weight / Size</label>
+              <input
+                class="inp"
+                id="pl-weight"
+                value="250g"
+                oninput="renderProduct()"
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Price (৳)</label>
+              <input
+                class="inp"
+                id="pl-price"
+                value="৳320"
+                oninput="renderProduct()"
+              />
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px">
+            <div class="form-group">
+              <label class="form-label">Batch No.</label>
+              <input
+                class="inp"
+                id="pl-batch"
+                value="BT-A124"
+                oninput="renderProduct()"
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Expiry</label>
+              <input
+                class="inp"
+                id="pl-exp"
+                value="12/2026"
+                oninput="renderProduct()"
+              />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">SKU / Barcode Text</label>
+            <input
+              class="inp"
+              id="pl-sku"
+              value="BH-HON-250"
+              oninput="renderProduct()"
+            />
+          </div>
+
+          <div class="ctrl-section">Style</div>
+          <div class="form-group">
+            <label class="form-label">Label Style</label>
+            <select class="inp" id="pl-style" onchange="renderProduct()">
+              <option value="modern">Modern (accent bar top)</option>
+              <option value="classic">Classic (bordered frame)</option>
+              <option value="minimal">Minimal (clean lines)</option>
+              <option value="bold">Bold (inverted header)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Accent Color</label>
+            <div class="color-row" id="pl-colors">
+              <div
+                class="color-chip sel"
+                style="background: #c6f135"
+                data-c="#c6f135"
+                onclick="pickColor('pl', this)"
+              ></div>
+              <div
+                class="color-chip"
+                style="background: #f5a623"
+                data-c="#f5a623"
+                onclick="pickColor('pl', this)"
+              ></div>
+              <div
+                class="color-chip"
+                style="background: #38bdf8"
+                data-c="#38bdf8"
+                onclick="pickColor('pl', this)"
+              ></div>
+              <div
+                class="color-chip"
+                style="background: #f43f5e"
+                data-c="#f43f5e"
+                onclick="pickColor('pl', this)"
+              ></div>
+              <div
+                class="color-chip"
+                style="background: #2dd4bf"
+                data-c="#2dd4bf"
+                onclick="pickColor('pl', this)"
+              ></div>
+              <div
+                class="color-chip"
+                style="background: #a855f7"
+                data-c="#a855f7"
+                onclick="pickColor('pl', this)"
+              ></div>
+              <div
+                class="color-chip"
+                style="background: #111111"
+                data-c="#111111"
+                onclick="pickColor('pl', this)"
+              ></div>
+            </div>
+          </div>
+
+          <div class="ctrl-section">Print Quantity</div>
+          <div class="qty-row" id="pl-qty">
+            <div class="qty-chip sel" data-q="1" onclick="pickQty('pl', this)">
+              1×
+            </div>
+            <div class="qty-chip" data-q="2" onclick="pickQty('pl', this)">
+              2×
+            </div>
+            <div class="qty-chip" data-q="3" onclick="pickQty('pl', this)">
+              3×
+            </div>
+            <div class="qty-chip" data-q="4" onclick="pickQty('pl', this)">
+              4×
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button
+              class="btn btn-sky btn-sm"
+              onclick="exportPNG('pl-stage', 'product-label')"
+            >
+              <i class="fas fa-image"></i> PNG
+            </button>
+            <button
+              class="btn btn-amber btn-sm"
+              onclick="exportPDF('pl-stage', 'product-label')"
+            >
+              <i class="fas fa-file-pdf"></i> PDF
+            </button>
+            <button
+              class="btn btn-ghost btn-sm"
+              onclick="printDirect('pl-stage')"
+            >
+              <i class="fas fa-print"></i> Print
+            </button>
+          </div>
+        </div>
+
+        <div class="preview-panel">
+          <div class="preview-header">
+            <div class="preview-title">Live Preview</div>
+            <div class="preview-badge">80mm thermal · horizontal</div>
+          </div>
+          <div class="preview-stage" id="pl-stage"></div>
+          <div class="export-bar">
+            <div class="export-info">
+              <i class="fas fa-info-circle"></i>
+              Labels render at 320px (80mm equivalent). PDF exports at 2×
+              quality. PNG at 3× for crisp print.
+            </div>
+            <div style="display: flex; gap: 8px">
+              <button
+                class="btn btn-sky btn-sm"
+                onclick="exportPNG('pl-stage', 'product-label')"
+              >
+                <i class="fas fa-download"></i> Download PNG
+              </button>
+              <button
+                class="btn btn-amber btn-sm"
+                onclick="exportPDF('pl-stage', 'product-label')"
+              >
+                <i class="fas fa-file-pdf"></i> Download PDF
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════ THANK YOU NOTE ═══════════════ -->
+      <div id="tab-thankyou" class="editor-grid" style="display: none">
+        <div class="controls-panel">
+          <div class="panel-title">
+            <i class="fas fa-heart"></i> Thank You Note Settings
+          </div>
+
+          <div class="ctrl-section">Message</div>
+          <div class="form-group">
+            <label class="form-label">Greeting Title</label>
+            <input
+              class="inp"
+              id="ty-greet"
+              value="Thank You for Your Order!"
+              oninput="renderThankyou()"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Message Body</label>
+            <textarea class="inp" id="ty-msg" oninput="renderThankyou()">
+Your order has been packed with love and care. We hope you enjoy every drop of nature's goodness. 🌿</textarea
+            >
+          </div>
+
+          <div class="ctrl-section">Incentive (optional)</div>
+          <div class="form-group">
+            <label class="form-label">Coupon Code</label>
+            <input
+              class="inp"
+              id="ty-coupon"
+              value="NEXTORDER10"
+              oninput="renderThankyou()"
+              placeholder="Leave blank to hide"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Coupon Description</label>
+            <input
+              class="inp"
+              id="ty-coupon-desc"
+              value="10% off your next order"
+              oninput="renderThankyou()"
+            />
+          </div>
+
+          <div class="ctrl-section">Brand Footer</div>
+          <div class="form-group">
+            <label class="form-label">Brand Name</label>
+            <input
+              class="inp"
+              id="ty-brand"
+              value="Beeyond Harvest"
+              oninput="renderThankyou()"
+            />
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px">
+            <div class="form-group">
+              <label class="form-label">Website</label>
+              <input
+                class="inp"
+                id="ty-web"
+                value="beeharvest.vercel.app"
+                oninput="renderThankyou()"
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Social Handle</label>
+              <input
+                class="inp"
+                id="ty-social"
+                value="@beeyondharvest"
+                oninput="renderThankyou()"
+              />
+            </div>
+          </div>
+
+          <div class="ctrl-section">Style</div>
+          <div class="form-group">
+            <label class="form-label">Note Style</label>
+            <select class="inp" id="ty-style" onchange="renderThankyou()">
+              <option value="warm">Warm Serif</option>
+              <option value="organic">Organic Natural</option>
+              <option value="bold">Bold Modern</option>
+              <option value="handwritten">Handwritten Feel</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Accent Color</label>
+            <div class="color-row" id="ty-colors">
+              <div
+                class="color-chip sel"
+                style="background: #c0392b"
+                data-c="#c0392b"
+                onclick="pickColor('ty', this)"
+              ></div>
+              <div
+                class="color-chip"
+                style="background: #27ae60"
+                data-c="#27ae60"
+                onclick="pickColor('ty', this)"
+              ></div>
+              <div
+                class="color-chip"
+                style="background: #2980b9"
+                data-c="#2980b9"
+                onclick="pickColor('ty', this)"
+              ></div>
+              <div
+                class="color-chip"
+                style="background: #8e44ad"
+                data-c="#8e44ad"
+                onclick="pickColor('ty', this)"
+              ></div>
+              <div
+                class="color-chip"
+                style="background: #d35400"
+                data-c="#d35400"
+                onclick="pickColor('ty', this)"
+              ></div>
+              <div
+                class="color-chip"
+                style="background: #c6f135"
+                data-c="#c6f135"
+                onclick="pickColor('ty', this)"
+              ></div>
+            </div>
+          </div>
+
+          <div class="ctrl-section">Print Quantity</div>
+          <div class="qty-row" id="ty-qty">
+            <div class="qty-chip sel" data-q="1" onclick="pickQty('ty', this)">
+              1×
+            </div>
+            <div class="qty-chip" data-q="2" onclick="pickQty('ty', this)">
+              2×
+            </div>
+            <div class="qty-chip" data-q="3" onclick="pickQty('ty', this)">
+              3×
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button
+              class="btn btn-sky btn-sm"
+              onclick="exportPNG('ty-stage', 'thankyou-note')"
+            >
+              <i class="fas fa-image"></i> PNG
+            </button>
+            <button
+              class="btn btn-amber btn-sm"
+              onclick="exportPDF('ty-stage', 'thankyou-note')"
+            >
+              <i class="fas fa-file-pdf"></i> PDF
+            </button>
+            <button
+              class="btn btn-ghost btn-sm"
+              onclick="printDirect('ty-stage')"
+            >
+              <i class="fas fa-print"></i> Print
+            </button>
+          </div>
+        </div>
+
+        <div class="preview-panel">
+          <div class="preview-header">
+            <div class="preview-title">Live Preview</div>
+            <div class="preview-badge">80mm thermal · horizontal</div>
+          </div>
+          <div class="preview-stage" id="ty-stage"></div>
+          <div class="export-bar">
+            <div class="export-info">
+              <i class="fas fa-info-circle"></i> Inserts into packaging · Folds
+              in half for smaller notes
+            </div>
+            <div style="display: flex; gap: 8px">
+              <button
+                class="btn btn-sky btn-sm"
+                onclick="exportPNG('ty-stage', 'thankyou-note')"
+              >
+                <i class="fas fa-download"></i> PNG
+              </button>
+              <button
+                class="btn btn-amber btn-sm"
+                onclick="exportPDF('ty-stage', 'thankyou-note')"
+              >
+                <i class="fas fa-file-pdf"></i> PDF
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════ STICKERS ═══════════════ -->
+      <div id="tab-sticker" class="editor-grid" style="display: none">
+        <div class="controls-panel">
+          <div class="panel-title">
+            <i class="fas fa-circle-dot"></i> Sticker Settings
+          </div>
+
+          <div class="ctrl-section">Sticker Content</div>
+          <div class="form-group">
+            <label class="form-label">Main Text</label>
+            <input
+              class="inp"
+              id="st-main"
+              value="100% ORGANIC"
+              oninput="renderSticker()"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Sub Text</label>
+            <input
+              class="inp"
+              id="st-sub"
+              value="Beeyond Harvest · Certified Pure"
+              oninput="renderSticker()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Sticker Preset</label>
+            <select class="inp" id="st-type" onchange="applySticker()">
+              <option value="organic">✦ Organic Certified</option>
+              <option value="handmade">⚘ Handmade with Love</option>
+              <option value="bestseller">★ Best Seller</option>
+              <option value="newlaunch">◈ New Launch</option>
+              <option value="qc">✔ Quality Checked</option>
+              <option value="handle">⚠ Handle with Care</option>
+              <option value="cold">❄ Keep Cold</option>
+              <option value="custom">✎ Custom</option>
+            </select>
+          </div>
+
+          <div class="ctrl-section">Style</div>
+          <div class="form-group">
+            <label class="form-label">Shape</label>
+            <select class="inp" id="st-shape" onchange="renderSticker()">
+              <option value="pill">Pill (rounded)</option>
+              <option value="rect">Rectangle</option>
+              <option value="tag">Tag / Badge</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Color</label>
+            <div class="color-row" id="st-colors">
+              <div
+                class="color-chip sel"
+                style="background: #27ae60"
+                data-c="#27ae60"
+                onclick="pickColor('st', this)"
+              ></div>
+              <div
+                class="color-chip"
+                style="background: #f39c12"
+                data-c="#f39c12"
+                onclick="pickColor('st', this)"
+              ></div>
+              <div
+                class="color-chip"
+                style="background: #2980b9"
+                data-c="#2980b9"
+                onclick="pickColor('st', this)"
+              ></div>
+              <div
+                class="color-chip"
+                style="background: #8e44ad"
+                data-c="#8e44ad"
+                onclick="pickColor('st', this)"
+              ></div>
+              <div
+                class="color-chip"
+                style="background: #c0392b"
+                data-c="#c0392b"
+                onclick="pickColor('st', this)"
+              ></div>
+              <div
+                class="color-chip"
+                style="background: #111111"
+                data-c="#111111"
+                onclick="pickColor('st', this)"
+              ></div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Stickers per sheet</label>
+            <select class="inp" id="st-count" onchange="renderSticker()">
+              <option value="2">2 per row</option>
+              <option value="3" selected>3 per row</option>
+              <option value="4">4 per row</option>
+            </select>
+          </div>
+
+          <div class="btn-row">
+            <button
+              class="btn btn-sky btn-sm"
+              onclick="exportPNG('st-stage', 'stickers')"
+            >
+              <i class="fas fa-image"></i> PNG
+            </button>
+            <button
+              class="btn btn-amber btn-sm"
+              onclick="exportPDF('st-stage', 'stickers')"
+            >
+              <i class="fas fa-file-pdf"></i> PDF
+            </button>
+            <button
+              class="btn btn-ghost btn-sm"
+              onclick="printDirect('st-stage')"
+            >
+              <i class="fas fa-print"></i> Print
+            </button>
+          </div>
+        </div>
+
+        <div class="preview-panel">
+          <div class="preview-header">
+            <div class="preview-title">Live Preview</div>
+            <div class="preview-badge">Peel & Stick · Cut individually</div>
+          </div>
+          <div class="preview-stage" id="st-stage"></div>
+          <div class="export-bar">
+            <div class="export-info">
+              <i class="fas fa-info-circle"></i> Print on sticker paper · Cut
+              along edges · 50mm × 22mm each
+            </div>
+            <div style="display: flex; gap: 8px">
+              <button
+                class="btn btn-sky btn-sm"
+                onclick="exportPNG('st-stage', 'stickers')"
+              >
+                <i class="fas fa-download"></i> PNG
+              </button>
+              <button
+                class="btn btn-amber btn-sm"
+                onclick="exportPDF('st-stage', 'stickers')"
+              >
+                <i class="fas fa-file-pdf"></i> PDF
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════ FRAGILE / WARNING ═══════════════ -->
+      <div id="tab-fragile" class="editor-grid" style="display: none">
+        <div class="controls-panel">
+          <div class="panel-title">
+            <i class="fas fa-triangle-exclamation"></i> Warning Label Settings
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Warning Type</label>
+            <select class="inp" id="fr-type" onchange="renderFragile()">
+              <option value="fragile">⚠ Fragile</option>
+              <option value="dontopen">✕ Do Not Open / Tamper</option>
+              <option value="seal">✔ Quality Sealed</option>
+              <option value="cold">❄ Keep Cold / Refrigerate</option>
+              <option value="dontstack">↕ Do Not Stack / This Side Up</option>
+              <option value="dryplace">☂ Keep Dry</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Brand Name</label>
+            <input
+              class="inp"
+              id="fr-brand"
+              value="Beeyond Harvest"
+              oninput="renderFragile()"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Custom Message</label>
+            <input
+              class="inp"
+              id="fr-custom"
+              value="Handle with extreme care"
+              oninput="renderFragile()"
+            />
+          </div>
+
+          <div class="ctrl-section">Style</div>
+          <div class="form-group">
+            <label class="form-label">Border Style</label>
+            <select class="inp" id="fr-border" onchange="renderFragile()">
+              <option value="solid">Solid border</option>
+              <option value="dashed">Dashed border</option>
+              <option value="double">Double border</option>
+              <option value="thick">Thick accent</option>
+            </select>
+          </div>
+
+          <div class="ctrl-section">Print Quantity</div>
+          <div class="qty-row" id="fr-qty">
+            <div class="qty-chip sel" data-q="1" onclick="pickQty('fr', this)">
+              1×
+            </div>
+            <div class="qty-chip" data-q="2" onclick="pickQty('fr', this)">
+              2×
+            </div>
+            <div class="qty-chip" data-q="3" onclick="pickQty('fr', this)">
+              3×
+            </div>
+            <div class="qty-chip" data-q="4" onclick="pickQty('fr', this)">
+              4×
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button
+              class="btn btn-sky btn-sm"
+              onclick="exportPNG('fr-stage', 'warning-label')"
+            >
+              <i class="fas fa-image"></i> PNG
+            </button>
+            <button
+              class="btn btn-amber btn-sm"
+              onclick="exportPDF('fr-stage', 'warning-label')"
+            >
+              <i class="fas fa-file-pdf"></i> PDF
+            </button>
+            <button
+              class="btn btn-ghost btn-sm"
+              onclick="printDirect('fr-stage')"
+            >
+              <i class="fas fa-print"></i> Print
+            </button>
+          </div>
+        </div>
+
+        <div class="preview-panel">
+          <div class="preview-header">
+            <div class="preview-title">Live Preview</div>
+            <div class="preview-badge">80mm thermal · strip format</div>
+          </div>
+          <div class="preview-stage" id="fr-stage"></div>
+          <div class="export-bar">
+            <div class="export-info">
+              <i class="fas fa-info-circle"></i> Apply to outside of box /
+              envelope · Prints 3 per strip
+            </div>
+            <div style="display: flex; gap: 8px">
+              <button
+                class="btn btn-sky btn-sm"
+                onclick="exportPNG('fr-stage', 'warning-label')"
+              >
+                <i class="fas fa-download"></i> PNG
+              </button>
+              <button
+                class="btn btn-amber btn-sm"
+                onclick="exportPDF('fr-stage', 'warning-label')"
+              >
+                <i class="fas fa-file-pdf"></i> PDF
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════ ADDRESS LABEL ═══════════════ -->
+      <div id="tab-address" class="editor-grid" style="display: none">
+        <div class="controls-panel">
+          <div class="panel-title">
+            <i class="fas fa-location-dot"></i> Address Label Settings
+          </div>
+
+          <div class="ctrl-section">Sender (From)</div>
+          <div class="form-group">
+            <label class="form-label">From Name / Brand</label>
+            <input
+              class="inp"
+              id="ad-from-name"
+              value="Beeyond Harvest"
+              oninput="renderAddress()"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">From Address</label>
+            <input
+              class="inp"
+              id="ad-from-addr"
+              value="Dhaka-1212, Bangladesh"
+              oninput="renderAddress()"
+            />
+          </div>
+
+          <div class="ctrl-section">Recipient (To)</div>
+          <div class="form-group">
+            <label class="form-label">Customer Name</label>
+            <input
+              class="inp"
+              id="ad-toname"
+              value="Rahim Uddin"
+              oninput="renderAddress()"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Address Line 1</label>
+            <input
+              class="inp"
+              id="ad-addr1"
+              value="12 Mirpur Road, Block-A"
+              oninput="renderAddress()"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Address Line 2</label>
+            <input
+              class="inp"
+              id="ad-addr2"
+              value="Dhaka - 1216"
+              oninput="renderAddress()"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone</label>
+            <input
+              class="inp"
+              id="ad-phone"
+              value="01712 345 678"
+              oninput="renderAddress()"
+            />
+          </div>
+
+          <div class="ctrl-section">Order Info</div>
+          <div class="form-group">
+            <label class="form-label">Order Number</label>
+            <input
+              class="inp"
+              id="ad-order"
+              value="ORD-2025-00842"
+              oninput="renderAddress()"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Payment Method</label>
+            <select class="inp" id="ad-pay" onchange="renderAddress()">
+              <option>Cash on Delivery</option>
+              <option>bKash / Nagad</option>
+              <option>Paid Online</option>
+              <option>Card Payment</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Total Amount (৳)</label>
+            <input
+              class="inp"
+              id="ad-total"
+              value="৳640"
+              oninput="renderAddress()"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Special Instructions</label>
+            <input
+              class="inp"
+              id="ad-note"
+              value=""
+              placeholder="e.g. Fragile · Leave at door"
+              oninput="renderAddress()"
+            />
+          </div>
+
+          <div class="btn-row">
+            <button
+              class="btn btn-sky btn-sm"
+              onclick="exportPNG('ad-stage', 'address-label')"
+            >
+              <i class="fas fa-image"></i> PNG
+            </button>
+            <button
+              class="btn btn-amber btn-sm"
+              onclick="exportPDF('ad-stage', 'address-label')"
+            >
+              <i class="fas fa-file-pdf"></i> PDF
+            </button>
+            <button
+              class="btn btn-ghost btn-sm"
+              onclick="printDirect('ad-stage')"
+            >
+              <i class="fas fa-print"></i> Print
+            </button>
+          </div>
+        </div>
+
+        <div class="preview-panel">
+          <div class="preview-header">
+            <div class="preview-title">Live Preview</div>
+            <div class="preview-badge">80mm thermal · shipping label</div>
+          </div>
+          <div class="preview-stage" id="ad-stage"></div>
+          <div class="export-bar">
+            <div class="export-info">
+              <i class="fas fa-info-circle"></i> Stick to outside of parcel ·
+              Full address + COD info
+            </div>
+            <div style="display: flex; gap: 8px">
+              <button
+                class="btn btn-sky btn-sm"
+                onclick="exportPNG('ad-stage', 'address-label')"
+              >
+                <i class="fas fa-download"></i> PNG
+              </button>
+              <button
+                class="btn btn-amber btn-sm"
+                onclick="exportPDF('ad-stage', 'address-label')"
+              >
+                <i class="fas fa-file-pdf"></i> PDF
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- /page-wrap -->
+
+    <!-- Toast container -->
+    <div id="toastBox"></div>
+    <!-- Hidden print mount -->
+    <div id="printMount" style="display: none"></div>
+
+    <script>
+      /* ═══════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════ */
+      const accent = { pl: "#c6f135", ty: "#c0392b", st: "#27ae60" };
+      const qty = { pl: 1, ty: 1, fr: 1 };
+
+      /* ═══════════════════════════════════════════
+   UTILITIES
+═══════════════════════════════════════════ */
+      function v(id) {
+        const el = document.getElementById(id);
+        return el ? el.value : "";
+      }
+
+      function toast(msg, type = "success") {
+        const icons = {
+          success: "fa-check-circle",
+          error: "fa-circle-exclamation",
+          info: "fa-circle-info",
+        };
+        const el = document.createElement("div");
+        el.className = `toast ${type}`;
+        el.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i><span>${msg}</span>`;
+        document.getElementById("toastBox").appendChild(el);
+        setTimeout(() => {
+          el.style.opacity = "0";
+          el.style.transform = "translateX(20px)";
+          el.style.transition = ".3s";
+          setTimeout(() => el.remove(), 300);
+        }, 3200);
+      }
+
+      function switchTab(name, btn) {
+        ["product", "thankyou", "sticker", "fragile", "address"].forEach(
+          (t) => {
+            document.getElementById("tab-" + t).style.display =
+              t === name ? "" : "none";
+          },
+        );
+        document
+          .querySelectorAll(".tab-btn")
+          .forEach((b) => b.classList.remove("active"));
+        if (btn) btn.classList.add("active");
+      }
+
+      function pickColor(prefix, el) {
+        document
+          .querySelectorAll("#" + prefix + "-colors .color-chip")
+          .forEach((c) => c.classList.remove("sel"));
+        el.classList.add("sel");
+        accent[prefix] = el.dataset.c;
+        if (prefix === "pl") renderProduct();
+        if (prefix === "ty") renderThankyou();
+        if (prefix === "st") renderSticker();
+      }
+
+      function pickQty(prefix, el) {
+        document
+          .querySelectorAll("#" + prefix + "-qty .qty-chip")
+          .forEach((c) => c.classList.remove("sel"));
+        el.classList.add("sel");
+        qty[prefix] = parseInt(el.dataset.q);
+        if (prefix === "pl") renderProduct();
+        if (prefix === "ty") renderThankyou();
+        if (prefix === "fr") renderFragile();
+      }
+
+      /* Fake barcode SVG */
+      function barcodesvg(text) {
+        const pat = [
+          3, 1, 2, 4, 1, 3, 2, 1, 5, 2, 3, 1, 4, 2, 1, 3, 2, 4, 1, 3, 2, 1, 3,
+          4, 2, 1, 3, 2, 4, 1, 2, 3,
+        ];
+        let x = 0;
+        let bars = "";
+        pat.forEach((w, i) => {
+          if (i % 2 === 0)
+            bars += `<rect x="${x}" y="0" width="${w}" height="28" fill="#111"/>`;
+          x += w + 1;
+        });
+        return `<svg xmlns="http://www.w3.org/2000/svg" width="${x}" height="36" viewBox="0 0 ${x} 36">
+    ${bars}
+    <text x="${x / 2}" y="35" text-anchor="middle" font-size="6" font-family="Courier New" fill="#555">${text}</text>
+  </svg>`;
+      }
+
+      /* Mini QR-like pattern (decorative) */
+      function miniQR() {
+        const p = [
+          [1, 1, 1, 0, 1],
+          [1, 0, 1, 1, 0],
+          [1, 1, 1, 0, 1],
+          [0, 1, 0, 1, 1],
+          [1, 0, 1, 1, 0],
+        ];
+        let rows = "";
+        p.forEach((r) => {
+          let cells = r
+            .map(
+              (c) =>
+                `<div style="width:5px;height:5px;background:${c ? "#111" : "transparent"};border-radius:0.5px;"></div>`,
+            )
+            .join("");
+          rows += `<div style="display:flex;gap:1px;">${cells}</div>`;
+        });
+        return `<div style="display:flex;flex-direction:column;gap:1px;border:2px solid #111;padding:3px;border-radius:2px;">${rows}</div>`;
+      }
+
+      function cutLine() {
+        return `<div style="display:flex;align-items:center;gap:6px;width:320px;margin:2px 0;">
+    <div style="flex:1;border-top:1px dashed #aaa;"></div>
+    <span style="font-size:8px;color:#aaa;font-family:'Courier New',monospace;">✂ cut</span>
+    <div style="flex:1;border-top:1px dashed #aaa;"></div>
+  </div>`;
+      }
+
+      /* ═══════════════════════════════════════════
+   RENDER: PRODUCT LABEL
+═══════════════════════════════════════════ */
+      function renderProduct() {
+        const brand = v("pl-brand"),
+          tag = v("pl-tag"),
+          name = v("pl-name"),
+          weight = v("pl-weight"),
+          price = v("pl-price"),
+          batch = v("pl-batch"),
+          exp = v("pl-exp"),
+          sku = v("pl-sku"),
+          style = v("pl-style"),
+          acc = accent["pl"] || "#c6f135",
+          q = qty["pl"] || 1;
+
+        const el = document.getElementById("pl-stage");
+        if (!el) return;
+
+        function buildLabel() {
+          if (style === "modern")
+            return `
+    <div style="width:320px;background:#fff;color:#111;font-family:'Space Mono','Courier New',monospace;border:1px solid #ddd;border-radius:3px;overflow:hidden;">
+      <div style="background:${acc};padding:7px 13px;display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:2.5px;color:#111;">${brand}</div>
+          <div style="font-size:7px;color:rgba(0,0,0,.55);letter-spacing:1px;">${tag}</div>
+        </div>
+        <div style="font-size:22px;font-weight:900;color:#111;">${price}</div>
+      </div>
+      <div style="padding:8px 13px 10px;display:flex;gap:10px;align-items:flex-start;">
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:700;margin-bottom:2px;">${name}</div>
+          <div style="font-size:8px;color:#888;">Net Weight: ${weight}</div>
+          <div style="font-size:7px;color:#aaa;margin-top:3px;">Batch: ${batch} &nbsp;|&nbsp; Exp: ${exp}</div>
+        </div>
+        ${miniQR()}
+      </div>
+      <div style="padding:0 13px 8px;display:flex;justify-content:space-between;align-items:center;border-top:1px dashed #e0e0e0;padding-top:5px;margin-top:2px;">
+        <div>${barcodesvg_inline(sku)}</div>
+      </div>
+    </div>`;
+
+          if (style === "classic")
+            return `
+    <div style="width:320px;background:#fff;color:#111;font-family:'Space Mono','Courier New',monospace;border:2px solid ${acc};border-radius:3px;padding:10px 14px;">
+      <div style="text-align:center;border-bottom:1.5px solid ${acc};padding-bottom:7px;margin-bottom:8px;">
+        <div style="font-size:12px;font-weight:900;letter-spacing:2.5px;color:${acc};">${brand}</div>
+        <div style="font-size:7px;color:#999;letter-spacing:1.5px;margin-top:1px;">${tag}</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div>
+          <div style="font-size:13px;font-weight:700;">${name}</div>
+          <div style="font-size:8px;color:#777;margin-top:2px;">${weight} &nbsp;·&nbsp; Batch: ${batch}</div>
+          <div style="font-size:7px;color:#aaa;">Exp: ${exp}</div>
+        </div>
+        <div style="font-size:23px;font-weight:900;color:${acc};">${price}</div>
+      </div>
+      <div style="border-top:1px dashed #ccc;padding-top:6px;display:flex;justify-content:space-between;align-items:center;">
+        <div>${barcodesvg_inline(sku)}</div>
+        ${miniQR()}
+      </div>
+    </div>`;
+
+          if (style === "minimal")
+            return `
+    <div style="width:320px;background:#fff;color:#111;font-family:'Space Mono','Courier New',monospace;border:0.5px solid #c8c8c8;border-radius:2px;padding:10px 15px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+        <div>
+          <div style="font-size:8px;letter-spacing:2.5px;color:#bbb;margin-bottom:3px;">${brand}</div>
+          <div style="font-size:15px;font-weight:700;">${name}</div>
+          <div style="font-size:8px;color:#aaa;margin-top:2px;">${weight} &nbsp;·&nbsp; ${tag}</div>
+        </div>
+        <div style="font-size:23px;font-weight:900;">${price}</div>
+      </div>
+      <div style="height:2px;background:${acc};border-radius:1px;margin-bottom:7px;"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-size:7px;color:#bbb;">Batch: ${batch} &nbsp;|&nbsp; Exp: ${exp}</div>
+          <div style="margin-top:3px;">${barcodesvg_inline(sku)}</div>
+        </div>
+        ${miniQR()}
+      </div>
+    </div>`;
+
+          /* bold */
+          return `
+    <div style="width:320px;background:#fff;color:#111;font-family:'Space Mono','Courier New',monospace;border:1px solid #ddd;border-radius:3px;overflow:hidden;">
+      <div style="background:#111;padding:8px 14px;display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:#fff;">${brand}</div>
+          <div style="font-size:7px;color:#888;letter-spacing:1px;">${tag}</div>
+        </div>
+        <div style="font-size:22px;font-weight:900;color:${acc};">${price}</div>
+      </div>
+      <div style="padding:9px 14px;display:flex;gap:10px;align-items:center;">
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:700;">${name}</div>
+          <div style="font-size:8px;color:#888;margin-top:2px;">${weight} &nbsp;|&nbsp; Batch: ${batch} &nbsp;|&nbsp; Exp: ${exp}</div>
+        </div>
+        <div style="background:${acc};color:#111;font-size:8px;font-weight:700;padding:4px 8px;border-radius:3px;letter-spacing:1px;white-space:nowrap;">IN STOCK</div>
+      </div>
+      <div style="padding:0 14px 8px;border-top:1px dashed #ddd;padding-top:6px;display:flex;justify-content:space-between;align-items:center;">
+        ${barcodesvg_inline(sku)}
+        ${miniQR()}
+      </div>
+    </div>`;
+        }
+
+        let html = "";
+        for (let i = 0; i < q; i++) {
+          if (i > 0) html += cutLine();
+          html += buildLabel();
+        }
+        el.innerHTML = html;
+      }
+
+      function barcodesvg_inline(text) {
+        const pat = [3, 1, 2, 4, 1, 3, 2, 1, 5, 2, 3, 1, 2, 3, 1, 2, 4, 1, 3];
+        let x = 0;
+        let bars = "";
+        pat.forEach((w, i) => {
+          if (i % 2 === 0)
+            bars += `<rect x="${x}" y="0" width="${w}" height="22" fill="#111"/>`;
+          x += w + 1;
+        });
+        const tw = x;
+        return `<svg xmlns="http://www.w3.org/2000/svg" width="${tw}" height="30" viewBox="0 0 ${tw} 30">${bars}<text x="${tw / 2}" y="29" text-anchor="middle" font-size="5.5" font-family="Courier New" fill="#888">${text}</text></svg>`;
+      }
+
+      /* ═══════════════════════════════════════════
+   RENDER: THANK YOU NOTE
+═══════════════════════════════════════════ */
+      function renderThankyou() {
+        const greet = v("ty-greet"),
+          msg = v("ty-msg"),
+          coupon = v("ty-coupon"),
+          cpDesc = v("ty-coupon-desc"),
+          brand = v("ty-brand"),
+          web = v("ty-web"),
+          social = v("ty-social"),
+          style = v("ty-style"),
+          acc = accent["ty"] || "#c0392b",
+          q = qty["ty"] || 1;
+
+        const el = document.getElementById("ty-stage");
+        if (!el) return;
+
+        const fontMap = {
+          warm: "'Georgia',serif",
+          organic: "'Palatino Linotype',serif",
+          bold: "'Space Mono','Courier New',monospace",
+          handwritten: "'Georgia',serif",
+        };
+        const font = fontMap[style] || fontMap.warm;
+
+        const icons = { warm: "♥", organic: "❧", bold: "★", handwritten: "✿" };
+        const icon = icons[style] || "♥";
+
+        const borders = {
+          warm: "none",
+          organic: `2px solid #e8e0d0`,
+          bold: `2px solid ${acc}`,
+          handwritten: `1px dashed #ccc`,
+        };
+        const brd = borders[style] || "none";
+
+        function buildNote() {
+          return `
+    <div style="width:320px;background:#fff;color:#222;font-family:${font};border:${brd};border-radius:${style === "bold" ? "2px" : "5px"};padding:16px 18px;text-align:center;">
+      <div style="font-size:22px;color:${acc};display:block;margin-bottom:5px;">${icon}</div>
+      <div style="font-size:${style === "bold" ? "13px" : "14px"};font-weight:700;letter-spacing:${style === "bold" ? "1px" : ".3px"};margin-bottom:6px;color:#111;">${greet}</div>
+      ${style === "bold" ? `<div style="height:2px;background:${acc};border-radius:1px;margin:6px 0;"></div>` : `<div style="border-top:1px solid #f0f0f0;margin:6px 0;"></div>`}
+      <div style="font-size:9px;color:#666;line-height:1.7;margin-bottom:${coupon ? "10px" : "8px"};">${msg.replace(/\n/g, "<br>")}</div>
+      ${
+        coupon
+          ? `
+      <div style="border:1.5px dashed ${acc};border-radius:5px;padding:7px 12px;margin-bottom:10px;background:rgba(0,0,0,.015);">
+        <div style="font-size:7px;color:#aaa;letter-spacing:1.5px;margin-bottom:3px;text-transform:uppercase;">${cpDesc}</div>
+        <div style="font-size:14px;font-weight:900;letter-spacing:3.5px;color:${acc};font-family:'Space Mono','Courier New',monospace;">${coupon}</div>
+      </div>`
+          : ""
+      }
+      <div style="font-size:8px;color:#bbb;border-top:1px solid #f0f0f0;padding-top:7px;display:flex;justify-content:space-between;align-items:center;">
+        <span>${brand}</span>
+        <span style="color:${acc};">★★★★★</span>
+        <span>${web}</span>
+      </div>
+      ${social ? `<div style="font-size:7px;color:#ccc;margin-top:3px;">${social}</div>` : ""}
+    </div>`;
+        }
+
+        let html = "";
+        for (let i = 0; i < q; i++) {
+          if (i > 0) html += cutLine();
+          html += buildNote();
+        }
+        el.innerHTML = html;
+      }
+
+      /* ═══════════════════════════════════════════
+   RENDER: STICKERS
+═══════════════════════════════════════════ */
+      const stickerPresets = {
+        organic: {
+          main: "100% ORGANIC",
+          sub: "Certified Pure · Natural",
+          icon: "✦",
+        },
+        handmade: {
+          main: "HANDMADE WITH LOVE",
+          sub: "Artisan Crafted · Small Batch",
+          icon: "⚘",
+        },
+        bestseller: {
+          main: "BEST SELLER",
+          sub: "Customer Favourite",
+          icon: "★",
+        },
+        newlaunch: {
+          main: "NEW LAUNCH",
+          sub: "Just Arrived · Limited Stock",
+          icon: "◈",
+        },
+        qc: { main: "QUALITY CHECKED", sub: "Inspected & Approved", icon: "✔" },
+        handle: {
+          main: "HANDLE WITH CARE",
+          sub: "Fragile Contents Inside",
+          icon: "⚠",
+        },
+        cold: { main: "KEEP COLD", sub: "Store Below 10°C", icon: "❄" },
+        custom: { main: "", sub: "", icon: "✎" },
+      };
+
+      function applySticker() {
+        const t = v("st-type");
+        const p = stickerPresets[t];
+        if (p && t !== "custom") {
+          document.getElementById("st-main").value = p.main;
+          document.getElementById("st-sub").value = p.sub;
+        }
+        renderSticker();
+      }
+
+      function renderSticker() {
+        const main = v("st-main"),
+          sub = v("st-sub"),
+          shape = v("st-shape") || "pill",
+          count = parseInt(v("st-count") || 3),
+          acc = accent["st"] || "#27ae60";
+
+        const t = v("st-type");
+        const icon = (stickerPresets[t] || {}).icon || "✦";
+
+        const el = document.getElementById("st-stage");
+        if (!el) return;
+
+        const radii = { pill: "20px", rect: "4px", tag: "4px 12px 4px 4px" };
+        const radius = radii[shape] || "20px";
+
+        function buildOne() {
+          return `
+    <div style="display:inline-flex;align-items:center;gap:9px;background:#fff;border-radius:${radius};padding:7px 14px;font-family:'Space Mono','Courier New',monospace;border:2px solid ${acc};min-width:140px;">
+      <span style="font-size:16px;color:${acc};flex-shrink:0;">${icon}</span>
+      <div>
+        <div style="font-size:10px;font-weight:700;color:#111;letter-spacing:.5px;">${main}</div>
+        <div style="font-size:8px;color:#777;margin-top:1px;">${sub}</div>
+      </div>
+    </div>`;
+        }
+
+        /* Build rows */
+        let rowHtml = "";
+        const rows = 3;
+        for (let r = 0; r < rows; r++) {
+          let cells = "";
+          for (let c = 0; c < count; c++) cells += buildOne();
+          rowHtml += `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;">${cells}</div>`;
+          if (r < rows - 1) rowHtml += cutLine();
+        }
+        el.innerHTML = `<div style="display:flex;flex-direction:column;align-items:flex-start;">${rowHtml}</div>
+  <div style="font-size:10px;color:var(--text3);margin-top:6px;">3 rows × ${count} stickers = ${3 * count} total per sheet</div>`;
+      }
+
+      /* ═══════════════════════════════════════════
+   RENDER: FRAGILE / WARNING
+═══════════════════════════════════════════ */
+      function renderFragile() {
+        const type = v("fr-type"),
+          brand = v("fr-brand"),
+          custom = v("fr-custom"),
+          border = v("fr-border") || "solid",
+          q = qty["fr"] || 1;
+
+        const configs = {
+          fragile: {
+            icon: "⚠",
+            title: "FRAGILE",
+            color: "#e74c3c",
+            bg: "#fff8f8",
+          },
+          dontopen: {
+            icon: "✕",
+            title: "DO NOT OPEN",
+            color: "#c0392b",
+            bg: "#fff5f5",
+          },
+          seal: {
+            icon: "✔",
+            title: "QUALITY SEALED",
+            color: "#27ae60",
+            bg: "#f5fff7",
+          },
+          cold: {
+            icon: "❄",
+            title: "KEEP COLD",
+            color: "#2980b9",
+            bg: "#f0f8ff",
+          },
+          dontstack: {
+            icon: "↕",
+            title: "DO NOT STACK",
+            color: "#e67e22",
+            bg: "#fff9f0",
+          },
+          dryplace: {
+            icon: "☂",
+            title: "KEEP DRY",
+            color: "#6c5ce7",
+            bg: "#f8f5ff",
+          },
+        };
+        const cfg = configs[type] || configs.fragile;
+
+        const borderStyles = {
+          solid: `2px solid ${cfg.color}`,
+          dashed: `2px dashed ${cfg.color}`,
+          double: `3px double ${cfg.color}`,
+          thick: `0px`,
+        };
+        const bStyle = borderStyles[border] || borderStyles.solid;
+
+        const el = document.getElementById("fr-stage");
+        if (!el) return;
+
+        function buildWarn() {
+          return `
+    <div style="width:320px;background:${cfg.bg};font-family:'Space Mono','Courier New',monospace;border-radius:3px;padding:9px 16px;text-align:center;border:${bStyle};${border === "thick" ? `border-left:5px solid ${cfg.color};` : ""}">
+      <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:5px;">
+        <span style="font-size:20px;color:${cfg.color};">${cfg.icon}</span>
+        <span style="font-size:14px;font-weight:900;letter-spacing:2.5px;color:${cfg.color};">${cfg.title}</span>
+        <span style="font-size:20px;color:${cfg.color};">${cfg.icon}</span>
+      </div>
+      <div style="font-size:9px;color:#666;border-top:1px dashed ${cfg.color};padding-top:5px;margin-top:4px;">
+        ${custom}
+      </div>
+      <div style="font-size:7px;color:#bbb;margin-top:3px;">${brand}</div>
+    </div>`;
+        }
+
+        let html = "";
+        for (let i = 0; i < q; i++) {
+          if (i > 0) html += cutLine();
+          html += buildWarn();
+        }
+        el.innerHTML = html;
+      }
+
+      /* ═══════════════════════════════════════════
+   RENDER: ADDRESS LABEL
+═══════════════════════════════════════════ */
+      function renderAddress() {
+        const fromName = v("ad-from-name"),
+          fromAddr = v("ad-from-addr"),
+          toName = v("ad-toname"),
+          addr1 = v("ad-addr1"),
+          addr2 = v("ad-addr2"),
+          phone = v("ad-phone"),
+          order = v("ad-order"),
+          pay = v("ad-pay"),
+          total = v("ad-total"),
+          note = v("ad-note");
+
+        const el = document.getElementById("ad-stage");
+        if (!el) return;
+
+        const payColors = {
+          "Cash on Delivery": "#e67e22",
+          "bKash / Nagad": "#e91e8c",
+          "Paid Online": "#27ae60",
+          "Card Payment": "#2980b9",
+        };
+        const payColor = payColors[pay] || "#555";
+
+        el.innerHTML = `
+  <div style="width:320px;background:#fff;color:#111;font-family:'Space Mono','Courier New',monospace;border:1.5px solid #999;border-radius:3px;overflow:hidden;">
+    <!-- Header bar -->
+    <div style="background:#111;padding:5px 12px;display:flex;justify-content:space-between;align-items:center;">
+      <div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:#fff;">${fromName}</div>
+      <div style="font-size:8px;color:#888;">${order}</div>
+    </div>
+    <!-- From -->
+    <div style="padding:7px 12px 6px;border-bottom:1px dashed #ddd;">
+      <div style="font-size:7px;color:#bbb;letter-spacing:1px;margin-bottom:1px;">FROM</div>
+      <div style="font-size:8px;color:#666;">${fromAddr}</div>
+    </div>
+    <!-- To -->
+    <div style="padding:8px 12px 6px;border-bottom:1px dashed #ddd;">
+      <div style="font-size:7px;color:#bbb;letter-spacing:1px;margin-bottom:3px;">DELIVER TO</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:2px;">${toName}</div>
+      <div style="font-size:9px;color:#444;line-height:1.6;">${addr1}<br>${addr2}</div>
+      <div style="font-size:9px;color:#555;margin-top:3px;">&#128222; ${phone}</div>
+    </div>
+    <!-- Footer row -->
+    <div style="padding:7px 12px;display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;">
+      <div>
+        <div style="font-size:7px;color:#bbb;letter-spacing:.8px;">AMOUNT</div>
+        <div style="font-size:13px;font-weight:900;">${total}</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:7px;color:#bbb;margin-bottom:2px;">PAYMENT</div>
+        <div style="font-size:7px;font-weight:700;color:#fff;background:${payColor};padding:3px 7px;border-radius:3px;letter-spacing:.5px;">${pay.toUpperCase()}</div>
+      </div>
+      ${miniQR()}
+    </div>
+    ${note ? `<div style="background:#fffbf0;padding:4px 12px;font-size:8px;color:#e67e22;border-top:1px dashed #ffe0a0;">&#9998; ${note}</div>` : ""}
+    <!-- Barcode -->
+    <div style="padding:4px 12px 8px;border-top:1px dashed #eee;display:flex;justify-content:center;">
+      ${barcodesvg_inline(order)}
+    </div>
+  </div>`;
+      }
+
+      /* ═══════════════════════════════════════════
+   EXPORT: PNG
+═══════════════════════════════════════════ */
+      async function exportPNG(stageId, filename) {
+        const stage = document.getElementById(stageId);
+        if (!stage) {
+          toast("Preview not found", "error");
+          return;
+        }
+
+        toast("Generating PNG…", "info");
+
+        try {
+          await new Promise((r) => setTimeout(r, 200));
+
+          const canvas = await html2canvas(stage, {
+            scale: 3,
+            backgroundColor: "#f5f5f5",
+            useCORS: true,
+            allowTaint: false,
+            logging: false,
+            onclone: (doc, el) => {
+              el.style.padding = "20px";
+              el.style.background = "#f5f5f5";
+            },
+          });
+
+          const link = document.createElement("a");
+          link.download = `${filename}-${Date.now()}.png`;
+          link.href = canvas.toDataURL("image/png", 1.0);
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          toast("PNG downloaded!", "success");
+        } catch (err) {
+          console.error(err);
+          toast("PNG export failed: " + err.message, "error");
+        }
+      }
+
+      /* ═══════════════════════════════════════════
+   EXPORT: PDF
+═══════════════════════════════════════════ */
+      async function exportPDF(stageId, filename) {
+        const stage = document.getElementById(stageId);
+        if (!stage) {
+          toast("Preview not found", "error");
+          return;
+        }
+
+        toast("Generating PDF…", "info");
+
+        try {
+          await new Promise((r) => setTimeout(r, 200));
+
+          const canvas = await html2canvas(stage, {
+            scale: 2.5,
+            backgroundColor: "#ffffff",
+            useCORS: true,
+            allowTaint: false,
+            logging: false,
+            onclone: (doc, el) => {
+              el.style.padding = "16px";
+              el.style.background = "#ffffff";
+            },
+          });
+
+          const { jsPDF } = window.jspdf;
+          const imgData = canvas.toDataURL("image/jpeg", 0.95);
+          const imgW = canvas.width;
+          const imgH = canvas.height;
+
+          /* 80mm thermal page width, auto height */
+          const pdfW = 80;
+          const pdfH = (imgH / imgW) * pdfW;
+
+          const pdf = new jsPDF({
+            orientation: pdfH > pdfW ? "portrait" : "landscape",
+            unit: "mm",
+            format: [pdfW, pdfH],
+          });
+
+          pdf.addImage(imgData, "JPEG", 0, 0, pdfW, pdfH);
+          pdf.save(`${filename}-${Date.now()}.pdf`);
+          toast("PDF downloaded!", "success");
+        } catch (err) {
+          console.error(err);
+          toast("PDF export failed: " + err.message, "error");
+        }
+      }
+
+      /* ═══════════════════════════════════════════
+   PRINT DIRECT
+═══════════════════════════════════════════ */
+      function printDirect(stageId) {
+        const stage = document.getElementById(stageId);
+        if (!stage) {
+          toast("Preview not found", "error");
+          return;
+        }
+
+        const win = window.open("", "_blank", "width=600,height=500");
+        win.document.write(`<!DOCTYPE html><html><head>
+  <meta charset="UTF-8">
+  <title>Print Label</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    @page{size:80mm auto;margin:4mm;}
+    body{margin:0;padding:4px;background:#fff;font-family:'Space Mono','Courier New',monospace;}
+    *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  </style>
+  </head><body>${stage.innerHTML}
+  <script>window.onload=function(){window.print();setTimeout(()=>window.close(),800);}<\/script>
+  </body></html>`);
+        win.document.close();
+      }
+
+      /* ═══════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════ */
+      renderProduct();
+      renderThankyou();
+      renderSticker();
+      renderFragile();
+      renderAddress();
+    </script>
+  </body>
+</html>
