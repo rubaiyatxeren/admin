@@ -4286,7 +4286,7 @@ const terminalId = "BH-" + (order.customer?.address?.city || "DHAKA").toUpperCas
         }
       }
 
-      async function downloadPosSlipAsPng() {
+     async function downloadPosSlipAsPng() {
   const element = document.getElementById("posSlipToCapture");
   if (!element || !window._currentPosOrder) {
     showToast("Slip not ready", "error");
@@ -4304,20 +4304,52 @@ const terminalId = "BH-" + (order.customer?.address?.city || "DHAKA").toUpperCas
     await new Promise((r) => setTimeout(r, 300));
 
     const target = element.querySelector(".pos-slip-container") || element;
-    const rect = target.getBoundingClientRect();
-    const scale = 4; // high quality
+    let dataUrl;
 
-    const dataUrl = await domtoimage.toPng(target, {
-      bgcolor: "#ffffff",
-      width: rect.width * scale,
-      height: rect.height * scale,
-      style: {
-        transform: `scale(${scale})`,
-        transformOrigin: "top left",
-        width: rect.width + "px",
-        height: rect.height + "px",
-      },
-    });
+    // Try domtoimage first (better quality), fallback to html2canvas on mobile
+    try {
+      const rect = target.getBoundingClientRect();
+      const scale = 3;
+      dataUrl = await domtoimage.toPng(target, {
+        bgcolor: "#ffffff",
+        width: rect.width * scale,
+        height: rect.height * scale,
+        style: {
+          transform: `scale(${scale})`,
+          transformOrigin: "top left",
+          width: rect.width + "px",
+          height: rect.height + "px",
+        },
+      });
+    } catch (domErr) {
+      console.warn("domtoimage failed, trying html2canvas:", domErr);
+      // Fallback to html2canvas
+      const canvas = await html2canvas(target, {
+        scale: 3,
+        backgroundColor: "#ffffff",
+        useCORS: true,
+        allowTaint: true,
+        logging: false,
+        onclone: (clonedDoc) => {
+          const qrDiv = clonedDoc.getElementById("posQrCanvas");
+          if (qrDiv) {
+            qrDiv.innerHTML = "";
+            new QRCode(qrDiv, {
+              text: "https://beeharvest.vercel.app/",
+              width: 130,
+              height: 130,
+              colorDark: "#111111",
+              colorLight: "#ffffff",
+              correctLevel: QRCode.CorrectLevel.M,
+            });
+          }
+          const bc = clonedDoc.getElementById("posBarcodeCanvas");
+          const origBc = document.getElementById("posBarcodeCanvas");
+          if (bc && origBc) bc.getContext("2d").drawImage(origBc, 0, 0);
+        },
+      });
+      dataUrl = canvas.toDataURL("image/png");
+    }
 
     const a = document.createElement("a");
     a.href = dataUrl;
@@ -4329,7 +4361,7 @@ const terminalId = "BH-" + (order.customer?.address?.city || "DHAKA").toUpperCas
 
   } catch (err) {
     console.error(err);
-    showToast("Failed: " + err.message, "error");
+    showToast("Failed to generate slip: " + err.message, "error");
   } finally {
     btn.innerHTML = originalText;
     btn.disabled = false;
