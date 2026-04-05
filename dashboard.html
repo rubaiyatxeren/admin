@@ -6,6 +6,8 @@
     <title>Beeyond Harvest — Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
     <link
       href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;500;600&display=swap"
       rel="stylesheet"
@@ -1810,6 +1812,15 @@
           <span class="nav-badge" id="pendingBadge" style="display: none"
             >0</span
           >
+        </a>
+        <div class="nav-section-label" style="margin-top: 12px">Packaging</div>
+        <a
+          class="nav-link"
+          href="packaging-admin-integrated.html"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <i class="fas fa-print"></i> Packaging Studio
         </a>
         <div class="nav-section-label" style="margin-top: 12px">
           Advanced Tools
@@ -3936,8 +3947,12 @@
           day: "2-digit",
           month: "2-digit",
           year: "2-digit",
+        });
+
+        const formattedTime = date.toLocaleTimeString("en-US", {
           hour: "2-digit",
           minute: "2-digit",
+          hour12: true,
         });
 
         // Calculate totals
@@ -3999,15 +4014,15 @@
         <!-- Transaction Info -->
         <div class="row" style="display: flex; justify-content: space-between; margin: 5px 0;">
           <span>Date:</span>
-          <span>${formattedDate}</span>
+          <span>${formattedDate} ${formattedTime}</span>
         </div>
         <div class="row" style="display: flex; justify-content: space-between; margin: 5px 0;">
-          <span>Order #:</span>
+          <span>Order Number:</span>
           <span style="font-weight: 700;">${orderNumber}</span>
         </div>
         <div class="row" style="display: flex; justify-content: space-between; margin: 5px 0;">
-          <span>Cashier:</span>
-          <span>${order.cashierName || "Beeyond Team"}</span>
+          <span>Shipper:</span>
+          <span>${order.cashierName || "Team Beeyond"}</span>
         </div>
 
         <hr style="border: none; border-top: 1px dashed #ccc; margin: 6px 0;" />
@@ -4089,7 +4104,7 @@
             : ""
         }
         
-        <div class="row total-line" style="border-top: 1px solid #aaa; margin-top: 8px; padding-top: 8px; font-weight: 800; font-size: 13px;">
+        <div class="row total-line" style="border-top: 1px solid #aaa; margin-top: 8px; padding-top: 8px; font-weight: 800; font-size: 16px;">
           <span>TOTAL</span>
           <span>${formatCurrency(total)}</span>
         </div>
@@ -5410,7 +5425,7 @@
           </span>
         </div>
         <div style="font-size: 11px; color: var(--text3); margin-bottom: 6px; letter-spacing: 0.5px;">TOTAL REVENUE</div>
-        <div style="font-family: 'Syne', sans-serif; font-size: 34px; font-weight: 800; color: var(--sky); line-height: 1; margin-bottom: 8px;" id="totalRevenueCustomers">$18,903</div>
+        <div style="font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; color: var(--sky); line-height: 1; margin-bottom: 8px;" id="totalRevenueCustomers">—</div>
         <div style="font-size: 11px; color: var(--text3); display: flex; align-items: center; gap: 6px;">
           <i class="fas fa-calendar" style="font-size: 9px; opacity: 0.7;"></i>
           <span>Last 30 days</span>
@@ -5524,40 +5539,101 @@
         }
       }
 
-      // Load customer emails from backend
-      // Load customer emails from backend (UPDATED)
+      // ========== UPDATED BULK EMAIL CAMPAIGN MANAGER WITH 30-DAY REVENUE ==========
       async function loadCustomerEmails() {
         try {
           showToast("Fetching customer list...", "info");
-          const res = await apiCall("/orders/customers/emails");
-          const customers = res.data || [];
-          const totalRevenue = customers.reduce(
-            (sum, c) => sum + (c.totalSpent || 0),
+
+          // Fetch customers with their email data
+          const customersRes = await apiCall("/orders/customers/emails");
+          const customers = customersRes.data || [];
+
+          // Fetch orders for last 30 days to calculate revenue
+          const today = new Date();
+          const thirtyDaysAgo = new Date();
+          thirtyDaysAgo.setDate(today.getDate() - 30);
+
+          const dateFrom = thirtyDaysAgo.toISOString().split("T")[0];
+          const dateTo = today.toISOString().split("T")[0];
+
+          // Get orders from last 30 days
+          const ordersRes = await apiCall(
+            `/orders?dateFrom=${dateFrom}&dateTo=${dateTo}&limit=5000`,
+          );
+          const orders = ordersRes.data || [];
+
+          // Calculate total revenue from delivered orders in last 30 days
+          const deliveredOrders = orders.filter(
+            (o) => o.orderStatus === "delivered",
+          );
+          const totalRevenue30Days = deliveredOrders.reduce(
+            (sum, o) => sum + (o.total || 0),
             0,
           );
+
+          // Calculate total orders count
+          const totalOrders30Days = orders.length;
+
+          // Calculate average order value
+          const avgOrderValue =
+            totalOrders30Days > 0 ? totalRevenue30Days / totalOrders30Days : 0;
 
           // Update stats
           const totalCustomersEl = document.getElementById("totalCustomers");
           const totalRevenueEl = document.getElementById(
             "totalRevenueCustomers",
           );
-          const totalCustomersNote =
-            document.getElementById("totalCustomersNote");
           const totalCustomersInfo =
             document.getElementById("totalCustomersInfo");
           const totalCustomersCount = document.getElementById(
             "totalCustomersCount",
           );
 
+          // Also add these elements to show additional stats
+          let statsContainer = document.querySelector("#content .stat-grid");
+          if (statsContainer && !document.getElementById("avgOrderValue")) {
+            // Add a 4th stat card if it doesn't exist
+            const parentDiv = statsContainer.parentElement;
+            if (
+              parentDiv &&
+              parentDiv.querySelectorAll(".stat-card").length === 3
+            ) {
+              const newStatCard = document.createElement("div");
+              newStatCard.style.cssText =
+                "background: var(--bg); border-radius: 16px; padding: 20px 16px; border: 1px solid var(--border);";
+              newStatCard.innerHTML = `
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+            <div style="width: 44px; height: 44px; border-radius: 14px; background: rgba(198, 241, 53, 0.12); display: flex; align-items: center; justify-content: center;">
+              <i class="fas fa-chart-line" style="color: var(--lime); font-size: 20px;"></i>
+            </div>
+          </div>
+          <div style="font-size: 11px; color: var(--text3); margin-bottom: 6px; letter-spacing: 0.5px;">AVG ORDER VALUE</div>
+          <div style="font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; color: var(--lime); line-height: 1; margin-bottom: 8px;" id="avgOrderValue">৳0</div>
+          <div style="font-size: 11px; color: var(--text3); display: flex; align-items: center; gap: 6px;">
+            <i class="fas fa-shopping-cart" style="font-size: 9px; opacity: 0.7;"></i>
+            <span id="totalOrders30Days">0 orders</span>
+          </div>
+        `;
+              statsContainer.appendChild(newStatCard);
+            }
+          }
+
           if (totalCustomersEl) totalCustomersEl.textContent = customers.length;
-          if (totalCustomersNote)
-            totalCustomersNote.textContent = `✨ ${customers.length} customers will receive emails`;
           if (totalRevenueEl)
-            totalRevenueEl.textContent = formatCurrency(totalRevenue);
+            totalRevenueEl.textContent = formatCurrency(totalRevenue30Days);
           if (totalCustomersCount)
             totalCustomersCount.textContent = customers.length;
           if (totalCustomersInfo && customers.length > 0)
             totalCustomersInfo.style.display = "block";
+
+          // Update additional stats
+          const avgOrderEl = document.getElementById("avgOrderValue");
+          if (avgOrderEl)
+            avgOrderEl.textContent = formatCurrency(avgOrderValue);
+
+          const totalOrdersEl = document.getElementById("totalOrders30Days");
+          if (totalOrdersEl)
+            totalOrdersEl.textContent = `${totalOrders30Days} orders`;
 
           // Update customer list preview
           const previewDiv = document.getElementById("customerListPreview");
@@ -5600,14 +5676,14 @@
                 )
                 .join("")}
             </tbody>
-          </table>
+           </table>
           ${customers.length > 10 ? `<div style="margin-top: 12px; text-align: center; font-size: 12px; color: var(--lime);">+ ${customers.length - 10} more customers not shown in preview</div>` : ""}
         `;
             }
           }
 
           showToast(
-            `Loaded ${customers.length} customers. ALL will receive the email when sent.`,
+            `Loaded ${customers.length} customers. Last 30 days revenue: ${formatCurrency(totalRevenue30Days)}`,
             "success",
           );
         } catch (error) {
