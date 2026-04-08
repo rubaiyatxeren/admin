@@ -2732,13 +2732,21 @@
 
           const s = stats.data;
           const allOrders = orders.data || [];
-          const delivered = allOrders.filter(
-            (o) => o.orderStatus === "delivered",
-          );
+
+          // Count delivered orders (case insensitive)
+          const delivered = allOrders.filter((o) => {
+            const status = (o.orderStatus || "").toLowerCase().trim();
+            return status === "delivered" || status === "completed";
+          });
+
           const totalRevenue = delivered.reduce((sum, o) => sum + o.total, 0);
-          const pending = allOrders.filter(
-            (o) => o.orderStatus === "pending",
-          ).length;
+          const pending = allOrders.filter((o) => {
+            const status = (o.orderStatus || "").toLowerCase().trim();
+            return status === "pending";
+          }).length;
+
+          // Use API value if available, otherwise use our count
+          const deliveredCount = s.completedOrders || delivered.length;
 
           if (pending > 0) {
             const pb = document.getElementById("pendingBadge");
@@ -2749,10 +2757,10 @@
 
           // Update stats grid
           document.getElementById("statsGrid").innerHTML = `
-      ${statCard("Total Revenue", formatCurrency(totalRevenue), "fa-bangladeshi-taka-sign", "#c6f135", "rgba(198,241,53,.15)", "Delivered orders", "up", "dashboard")}
-      ${statCard("Total Orders", s.totalOrders || 0, "fa-shopping-bag", "#38bdf8", "rgba(56,189,248,.15)", `${pending} pending`, pending > 0 ? "down" : "up", "orders")}
-      ${statCard("Products", s.totalProducts || 0, "fa-box-open", "#2dd4bf", "rgba(45,212,191,.15)", `${s.lowStockProducts || 0} low stock`, s.lowStockProducts > 0 ? "down" : "up", "products")}
-      ${statCard("Delivered", s.completedOrders || 0, "fa-circle-check", "#f5a623", "rgba(245,166,35,.15)", "Completed orders", "up", "orders")}`;
+  ${statCard("Total Revenue", formatCurrency(totalRevenue), "fa-bangladeshi-taka-sign", "#c6f135", "rgba(198,241,53,.15)", "From delivered orders", "up", "dashboard")}
+  ${statCard("Total Orders", s.totalOrders || allOrders.length, "fa-shopping-bag", "#38bdf8", "rgba(56,189,248,.15)", `${pending} pending`, pending > 0 ? "down" : "up", "orders")}
+  ${statCard("Products", s.totalProducts || 0, "fa-box-open", "#2dd4bf", "rgba(45,212,191,.15)", `${s.lowStockProducts || 0} low stock`, s.lowStockProducts > 0 ? "down" : "up", "products")}
+  ${statCard("Delivered", deliveredCount, "fa-circle-check", "#f5a623", "rgba(245,166,35,.15)", "Completed orders", "up", "orders")}`;
 
           // Update recent orders
           const recent = allOrders.slice(0, 6);
@@ -3389,6 +3397,7 @@
         c.innerHTML = `
                 <div class="section-header fade-up"><h2>Orders</h2>
                   <div style="display:flex;gap:8px">
+                  <button class="btn btn-primary btn-sm" onclick="openCreateOrderModal()"><i class="fas fa-plus"></i> Add Order</button>
                     <button class="btn btn-ghost btn-sm" onclick="exportOrders()"><i class="fas fa-file-export"></i> Export CSV</button>
                     <button class="btn btn-ghost btn-sm" onclick="loadOrders()"><i class="fas fa-rotate-right"></i></button>
                   </div>
@@ -4520,7 +4529,7 @@
         
         <!-- Header -->
         <div class="center" style="text-align: center;">
-          <div class="shop-title" style="font-size: 14px; font-weight: 800; letter-spacing: -0.3px; margin-bottom: 4px;">
+          <div class="shop-title" style="font-size: 13px; font-weight: 800; letter-spacing: -0.3px; margin-bottom: 4px;">
             🌿 BEEYOND HARVEST
           </div>
           <div style="font-size: 9px; letter-spacing: 1px; color: #666;">ORGANIC & NATURAL</div>
@@ -5808,6 +5817,295 @@
 
       async function editDeliveryCharge(id) {
         openDeliveryChargeModal(id);
+      }
+
+      // ═══════════════════════════════════════════
+      // CREATE ORDER MODAL
+      // ═══════════════════════════════════════════
+      async function openCreateOrderModal() {
+        let products = [];
+        try {
+          const res = await apiCall("/products?limit=100&isActive=true");
+          products = res.data || [];
+        } catch (e) {
+          showToast("Failed to load products", "error");
+          return;
+        }
+
+        modal(`
+    <div class="modal-box wide">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">➕ Create New Order</div>
+          <div class="modal-sub">Manually add an order for a customer</div>
+        </div>
+        <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+      </div>
+      <form id="createOrderForm">
+        <div class="modal-body">
+
+          <!-- Customer Info -->
+          <div style="font-size:12px;font-weight:700;letter-spacing:.6px;
+                      text-transform:uppercase;color:var(--text3);margin-bottom:12px">
+            <i class="fas fa-user" style="margin-right:6px"></i>Customer Information
+          </div>
+          <div class="form-grid" style="margin-bottom:20px">
+            <div class="form-group">
+              <label class="form-label">Full Name *</label>
+              <input class="inp" name="customerName" placeholder="e.g. Rahim Hossain" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Phone *</label>
+              <input class="inp" name="customerPhone" placeholder="01XXXXXXXXX" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email *</label>
+              <input class="inp" name="customerEmail" type="email" placeholder="customer@example.com" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Payment Method</label>
+              <select class="inp" name="paymentMethod">
+                <option value="cash_on_delivery">💵 Cash on Delivery</option>
+                <option value="bkash">bKash</option>
+                <option value="nagad">Nagad</option>
+                <option value="card">Card</option>
+              </select>
+            </div>
+            <div class="form-group full">
+              <label class="form-label">Delivery Address</label>
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+                <input class="inp" name="street" placeholder="Street / House">
+                <input class="inp" name="area" placeholder="Area / Thana">
+                <input class="inp" name="city" placeholder="City">
+              </div>
+            </div>
+            <div class="form-group full">
+              <label class="form-label">Order Notes</label>
+              <input class="inp" name="notes" placeholder="Special instructions (optional)">
+            </div>
+          </div>
+
+          <!-- Items -->
+          <div style="font-size:12px;font-weight:700;letter-spacing:.6px;
+                      text-transform:uppercase;color:var(--text3);margin-bottom:12px">
+            <i class="fas fa-box" style="margin-right:6px"></i>Order Items
+          </div>
+          <div id="orderItemsContainer" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px"></div>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="addOrderItemRow()">
+            <i class="fas fa-plus"></i> Add Product
+          </button>
+
+          <!-- Pricing -->
+          <div style="background:var(--bg);border-radius:12px;padding:16px;margin-top:20px;
+                      border:1px solid var(--border)">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+              <div class="form-group">
+                <label class="form-label">Delivery Charge (৳)</label>
+                <input class="inp" name="deliveryCharge" type="number" value="60"
+                  min="0" oninput="recalcOrderTotal()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Discount (৳)</label>
+                <input class="inp" name="discount" type="number" value="0"
+                  min="0" oninput="recalcOrderTotal()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Coupon Code</label>
+                <input class="inp" name="couponCode" placeholder="Optional">
+              </div>
+            </div>
+
+            <!-- Totals display -->
+            <div style="border-top:1px solid var(--border);padding-top:12px">
+              <div style="display:flex;justify-content:space-between;font-size:13px;
+                          color:var(--text3);margin-bottom:6px">
+                <span>Subtotal</span>
+                <span id="coSubtotal">৳ 0</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;
+                          color:var(--text3);margin-bottom:6px">
+                <span>Delivery</span>
+                <span id="coDelivery">৳ 60</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;
+                          color:var(--rose);margin-bottom:6px" id="coDiscountRow"
+                  style="display:none">
+                <span>Discount</span>
+                <span id="coDiscount">- ৳ 0</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;
+                          font-family:'Syne',sans-serif;font-size:20px;font-weight:800;
+                          color:var(--lime);padding-top:8px;border-top:1px solid var(--border)">
+                <span>Total</span>
+                <span id="coTotal">৳ 60</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="createOrderBtn">
+            <i class="fas fa-check"></i> Place Order
+          </button>
+        </div>
+      </form>
+    </div>`);
+
+        // Store products for row dropdowns
+        window._coProducts = products;
+        // Add first item row
+        addOrderItemRow();
+
+        // Form submit
+        document.getElementById("createOrderForm").onsubmit = async (e) => {
+          e.preventDefault();
+          const btn = document.getElementById("createOrderBtn");
+          btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Placing...';
+          btn.disabled = true;
+
+          try {
+            const fd = new FormData(e.target);
+
+            // Build items array from rows
+            const rows = document.querySelectorAll(".co-item-row");
+            const items = [];
+            for (const row of rows) {
+              const productId = row.querySelector(".co-product-select").value;
+              const qty =
+                parseInt(row.querySelector(".co-qty-input").value) || 1;
+              if (productId) items.push({ product: productId, quantity: qty });
+            }
+
+            if (!items.length) {
+              showToast("Add at least one product", "warning");
+              btn.innerHTML = '<i class="fas fa-check"></i> Place Order';
+              btn.disabled = false;
+              return;
+            }
+
+            const payload = {
+              customer: {
+                name: fd.get("customerName"),
+                email: fd.get("customerEmail"),
+                phone: fd.get("customerPhone"),
+                address: {
+                  street: fd.get("street") || "",
+                  area: fd.get("area") || "",
+                  city: fd.get("city") || "",
+                },
+              },
+              items,
+              paymentMethod: fd.get("paymentMethod"),
+              deliveryCharge: parseFloat(fd.get("deliveryCharge")) || 60,
+              discount: parseFloat(fd.get("discount")) || 0,
+              couponCode: fd.get("couponCode") || undefined,
+              notes: fd.get("notes") || "",
+            };
+
+            const res = await apiCall("/orders", {
+              method: "POST",
+              body: JSON.stringify(payload),
+            });
+
+            showToast(`✅ Order ${res.data.orderNumber} created!`, "success");
+            closeModal();
+            loadOrdersList();
+          } catch (err) {
+            showToast(err.message, "error");
+          } finally {
+            btn.innerHTML = '<i class="fas fa-check"></i> Place Order';
+            btn.disabled = false;
+          }
+        };
+      }
+
+      // Add a product row to the create-order modal
+      function addOrderItemRow() {
+        const products = window._coProducts || [];
+        const container = document.getElementById("orderItemsContainer");
+        const idx = container.children.length;
+
+        const row = document.createElement("div");
+        row.className = "co-item-row";
+        row.style.cssText =
+          "display:grid;grid-template-columns:1fr 100px 120px 32px;gap:8px;align-items:center";
+        row.innerHTML = `
+    <select class="inp co-product-select" onchange="updateCoItemPrice(this)">
+      <option value="">— Select product —</option>
+      ${products
+        .map(
+          (p) =>
+            `<option value="${p._id}" data-price="${p.price}"
+          ${p.stock <= 0 ? "disabled" : ""}>
+          ${p.name} — ৳${p.price} ${p.stock <= 0 ? "(out)" : `(${p.stock} left)`}
+        </option>`,
+        )
+        .join("")}
+    </select>
+    <input class="inp co-qty-input" type="number" min="1" value="1"
+      placeholder="Qty" oninput="recalcOrderTotal()">
+    <div class="inp" style="background:var(--bg3);color:var(--lime);font-weight:700;
+                            text-align:right;cursor:default" id="coItemPrice_${idx}">
+      ৳ 0
+    </div>
+    <button type="button" class="btn btn-danger btn-sm btn-icon"
+      onclick="this.closest('.co-item-row').remove();recalcOrderTotal()"
+      title="Remove">
+      <i class="fas fa-times"></i>
+    </button>`;
+        container.appendChild(row);
+        recalcOrderTotal();
+      }
+
+      // Update price display when product selected
+      function updateCoItemPrice(selectEl) {
+        const row = selectEl.closest(".co-item-row");
+        const price =
+          parseFloat(selectEl.selectedOptions[0]?.dataset?.price) || 0;
+        const qty = parseInt(row.querySelector(".co-qty-input").value) || 1;
+        const priceEl = row.querySelector("[id^='coItemPrice']");
+        if (priceEl)
+          priceEl.textContent = "৳ " + (price * qty).toLocaleString();
+        recalcOrderTotal();
+      }
+
+      // Recalculate running total
+      function recalcOrderTotal() {
+        const rows = document.querySelectorAll(".co-item-row");
+        let subtotal = 0;
+
+        rows.forEach((row) => {
+          const select = row.querySelector(".co-product-select");
+          const qty = parseInt(row.querySelector(".co-qty-input")?.value) || 1;
+          const price =
+            parseFloat(select?.selectedOptions[0]?.dataset?.price) || 0;
+          const rowTotal = price * qty;
+          subtotal += rowTotal;
+
+          const priceEl = row.querySelector("[id^='coItemPrice']");
+          if (priceEl) priceEl.textContent = "৳ " + rowTotal.toLocaleString();
+        });
+
+        const delivery =
+          parseFloat(
+            document.querySelector('[name="deliveryCharge"]')?.value,
+          ) || 0;
+        const discount =
+          parseFloat(document.querySelector('[name="discount"]')?.value) || 0;
+        const total = Math.max(0, subtotal + delivery - discount);
+
+        const set = (id, val) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = val;
+        };
+        set("coSubtotal", "৳ " + subtotal.toLocaleString());
+        set("coDelivery", "৳ " + delivery.toLocaleString());
+        set("coDiscount", "- ৳ " + discount.toLocaleString());
+        set("coTotal", "৳ " + total.toLocaleString());
+
+        const discRow = document.getElementById("coDiscountRow");
+        if (discRow) discRow.style.display = discount > 0 ? "flex" : "none";
       }
 
       async function deleteDeliveryCharge(id) {
