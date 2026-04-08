@@ -238,41 +238,239 @@
         background: var(--lime);
         border-radius: 3px 0 0 3px;
       }
+      /* Sidebar Footer - Modern Minimal Design */
       .sb-footer {
         padding: 16px;
         border-top: 1px solid var(--border);
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
+        background: var(--bg2);
       }
+
+      /* Sidebar Footer - Improved Design */
+      .sb-footer {
+        padding: 20px 16px;
+        border-top: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: linear-gradient(135deg, var(--bg2) 0%, var(--bg) 100%);
+        position: relative;
+      }
+
+      .sb-footer::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--lime),
+          transparent
+        );
+        opacity: 0.3;
+      }
+
       .sb-avatar {
-        width: 36px;
-        height: 36px;
-        border-radius: 10px;
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
         background: linear-gradient(135deg, var(--lime), var(--teal));
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: 700;
-        font-size: 14px;
+        font-size: 16px;
         color: #0b0d0f;
         flex-shrink: 0;
+        box-shadow: 0 2px 8px rgba(198, 241, 53, 0.2);
+        transition: transform 0.2s ease;
       }
+
+      .sb-avatar:hover {
+        transform: scale(1.05);
+      }
+
       .sb-footer-info {
         flex: 1;
-        overflow: hidden;
+        min-width: 0;
       }
-      .sb-footer-info p {
+
+      .sb-user-name {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-bottom: 4px;
+      }
+
+      .sb-user-name span:first-child {
         font-size: 13px;
+        font-weight: 700;
+        color: var(--text);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100px;
+      }
+
+      .role-badge {
+        font-size: 9px;
+        padding: 3px 8px;
+        border-radius: 20px;
         font-weight: 600;
+        letter-spacing: 0.3px;
+        white-space: nowrap;
+        display: inline-block;
+        background: var(--surface2);
+        color: var(--text2);
+      }
+
+      .role-badge.super_admin {
+        background: linear-gradient(
+          135deg,
+          rgba(198, 241, 53, 0.2),
+          rgba(198, 241, 53, 0.05)
+        );
+        color: var(--lime);
+        border: 1px solid rgba(198, 241, 53, 0.3);
+      }
+
+      .role-badge.admin {
+        background: linear-gradient(
+          135deg,
+          rgba(56, 189, 248, 0.2),
+          rgba(56, 189, 248, 0.05)
+        );
+        color: var(--sky);
+        border: 1px solid rgba(56, 189, 248, 0.3);
+      }
+
+      .role-badge.manager {
+        background: linear-gradient(
+          135deg,
+          rgba(45, 212, 191, 0.2),
+          rgba(45, 212, 191, 0.05)
+        );
+        color: var(--teal);
+        border: 1px solid rgba(45, 212, 191, 0.3);
+      }
+
+      .sb-user-email {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 10px;
+        color: var(--text3);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
       }
-      .sb-footer-info span {
-        font-size: 11px;
-        color: var(--text3);
+
+      .sb-user-email i {
+        flex-shrink: 0;
       }
+
+      .sb-user-email span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .sb-logout {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        background: rgba(244, 63, 94, 0.1);
+        border: 1px solid rgba(244, 63, 94, 0.2);
+        color: var(--rose);
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+
+      .sb-logout:hover {
+        background: var(--rose);
+        border-color: var(--rose);
+        color: #fff;
+        transform: translateY(-2px);
+      }
+
+      .sb-footer-info {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .sb-name-row {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+        margin-bottom: 4px;
+      }
+
+      .sb-name-row span:first-child {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      #adminRoleBadge {
+        font-size: 9px;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-weight: 600;
+        flex-shrink: 0;
+        background: var(--surface);
+        color: var(--text2);
+      }
+
+      /* Role colors */
+      #adminRoleBadge.super_admin {
+        background: rgba(198, 241, 53, 0.15);
+        color: var(--lime);
+      }
+
+      #adminRoleBadge.admin {
+        background: rgba(56, 189, 248, 0.15);
+        color: var(--sky);
+      }
+
+      #adminRoleBadge.manager {
+        background: rgba(45, 212, 191, 0.15);
+        color: var(--teal);
+      }
+
+      .sb-email-row {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 10px;
+        color: var(--text3);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .sb-email-row i {
+        font-size: 9px;
+        flex-shrink: 0;
+        opacity: 0.6;
+      }
+
+      .sb-email-row span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
       .sb-logout {
         width: 32px;
         height: 32px;
@@ -285,11 +483,13 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        flex-shrink: 0;
       }
+
       .sb-logout:hover {
-        background: var(--rose);
+        background: rgba(244, 63, 94, 0.1);
         border-color: var(--rose);
-        color: #fff;
+        color: var(--rose);
       }
 
       /* TOPBAR */
@@ -1912,8 +2112,14 @@
       <div class="sb-footer">
         <div class="sb-avatar" id="sbInitials">A</div>
         <div class="sb-footer-info">
-          <p id="adminName">Admin</p>
-          <span id="adminEmail">admin@beeyondharvest.com</span>
+          <div class="sb-name-row">
+            <span id="adminName">Admin</span>
+            <span id="adminRoleBadge"></span>
+          </div>
+          <div class="sb-email-row">
+            <i class="fas fa-envelope"></i>
+            <span id="adminEmail">admin@beeyondharvest.com</span>
+          </div>
         </div>
         <button class="sb-logout" onclick="logout()" title="Logout">
           <i class="fas fa-sign-out-alt"></i>
@@ -1980,6 +2186,72 @@
       // ═══════════════════════════════════════════
       // UTILITIES
       // ═══════════════════════════════════════════
+
+      // Role-based access control
+      function checkRoleAccess(allowedRoles) {
+        const admin = JSON.parse(localStorage.getItem("adminData") || "{}");
+        const userRole = admin.role || "admin";
+
+        if (!allowedRoles.includes(userRole)) {
+          showToast(
+            `Access denied. ${userRole} cannot access this page.`,
+            "error",
+          );
+          return false;
+        }
+        return true;
+      }
+
+      // Get current user role
+      function getCurrentUserRole() {
+        const admin = JSON.parse(localStorage.getItem("adminData") || "{}");
+        return admin.role || "admin";
+      }
+
+      // Hide/show sidebar menu items based on role
+      function updateSidebarByRole() {
+        const userRole = getCurrentUserRole();
+
+        // Define which roles can see which menu items
+        const menuAccess = {
+          // Only super_admin can see these
+          super_admin_only: ["testing", "admins", "settings"],
+          // Admin and super_admin can see these
+          admin_plus: [
+            "products",
+            "categories",
+            "banners",
+            "coupons",
+            "orders",
+            "dashboard",
+            "chatbot",
+            "bulk-email",
+          ],
+          // Everyone can see these
+          all: ["packaging", "analytics", "stock-alerts"],
+        };
+
+        // Hide Testing page from non-super_admin
+        if (userRole !== "super_admin") {
+          const testingLink = document.querySelector('[data-page="testing"]');
+          if (testingLink) testingLink.style.display = "none";
+        }
+
+        // Hide Settings page from non-super_admin
+        if (userRole !== "super_admin") {
+          const settingsLink = document.querySelector('[data-page="settings"]');
+          if (settingsLink) settingsLink.style.display = "none";
+        }
+
+        // Optional: Hide or show Bulk Email based on role (only super_admin and admin)
+        if (userRole === "manager") {
+          const bulkEmailLink = document.querySelector(
+            '[data-page="bulk-email"]',
+          );
+          if (bulkEmailLink) bulkEmailLink.style.display = "none";
+        }
+      }
+
       function showToast(msg, type = "success") {
         const icons = {
           success: "fa-check-circle",
@@ -2321,7 +2593,38 @@
       // ═══════════════════════════════════════════
       // NAV
       // ═══════════════════════════════════════════
+      // Replace your existing loadPage function with this one
       function loadPage(page) {
+        const userRole = getCurrentUserRole();
+
+        // Define page access permissions
+        const pagePermissions = {
+          dashboard: ["super_admin", "admin", "manager"],
+          products: ["super_admin", "admin", "manager"],
+          categories: ["super_admin", "admin", "manager"],
+          banners: ["super_admin", "admin", "manager"],
+          coupons: ["super_admin", "admin", "manager"],
+          orders: ["super_admin", "admin", "manager"],
+          chatbot: ["super_admin", "admin", "manager"],
+          settings: ["super_admin"], // Only super_admin
+          testing: ["super_admin"], // Only super_admin
+          "bulk-email": ["super_admin", "admin"], // No manager access
+        };
+
+        // Check if user has permission
+        const allowedRoles = pagePermissions[page] || [
+          "super_admin",
+          "admin",
+          "manager",
+        ];
+        if (!allowedRoles.includes(userRole)) {
+          showToast(
+            `Access denied. ${userRole} cannot access ${page} page.`,
+            "error",
+          );
+          return;
+        }
+
         currentPage = page;
         document
           .querySelectorAll(".nav-link")
@@ -2329,6 +2632,7 @@
         document
           .querySelector(`[data-page="${page}"]`)
           ?.classList.add("active");
+
         const titles = {
           dashboard: "Dashboard",
           products: "Products",
@@ -2338,10 +2642,12 @@
           banners: "Banners",
           chatbot: "🤖 Chatbot Manager",
           settings: "Settings",
-          testing: "⚗️ Load Testing", // ← ADD THIS
+          testing: "⚗️ Load Testing",
+          "bulk-email": "📧 Bulk Email",
         };
         document.getElementById("pageTitle").textContent = titles[page] || page;
         destroyCharts();
+
         const pages = {
           dashboard: loadDashboard,
           products: loadProducts,
@@ -2354,6 +2660,7 @@
           chatbot: loadChatbotManager,
           "bulk-email": loadBulkEmailManager,
         };
+
         (pages[page] || loadDashboard)();
       }
 
@@ -3837,14 +4144,41 @@
       // ═══════════════════════════════════════════
       // SETTINGS
       // ═══════════════════════════════════════════
+      // Update your loadSettings function - add this inside the function where settings are displayed
       async function loadSettings() {
         const admin = JSON.parse(localStorage.getItem("adminData") || "{}");
+        const userRole = admin.role || "admin";
         const initials = (admin.name || "A")
           .split(" ")
           .map((w) => w[0])
           .join("")
           .toUpperCase()
           .slice(0, 2);
+
+        // Add Admin Management section only for super_admin
+        const adminManagementSection =
+          userRole === "super_admin"
+            ? `
+    <div class="card fade-up" style="margin-bottom: 16px;">
+      <div class="card-title" style="margin-bottom: 16px;">
+        <i class="fas fa-users-cog"></i> Admin & Manager Management
+      </div>
+      <div class="card-sub" style="margin-bottom: 20px;">
+        Create, edit, or remove admin and manager accounts
+      </div>
+      
+      <button class="btn btn-primary" onclick="openAdminManagementModal()" style="margin-bottom: 16px; width: 100%;">
+        <i class="fas fa-user-plus"></i> Create New Admin/Manager
+      </button>
+      
+      <div id="adminsList" style="max-height: 400px; overflow-y: auto;">
+        <div style="text-align: center; padding: 20px;">
+          <div class="spinner" style="margin: 0 auto;"></div>
+        </div>
+      </div>
+    </div>
+  `
+            : "";
 
         document.getElementById("content").innerHTML = `
     <div class="section-header fade-up"><h2>Settings</h2></div>
@@ -3865,6 +4199,8 @@
         </form>
       </div>
       <div style="display:flex;flex-direction:column;gap:16px">
+        ${adminManagementSection}
+        
         <div class="card fade-up">
           <div class="card-title" style="margin-bottom:16px">System Information</div>
           <div class="info-block">
@@ -3876,18 +4212,11 @@
           </div>
         </div>
 
-        <!-- Delivery Charge Management Card -->
         <div class="card fade-up">
-          <div class="card-title" style="margin-bottom: 16px;">
-            <i class="fas fa-truck"></i> Delivery Charge Management
-          </div>
-          <div class="card-sub" style="margin-bottom: 20px;">
-            Configure delivery charges based on location and order value
-          </div>
-
+          <div class="card-title" style="margin-bottom:16px">Delivery Charge Management</div>
+          <div class="card-sub" style="margin-bottom:20px">Configure delivery charges based on location and order value</div>
           <div id="deliveryChargesList"></div>
-
-          <button class="btn btn-primary" onclick="openDeliveryChargeModal()" style="margin-top: 16px; width: 100%;">
+          <button class="btn btn-primary" onclick="openDeliveryChargeModal()" style="margin-top:16px; width:100%">
             <i class="fas fa-plus"></i> Add Delivery Charge
           </button>
         </div>
@@ -3905,10 +4234,15 @@
     </div>
   `;
 
-        // Load delivery charges after HTML is rendered
+        // Load delivery charges
         await loadDeliveryCharges();
 
-        // Profile form handler
+        // Load admins list for super_admin
+        if (userRole === "super_admin") {
+          await loadAdminsList();
+        }
+
+        // Profile form handler (same as before)
         const profileForm = document.getElementById("profileForm");
         if (profileForm) {
           profileForm.onsubmit = async (e) => {
@@ -3955,6 +4289,168 @@
               btn.disabled = false;
             }
           };
+        }
+      }
+
+      // Add these functions for admin/manager management
+
+      async function loadAdminsList() {
+        try {
+          const res = await apiCall("/auth/admins");
+          const admins = res.data || [];
+
+          const container = document.getElementById("adminsList");
+          if (!container) return;
+
+          if (admins.length === 0) {
+            container.innerHTML = `
+        <div style="text-align: center; padding: 40px; color: var(--text3);">
+          <i class="fas fa-users" style="font-size: 40px; margin-bottom: 12px; display: block;"></i>
+          No admins or managers found.
+        </div>
+      `;
+            return;
+          }
+
+          container.innerHTML = admins
+            .map(
+              (admin) => `
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg); border-radius: 12px; margin-bottom: 8px; border: 1px solid var(--border);">
+        <div style="flex: 1;">
+          <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <span style="font-weight: 600; font-size: 14px;">${escapeHtml(admin.name)}</span>
+            <span class="badge ${admin.role === "super_admin" ? "badge-lime" : admin.role === "admin" ? "badge-sky" : "badge-teal"}">
+              ${admin.role}
+            </span>
+            <span style="font-size: 12px; color: var(--text3);">${admin.email}</span>
+            <span class="badge ${admin.isActive ? "badge-lime" : "badge-rose"}">
+              ${admin.isActive ? "Active" : "Inactive"}
+            </span>
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-ghost btn-sm" onclick="editAdminAccount('${admin._id}')">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button class="btn btn-danger btn-sm" onclick="deleteAdminAccount('${admin._id}')">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+    `,
+            )
+            .join("");
+        } catch (error) {
+          console.error("Error loading admins:", error);
+          showToast("Failed to load admins list", "error");
+        }
+      }
+
+      function openAdminManagementModal(adminId = null) {
+        modal(`
+    <div class="modal-box">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">${adminId ? "Edit Admin/Manager" : "Create New Admin/Manager"}</div>
+          <div class="modal-sub">${adminId ? "Update account details" : "Add a new admin or manager account"}</div>
+        </div>
+        <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+      </div>
+      <form id="adminManagementForm">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Full Name *</label>
+            <input class="inp" name="name" placeholder="e.g., John Doe" required ${adminId ? "" : "required"}>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email *</label>
+            <input class="inp" name="email" type="email" placeholder="admin@example.com" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password ${adminId ? "(Leave blank to keep current)" : "*"}</label>
+            <input class="inp" name="password" type="password" placeholder="${adminId ? "New password (optional)" : "Enter password"}" ${adminId ? "" : "required"}>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Role *</label>
+            <select class="inp" name="role" required>
+              <option value="admin">Admin</option>
+              <option value="manager">Manager</option>
+            </select>
+          </div>
+          <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-top: 12px;">
+            <label class="toggle">
+              <input type="checkbox" name="isActive" value="true" checked>
+              <span class="toggle-slider"></span>
+            </label>
+            <span style="font-size: 13px; font-weight: 500;">Active Account</span>
+          </label>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Account</button>
+        </div>
+      </form>
+    </div>
+  `);
+
+        // If editing, load existing data
+        if (adminId) {
+          // Fetch and populate form (you'll need to add a GET endpoint or load from list)
+          showToast(
+            "Edit functionality - implement GET /auth/admins/:id endpoint",
+            "info",
+          );
+        }
+
+        document.getElementById("adminManagementForm").onsubmit = async (e) => {
+          e.preventDefault();
+          const formData = new FormData(e.target);
+          const data = {
+            name: formData.get("name"),
+            email: formData.get("email"),
+            role: formData.get("role"),
+            isActive: e.target.isActive?.checked || false,
+          };
+
+          if (formData.get("password")) {
+            data.password = formData.get("password");
+          }
+
+          const btn = e.target.querySelector('button[type="submit"]');
+          const originalText = btn.innerHTML;
+          btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+          btn.disabled = true;
+
+          try {
+            await apiCall("/auth/register", {
+              method: "POST",
+              body: JSON.stringify(data),
+            });
+            showToast(`${data.role} created successfully!`, "success");
+            closeModal();
+            await loadAdminsList();
+          } catch (err) {
+            showToast(err.message, "error");
+          } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+          }
+        };
+      }
+
+      async function editAdminAccount(adminId) {
+        openAdminManagementModal(adminId);
+      }
+
+      async function deleteAdminAccount(adminId) {
+        if (!confirm("Delete this account? This cannot be undone.")) return;
+
+        try {
+          await apiCall(`/auth/admins/${adminId}`, { method: "DELETE" });
+          showToast("Account deleted successfully", "success");
+          await loadAdminsList();
+        } catch (err) {
+          showToast(err.message, "error");
         }
       }
       // ═══════════════════════════════════════════
@@ -6900,9 +7396,35 @@ Send a test message to see the response…
       </div>
     </div>`);
       }
+
+      // Update role badge in sidebar
+      function updateRoleBadge() {
+        const admin = JSON.parse(localStorage.getItem("adminData") || "{}");
+        const userRole = admin.role || "admin";
+        const roleBadge = document.getElementById("adminRoleBadge");
+
+        if (roleBadge) {
+          let roleText = "";
+          let roleClass = "";
+
+          if (userRole === "super_admin") {
+            roleText = "SPAdmin";
+            roleClass = "super_admin";
+          } else if (userRole === "admin") {
+            roleText = "ADMIN";
+            roleClass = "admin";
+          } else {
+            roleText = "MANAGER";
+            roleClass = "manager";
+          }
+
+          roleBadge.textContent = roleText;
+          roleBadge.className = roleClass;
+        }
+      }
       // ═══════════════════════════════════════════
       // INIT
-      // ═══════════════════════════════════════════
+      // INIT section
       if (!token) {
         location.href = "index.html";
       } else {
@@ -6917,6 +7439,13 @@ Send a test message to see the response…
           .join("")
           .toUpperCase()
           .slice(0, 2);
+
+        // Apply role-based sidebar visibility
+        updateSidebarByRole();
+
+        // Update role badge
+        updateRoleBadge();
+
         loadPage("dashboard");
       }
     </script>
