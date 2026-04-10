@@ -1974,6 +1974,18 @@
           <i class="fas fa-chart-line"></i> Dashboard
         </a>
 
+        <a
+          class="nav-link"
+          data-page="products-analytics"
+          onclick="
+            loadPage('products-analytics');
+            return false;
+          "
+          href="#"
+        >
+          <i class="fas fa-chart-bar"></i> Product Analytics
+        </a>
+
         <div class="nav-section-label" style="margin-top: 12px">Catalog</div>
         <a
           class="nav-link"
@@ -2175,7 +2187,7 @@
     <div id="toastContainer"></div>
     <!-- hidden print area for invoice -->
     <div id="invoicePrintArea" style="display: none"></div>
-
+    <script src="js/products-analytics.js"></script>
     <script>
       // ═══════════════════════════════════════════
       // CONFIG
@@ -2210,48 +2222,52 @@
         return admin.role || "admin";
       }
 
-      // Hide/show sidebar menu items based on role
       function updateSidebarByRole() {
         const userRole = getCurrentUserRole();
 
-        // Define which roles can see which menu items
-        const menuAccess = {
-          // Only super_admin can see these
-          super_admin_only: ["testing", "admins", "settings"],
-          // Admin and super_admin can see these
-          admin_plus: [
+        // Define which pages each role CANNOT see
+        const hiddenForRole = {
+          manager: [
+            "testing",
+            "settings",
+            "products-analytics",
             "products",
-            "categories",
-            "banners",
             "coupons",
-            "orders",
-            "dashboard",
             "chatbot",
             "bulk-email",
           ],
-          // Everyone can see these
-          all: ["packaging", "analytics", "stock-alerts"],
+          admin: [
+            "testing",
+            "settings",
+            "bulk-email",
+            "products-analytics",
+          ],
+          super_admin: [], // sees everything
         };
 
-        // Hide Testing page from non-super_admin
-        if (userRole !== "super_admin") {
-          const testingLink = document.querySelector('[data-page="testing"]');
-          if (testingLink) testingLink.style.display = "none";
-        }
+        const hiddenPages = hiddenForRole[userRole] || hiddenForRole["admin"];
 
-        // Hide Settings page from non-super_admin
-        if (userRole !== "super_admin") {
-          const settingsLink = document.querySelector('[data-page="settings"]');
-          if (settingsLink) settingsLink.style.display = "none";
-        }
+        hiddenPages.forEach((page) => {
+          const link = document.querySelector(`[data-page="${page}"]`);
+          if (link) link.style.display = "none";
+        });
 
-        // Optional: Hide or show Bulk Email based on role (only super_admin and admin)
-        if (userRole === "manager") {
-          const bulkEmailLink = document.querySelector(
-            '[data-page="bulk-email"]',
-          );
-          if (bulkEmailLink) bulkEmailLink.style.display = "none";
-        }
+        // Also hide empty section labels if all items under them are hidden
+        document.querySelectorAll(".nav-section-label").forEach((label) => {
+          let next = label.nextElementSibling;
+          let allHidden = true;
+          while (next && !next.classList.contains("nav-section-label")) {
+            if (
+              next.classList.contains("nav-link") &&
+              next.style.display !== "none"
+            ) {
+              allHidden = false;
+              break;
+            }
+            next = next.nextElementSibling;
+          }
+          if (allHidden) label.style.display = "none";
+        });
       }
 
       function showToast(msg, type = "success") {
@@ -2601,16 +2617,17 @@
 
         // Define page access permissions
         const pagePermissions = {
-          dashboard: ["super_admin", "admin", "manager"],
-          products: ["super_admin", "admin", "manager"],
+          dashboard: ["super_admin", "admin"],
+          products: ["super_admin", "admin"],
           categories: ["super_admin", "admin", "manager"],
           banners: ["super_admin", "admin", "manager"],
-          coupons: ["super_admin", "admin", "manager"],
+          coupons: ["super_admin", "admin"],
           orders: ["super_admin", "admin", "manager"],
-          chatbot: ["super_admin", "admin", "manager"],
+          chatbot: ["super_admin", "admin"],
+          "products-analytics": ["super_admin", "admin"],
           settings: ["super_admin"], // Only super_admin
           testing: ["super_admin"], // Only super_admin
-          "bulk-email": ["super_admin", "admin"], // No manager access
+          "bulk-email": ["super_admin"], // No manager access
         };
 
         // Check if user has permission
@@ -2637,6 +2654,7 @@
 
         const titles = {
           dashboard: "Dashboard",
+          "products-analytics": "📊 Product Analytics",
           products: "Products",
           categories: "Categories",
           coupons: "🎟️ Coupons",
@@ -2652,6 +2670,7 @@
 
         const pages = {
           dashboard: loadDashboard,
+          "products-analytics": loadProductAnalytics,
           products: loadProducts,
           categories: loadCategories,
           coupons: loadCoupons,
@@ -7722,9 +7741,9 @@ Send a test message to see the response…
           roleBadge.className = roleClass;
         }
       }
+
       // ═══════════════════════════════════════════
       // INIT
-      // INIT section
       if (!token) {
         location.href = "index.html";
       } else {
