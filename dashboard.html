@@ -2047,6 +2047,18 @@
             >0</span
           >
         </a>
+        <div class="nav-section-label" style="margin-top: 12px">Shipping</div>
+        <a
+          class="nav-link"
+          data-page="delivery-charges"
+          onclick="
+            loadPage('delivery-charges');
+            return false;
+          "
+          href="#"
+        >
+          <i class="fas fa-truck-fast"></i> Delivery Charges
+        </a>
         <div class="nav-section-label" style="margin-top: 12px">Packaging</div>
         <a
           class="nav-link"
@@ -2236,12 +2248,7 @@
             "chatbot",
             "bulk-email",
           ],
-          admin: [
-            "testing",
-            "settings",
-            "bulk-email",
-            "products-analytics",
-          ],
+          admin: ["testing", "settings", "bulk-email", "products-analytics"],
           super_admin: [], // sees everything
         };
 
@@ -2628,6 +2635,7 @@
           settings: ["super_admin"], // Only super_admin
           testing: ["super_admin"], // Only super_admin
           "bulk-email": ["super_admin"], // No manager access
+          "delivery-charges": ["super_admin", "admin"],
         };
 
         // Check if user has permission
@@ -2664,6 +2672,7 @@
           settings: "Settings",
           testing: "⚗️ Load Testing",
           "bulk-email": "📧 Bulk Email",
+          "delivery-charges": "Delivery Charges",
         };
         document.getElementById("pageTitle").textContent = titles[page] || page;
         destroyCharts();
@@ -2680,6 +2689,7 @@
           testing: loadTesting,
           chatbot: loadChatbotManager,
           "bulk-email": loadBulkEmailManager,
+          "delivery-charges": loadDeliveryChargesPage,
         };
 
         (pages[page] || loadDashboard)();
@@ -2695,6 +2705,505 @@
         if (confirm("Log out of the admin panel?")) {
           localStorage.clear();
           location.href = "index.html";
+        }
+      }
+
+      // ========== DELIVERY CHARGES MANAGEMENT (PREMIUM UI) ==========
+      async function loadDeliveryChargesPage() {
+        const c = document.getElementById("content");
+
+        c.innerHTML = `
+    <div class="fade-up">
+      <div class="section-header">
+        <div>
+          <h2>🚚 Delivery Charge Management</h2>
+          <div class="card-sub" style="margin-top: 4px;">Configure shipping fees based on location and order value</div>
+        </div>
+        <button class="btn btn-primary" onclick="openDeliveryChargeModal()">
+          <i class="fas fa-plus"></i> Add Delivery Zone
+        </button>
+      </div>
+
+      <!-- Stats Overview -->
+      <div class="stat-grid" style="margin-bottom: 20px;">
+        <div class="stat-card fade-up stagger-1">
+          <div class="stat-icon" style="background: rgba(198, 241, 53, 0.15); color: var(--lime);">
+            <i class="fas fa-location-dot"></i>
+          </div>
+          <div class="stat-value" id="totalZones">0</div>
+          <div class="stat-label">Delivery Zones</div>
+          <div class="stat-sub up"><i class="fas fa-check-circle"></i> Configured</div>
+        </div>
+        <div class="stat-card fade-up stagger-2">
+          <div class="stat-icon" style="background: rgba(56, 189, 248, 0.15); color: var(--sky);">
+            <i class="fas fa-city"></i>
+          </div>
+          <div class="stat-value" id="activeZones">0</div>
+          <div class="stat-label">Active Zones</div>
+          <div class="stat-sub up"><i class="fas fa-charging-station"></i> Live</div>
+        </div>
+        <div class="stat-card fade-up stagger-3">
+          <div class="stat-icon" style="background: rgba(45, 212, 191, 0.15); color: var(--teal);">
+            <i class="fas fa-bolt"></i>
+          </div>
+          <div class="stat-value" id="defaultCharge">৳0</div>
+          <div class="stat-label">Default Charge</div>
+          <div class="stat-sub up"><i class="fas fa-truck"></i> Base rate</div>
+        </div>
+        <div class="stat-card fade-up stagger-4">
+          <div class="stat-icon" style="background: rgba(245, 166, 35, 0.15); color: var(--amber);">
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <div class="stat-value" id="avgCharge">৳0</div>
+          <div class="stat-label">Average Charge</div>
+          <div class="stat-sub up"><i class="fas fa-calculator"></i> All zones</div>
+        </div>
+      </div>
+
+      <!-- Delivery Zones Grid -->
+      <div id="deliveryZonesGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 20px;">
+        <div style="grid-column: 1/-1; text-align: center; padding: 60px;">
+          <div class="spinner" style="margin: 0 auto;"></div>
+          <p style="margin-top: 16px; color: var(--text3);">Loading delivery zones...</p>
+        </div>
+      </div>
+
+      <!-- Info Section -->
+      <div class="card fade-up" style="margin-top: 20px; background: linear-gradient(135deg, var(--bg2), var(--bg));">
+        <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+          <div style="width: 48px; height: 48px; background: var(--lime-dim); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-info-circle" style="color: var(--lime); font-size: 24px;"></i>
+          </div>
+          <div style="flex: 1;">
+            <div class="card-title" style="margin-bottom: 4px;">How Delivery Charges Work</div>
+            <div class="card-sub" style="font-size: 12px; line-height: 1.5;">
+              Delivery charges are applied based on the customer's shipping address. The system checks zones in order of specificity:
+              <strong>Inside Dhaka</strong> → <strong>Outside Dhaka</strong> → <strong>Default</strong>. 
+              If a minimum order amount is set, the charge only applies when the cart total meets or exceeds that amount.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+        await loadDeliveryZones();
+      }
+
+      async function loadDeliveryZones() {
+        try {
+          const res = await apiCall("/delivery-charges");
+          const charges = res.data || [];
+
+          // Update stats
+          const totalZones = charges.length;
+          const activeZones = charges.filter((c) => c.isActive).length;
+          const defaultCharge =
+            charges.find((c) => c.name === "default")?.amount || 0;
+          const avgCharge =
+            totalZones > 0
+              ? Math.round(
+                  charges.reduce((sum, c) => sum + c.amount, 0) / totalZones,
+                )
+              : 0;
+
+          document.getElementById("totalZones").textContent = totalZones;
+          document.getElementById("activeZones").textContent = activeZones;
+          document.getElementById("defaultCharge").textContent =
+            `৳${defaultCharge}`;
+          document.getElementById("avgCharge").textContent = `৳${avgCharge}`;
+
+          const grid = document.getElementById("deliveryZonesGrid");
+
+          if (charges.length === 0) {
+            grid.innerHTML = `
+        <div class="card" style="grid-column: 1/-1; text-align: center; padding: 60px;">
+          <i class="fas fa-truck" style="font-size: 64px; color: var(--text3); margin-bottom: 16px; display: block;"></i>
+          <div class="card-title" style="margin-bottom: 8px;">No Delivery Zones Configured</div>
+          <div class="card-sub" style="margin-bottom: 24px;">Add your first delivery zone to start charging shipping fees</div>
+          <button class="btn btn-primary" onclick="openDeliveryChargeModal()">
+            <i class="fas fa-plus"></i> Create Delivery Zone
+          </button>
+        </div>
+      `;
+            return;
+          }
+
+          // Sort: Active first, then by name
+          const sorted = charges.sort((a, b) => {
+            if (a.isActive !== b.isActive) return b.isActive - a.isActive;
+            return a.name.localeCompare(b.name);
+          });
+
+          grid.innerHTML = sorted
+            .map((charge) => renderDeliveryZoneCard(charge))
+            .join("");
+        } catch (error) {
+          console.error("Error loading delivery zones:", error);
+          showToast("Failed to load delivery zones", "error");
+          document.getElementById("deliveryZonesGrid").innerHTML = `
+      <div class="card" style="grid-column: 1/-1; text-align: center; padding: 60px;">
+        <i class="fas fa-exclamation-triangle" style="font-size: 64px; color: var(--rose); margin-bottom: 16px; display: block;"></i>
+        <div class="card-title" style="margin-bottom: 8px;">Failed to Load Zones</div>
+        <div class="card-sub" style="margin-bottom: 24px;">${error.message}</div>
+        <button class="btn btn-primary" onclick="loadDeliveryZones()">
+          <i class="fas fa-rotate-right"></i> Retry
+        </button>
+      </div>
+    `;
+        }
+      }
+
+      function renderDeliveryZoneCard(charge) {
+        const isInsideDhaka = charge.name === "inside_dhaka";
+        const isOutsideDhaka = charge.name === "outside_dhaka";
+        const isDefault = charge.name === "default";
+
+        let icon, title, description, bgGradient;
+
+        if (isInsideDhaka) {
+          icon = "fa-city";
+          title = "Inside Dhaka";
+          description = "Delivery within Dhaka city limits";
+          bgGradient =
+            "linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(56, 189, 248, 0.02))";
+        } else if (isOutsideDhaka) {
+          icon = "fa-tree";
+          title = "Outside Dhaka";
+          description = "Delivery outside Dhaka city";
+          bgGradient =
+            "linear-gradient(135deg, rgba(45, 212, 191, 0.1), rgba(45, 212, 191, 0.02))";
+        } else {
+          icon = "fa-globe";
+          title = "Default Zone";
+          description = "Fallback delivery zone";
+          bgGradient =
+            "linear-gradient(135deg, rgba(245, 166, 35, 0.1), rgba(245, 166, 35, 0.02))";
+        }
+
+        const statusColor = charge.isActive ? "var(--lime)" : "var(--rose)";
+        const statusText = charge.isActive ? "Active" : "Inactive";
+        const statusIcon = charge.isActive ? "fa-check-circle" : "fa-circle";
+
+        return `
+    <div class="card fade-up" style="padding: 0; overflow: hidden; transition: all 0.3s ease; border: 1px solid var(--border);">
+      <!-- Header with gradient -->
+      <div style="background: ${bgGradient}; padding: 20px; border-bottom: 1px solid var(--border);">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 48px; height: 48px; background: ${charge.isActive ? "var(--lime-dim)" : "rgba(255,255,255,0.05)"}; border-radius: 14px; display: flex; align-items: center; justify-content: center;">
+              <i class="fas ${icon}" style="color: ${charge.isActive ? "var(--lime)" : "var(--text3)"}; font-size: 22px;"></i>
+            </div>
+            <div>
+              <div style="font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; color: var(--text);">
+                ${title}
+              </div>
+              <div style="font-size: 11px; color: var(--text3); margin-top: 2px;">${description}</div>
+            </div>
+          </div>
+          <div class="badge ${charge.isActive ? "badge-lime" : "badge-rose"}" style="font-size: 11px; padding: 4px 10px;">
+            <i class="fas ${statusIcon}" style="font-size: 10px; margin-right: 4px;"></i> ${statusText}
+          </div>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div style="padding: 20px;">
+        <!-- Amount Display -->
+        <div style="background: var(--bg); border-radius: 12px; padding: 16px; margin-bottom: 16px; text-align: center;">
+          <div style="font-size: 11px; color: var(--text3); letter-spacing: 1px; margin-bottom: 8px;">DELIVERY FEE</div>
+          <div style="font-family: 'Syne', sans-serif; font-size: 36px; font-weight: 800; color: ${charge.isActive ? "var(--lime)" : "var(--text3)"};">
+            ৳${charge.amount}
+          </div>
+          ${
+            charge.minOrderAmount > 0
+              ? `
+            <div style="margin-top: 8px; padding: 4px 8px; background: var(--amber-dim); border-radius: 20px; display: inline-block;">
+              <i class="fas fa-shopping-cart" style="font-size: 10px; margin-right: 4px;"></i>
+              <span style="font-size: 10px; font-weight: 600;">Min Order: ৳${charge.minOrderAmount}</span>
+            </div>
+          `
+              : `
+            <div style="margin-top: 8px; font-size: 10px; color: var(--text3);">
+              <i class="fas fa-infinity"></i> No minimum order requirement
+            </div>
+          `
+          }
+        </div>
+
+        <!-- Details Grid -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+          <div style="background: var(--bg); border-radius: 10px; padding: 10px;">
+            <div style="font-size: 10px; color: var(--text3); margin-bottom: 4px;">Zone Type</div>
+            <div style="font-size: 13px; font-weight: 600;">${title}</div>
+          </div>
+          <div style="background: var(--bg); border-radius: 10px; padding: 10px;">
+            <div style="font-size: 10px; color: var(--text3); margin-bottom: 4px;">Status</div>
+            <div style="font-size: 13px; font-weight: 600; color: ${statusColor};">${statusText}</div>
+          </div>
+          ${
+            charge.minOrderAmount > 0
+              ? `
+            <div style="background: var(--bg); border-radius: 10px; padding: 10px;">
+              <div style="font-size: 10px; color: var(--text3); margin-bottom: 4px;">Minimum Order</div>
+              <div style="font-size: 13px; font-weight: 600;">৳${charge.minOrderAmount}</div>
+            </div>
+          `
+              : ""
+          }
+          <div style="background: var(--bg); border-radius: 10px; padding: 10px;">
+            <div style="font-size: 10px; color: var(--text3); margin-bottom: 4px;">Created</div>
+            <div style="font-size: 12px;">${formatDate(charge.createdAt)}</div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-ghost btn-sm" style="flex: 1;" onclick="editDeliveryCharge('${charge._id}')">
+            <i class="fas fa-edit"></i> Edit
+          </button>
+          <button class="btn ${charge.isActive ? "btn-danger" : "btn-primary"} btn-sm" style="flex: 1;" onclick="toggleDeliveryChargeStatus('${charge._id}', ${charge.isActive})">
+            <i class="fas fa-${charge.isActive ? "pause" : "play"}"></i> ${charge.isActive ? "Deactivate" : "Activate"}
+          </button>
+          <button class="btn btn-danger btn-sm btn-icon" onclick="deleteDeliveryCharge('${charge._id}')" title="Delete">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+      }
+
+      // Enhanced Delivery Charge Modal with better UI
+      async function openDeliveryChargeModal(id = null) {
+        let charge = null;
+        if (id) {
+          try {
+            const res = await apiCall("/delivery-charges");
+            charge = res.data.find((c) => c._id === id);
+          } catch (e) {
+            console.error("Error fetching charge:", e);
+          }
+        }
+
+        const isEdit = !!id;
+        const zoneNames = {
+          inside_dhaka: {
+            label: "Inside Dhaka",
+            icon: "fa-city",
+            desc: "For customers within Dhaka city limits",
+          },
+          outside_dhaka: {
+            label: "Outside Dhaka",
+            icon: "fa-tree",
+            desc: "For customers outside Dhaka city",
+          },
+          default: {
+            label: "Default (Fallback)",
+            icon: "fa-globe",
+            desc: "Applied when no specific zone matches",
+          },
+        };
+
+        modal(`
+    <div class="modal-box" style="max-width: 520px;">
+      <div class="modal-header" style="border-bottom-color: var(--lime);">
+        <div>
+          <div class="modal-title" style="display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-truck" style="color: var(--lime);"></i>
+            ${isEdit ? "Edit Delivery Zone" : "Add New Delivery Zone"}
+          </div>
+          <div class="modal-sub">Configure shipping fees for different locations</div>
+        </div>
+        <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+      </div>
+      
+      <form id="deliveryChargeForm" style="display: flex; flex-direction: column;">
+        <div class="modal-body">
+          <!-- Zone Selection / Display -->
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas fa-location-dot" style="margin-right: 6px;"></i> Delivery Zone
+            </label>
+            ${
+              isEdit
+                ? `
+              <div style="background: var(--bg); border-radius: 12px; padding: 14px; border: 1px solid var(--border);">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <div style="width: 40px; height: 40px; background: var(--lime-dim); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas ${zoneNames[charge?.name]?.icon || "fa-truck"}" style="color: var(--lime);"></i>
+                  </div>
+                  <div>
+                    <div style="font-weight: 600;">${zoneNames[charge?.name]?.label || charge?.name}</div>
+                    <div style="font-size: 11px; color: var(--text3);">${zoneNames[charge?.name]?.desc || ""}</div>
+                  </div>
+                </div>
+              </div>
+              <input type="hidden" name="name" value="${charge?.name}">
+            `
+                : `
+              <select class="inp" name="name" required style="border-color: var(--border);">
+                <option value="">Select a zone</option>
+                <option value="inside_dhaka">🏙️ Inside Dhaka</option>
+                <option value="outside_dhaka">🌳 Outside Dhaka</option>
+                <option value="default">🌍 Default (Fallback)</option>
+              </select>
+            `
+            }
+          </div>
+
+          <!-- Delivery Amount -->
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas fa-money-bill-wave" style="margin-right: 6px;"></i> Delivery Charge (৳)
+            </label>
+            <div style="position: relative;">
+              <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--lime); font-weight: 600;">৳</span>
+              <input class="inp" name="amount" type="number" step="1" min="0" 
+                style="padding-left: 32px;" required 
+                placeholder="Enter delivery fee"
+                value="${charge?.amount || 60}">
+            </div>
+          </div>
+
+          <!-- Minimum Order Amount -->
+          <div class="form-group">
+            <label class="form-label">
+              <i class="fas fa-chart-line" style="margin-right: 6px;"></i> Minimum Order Amount (Optional)
+            </label>
+            <div style="position: relative;">
+              <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text3); font-weight: 600;">৳</span>
+              <input class="inp" name="minOrderAmount" type="number" step="1" min="0" 
+                style="padding-left: 32px;" 
+                placeholder="0 = no minimum"
+                value="${charge?.minOrderAmount || 0}">
+            </div>
+            <div style="font-size: 11px; color: var(--text3); margin-top: 6px;">
+              <i class="fas fa-info-circle"></i> Only apply this charge when order total meets or exceeds this amount
+            </div>
+          </div>
+
+          <!-- Status Toggle -->
+          <div style="background: var(--bg); border-radius: 12px; padding: 14px; margin-top: 8px;">
+            <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+              <div>
+                <div style="font-weight: 500; margin-bottom: 2px;">Active Status</div>
+                <div style="font-size: 11px; color: var(--text3);">Enable or disable this delivery zone</div>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" name="isActive" value="true" ${charge?.isActive !== false ? "checked" : ""}>
+                <span class="toggle-slider"></span>
+              </label>
+            </label>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" onclick="closeModal()">
+            <i class="fas fa-times"></i> Cancel
+          </button>
+          <button type="submit" class="btn btn-primary" id="deliveryChargeSubmitBtn">
+            <i class="fas fa-${isEdit ? "save" : "plus"}"></i> ${isEdit ? "Save Changes" : "Create Zone"}
+          </button>
+        </div>
+      </form>
+    </div>
+  `);
+
+        // Form submit handler
+        const form = document.getElementById("deliveryChargeForm");
+        if (form) {
+          form.onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById("deliveryChargeSubmitBtn");
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            btn.disabled = true;
+
+            const formData = new FormData(e.target);
+            const data = {
+              name: formData.get("name"),
+              amount: parseInt(formData.get("amount")),
+              minOrderAmount: parseInt(formData.get("minOrderAmount")) || 0,
+              isActive: e.target.isActive?.checked || false,
+            };
+
+            // Validate
+            if (!data.name) {
+              showToast("Please select a delivery zone", "error");
+              btn.innerHTML = originalText;
+              btn.disabled = false;
+              return;
+            }
+            if (isNaN(data.amount) || data.amount < 0) {
+              showToast("Please enter a valid delivery charge amount", "error");
+              btn.innerHTML = originalText;
+              btn.disabled = false;
+              return;
+            }
+
+            try {
+              if (isEdit) {
+                await apiCall(`/delivery-charges/${charge._id}`, {
+                  method: "PUT",
+                  body: JSON.stringify(data),
+                });
+              } else {
+                await apiCall("/delivery-charges", {
+                  method: "POST",
+                  body: JSON.stringify(data),
+                });
+              }
+              showToast(
+                `Delivery zone ${isEdit ? "updated" : "created"} successfully!`,
+                "success",
+              );
+              closeModal();
+              loadDeliveryZones();
+            } catch (err) {
+              console.error("Error saving delivery charge:", err);
+              showToast(err.message || "Failed to save delivery zone", "error");
+            } finally {
+              btn.innerHTML = originalText;
+              btn.disabled = false;
+            }
+          };
+        }
+      }
+
+      // Toggle delivery charge status
+      async function toggleDeliveryChargeStatus(id, currentStatus) {
+        try {
+          await apiCall(`/delivery-charges/${id}`, {
+            method: "PUT",
+            body: JSON.stringify({ isActive: !currentStatus }),
+          });
+          showToast(
+            `Delivery zone ${!currentStatus ? "activated" : "deactivated"}`,
+            "success",
+          );
+          loadDeliveryZones();
+        } catch (err) {
+          showToast(err.message || "Failed to update status", "error");
+        }
+      }
+
+      // Update the existing deleteDeliveryCharge function
+      async function deleteDeliveryCharge(id) {
+        if (
+          !confirm(
+            "⚠️ Delete this delivery zone?\n\nThis action cannot be undone.",
+          )
+        )
+          return;
+
+        try {
+          await apiCall(`/delivery-charges/${id}`, { method: "DELETE" });
+          showToast("Delivery zone deleted successfully", "success");
+          loadDeliveryZones();
+        } catch (err) {
+          console.error("Error deleting delivery charge:", err);
+          showToast(err.message || "Failed to delete delivery zone", "error");
         }
       }
 
@@ -4242,14 +4751,6 @@
           </div>
         </div>
 
-        <div class="card fade-up">
-          <div class="card-title" style="margin-bottom:16px">Delivery Charge Management</div>
-          <div class="card-sub" style="margin-bottom:20px">Configure delivery charges based on location and order value</div>
-          <div id="deliveryChargesList"></div>
-          <button class="btn btn-primary" onclick="openDeliveryChargeModal()" style="margin-top:16px; width:100%">
-            <i class="fas fa-plus"></i> Add Delivery Charge
-          </button>
-        </div>
 
         <div class="card fade-up">
           <div class="card-title" style="margin-bottom:16px">Quick Actions</div>
@@ -4263,9 +4764,6 @@
       </div>
     </div>
   `;
-
-        // Load delivery charges
-        await loadDeliveryCharges();
 
         // Load admins list for super_admin
         if (userRole === "super_admin") {
