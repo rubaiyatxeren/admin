@@ -2073,6 +2073,23 @@
         </div>
         <a
           class="nav-link"
+          data-page="fraud"
+          onclick="
+            loadPage('fraud');
+            return false;
+          "
+          href="#"
+        >
+          <i class="fas fa-shield-halved"></i> Fraud Detection
+          <span
+            class="nav-badge"
+            id="fraudBadge"
+            style="display: none; background: var(--rose)"
+            >0</span
+          >
+        </a>
+        <a
+          class="nav-link"
           data-page="testing"
           onclick="
             loadPage('testing');
@@ -2673,6 +2690,7 @@
           testing: "⚗️ Load Testing",
           "bulk-email": "📧 Bulk Email",
           "delivery-charges": "Delivery Charges",
+          fraud: "🛡️ Fraud Detection",
         };
         document.getElementById("pageTitle").textContent = titles[page] || page;
         destroyCharts();
@@ -2690,6 +2708,7 @@
           chatbot: loadChatbotManager,
           "bulk-email": loadBulkEmailManager,
           "delivery-charges": loadDeliveryChargesPage,
+          fraud: loadFraudPage,
         };
 
         (pages[page] || loadDashboard)();
@@ -3963,6 +3982,7 @@
         loadOrdersList();
       }
 
+      // REPLACE the entire loadOrdersList function with this:
       async function loadOrdersList() {
         try {
           const { search, status, payment, dateFrom, dateTo } = ordFilter;
@@ -3971,55 +3991,165 @@
           if (payment) qs.set("paymentStatus", payment);
           if (dateFrom) qs.set("dateFrom", dateFrom);
           if (dateTo) qs.set("dateTo", dateTo);
+
           const res = await apiCall(`/orders?${qs}`);
           ordTotal = res.pagination?.pages || 1;
           const orders = res.data || [];
+
+          // Render table immediately with skeleton fraud cells
           document.getElementById("ordersBody").innerHTML = orders.length
-            ? orders
-                .map(
-                  (o) => `
-                    <tr onclick="viewOrder('${o._id}')">
-                      <td>
-                        <div style="font-weight:600;font-size:13px">${o.orderNumber}</div>
-                        <div style="font-size:11px;color:var(--text3)">#${o._id?.slice(-6)}</div>
-                      </td>
-                      <td>
-                        <div style="font-weight:500;font-size:13px">${o.customer?.name}</div>
-                        <div style="font-size:11px;color:var(--text3)">${o.customer?.phone}</div>
-                      </td>
-                      <td><div style="font-size:13px">${o.items?.length} item${o.items?.length !== 1 ? "s" : ""}</div></td>
-                      <td><div style="font-weight:700;color:var(--lime);font-family:Syne,sans-serif">${formatCurrency(o.total)}</div></td>
-                      <td>${payBadge(o.paymentStatus)}<div style="font-size:11px;color:var(--text3);margin-top:4px">${o.paymentMethod || "—"}</div></td>
-                      <td onclick="event.stopPropagation()">
-                        <select class="status-select" id="status-${o._id}" data-order-id="${o._id}" onchange="handleStatusChange(this, '${o._id}')">
-                          ${["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"].map((s) => `<option value="${s}" ${o.orderStatus === s ? "selected" : ""}>${s.charAt(0).toUpperCase() + s.slice(1)}</option>`).join("")}
-                        </select>
-                      </td>
-                      <td style="font-size:12px;color:var(--text2)">${formatDate(o.createdAt)}</td>
-                      <td onclick="event.stopPropagation()">
-        <div style="display:flex;gap:4px; flex-wrap:wrap;">
-          <button class="btn btn-ghost btn-sm btn-icon" onclick="viewOrder('${o._id}')" title="View"><i class="fas fa-eye"></i></button>
-          <button class="btn btn-ghost btn-sm btn-icon" onclick="openInvoiceModal('${o._id}')" title="Invoice"><i class="fas fa-file-invoice"></i></button>
-          <button class="btn-slip" onclick="openSlipModal('${o._id}')" title="POS Slip">
-            <i class="fas fa-receipt"></i> POS
-          </button>
-        </div>
-      </td>
-                    </tr>`,
-                )
-                .join("")
-            : '<tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text3)">No orders found</td></tr>';
+            ? orders.map((o) => renderOrderRow(o, null)).join("")
+            : `<tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text3)">No orders found</td></tr>`;
+
           document.getElementById("ordInfo").textContent =
             `${orders.length} orders · Page ${ordPage} of ${ordTotal}`;
           renderPagination("ordPages", ordPage, ordTotal, (p) => {
             ordPage = p;
             loadOrdersList();
           });
+
+          // Fetch fraud status for all visible orders in one batch call
+          if (orders.length) {
+            try {
+              const fraudRes = await apiCall("/fraud/status-batch", {
+                method: "POST",
+                body: JSON.stringify({ orderIds: orders.map((o) => o._id) }),
+              });
+              const fraudMap = fraudRes.data || {};
+              orders.forEach((o) => {
+                const cell = document.getElementById(`fraud-cell-${o._id}`);
+                if (cell) {
+                  cell.innerHTML = buildFraudCellHtml(
+                    o._id,
+                    o.orderNumber,
+                    fraudMap[o._id],
+                  );
+                }
+              });
+            } catch (e) {
+              console.warn("Fraud batch lookup failed:", e.message);
+            }
+          }
         } catch (e) {
           showToast(e.message, "error");
         }
       }
 
+      function renderOrderRow(o, fraudData) {
+        return `
+    <tr onclick="viewOrder('${o._id}')">
+      <td>
+        <div style="font-weight:600;font-size:13px">${o.orderNumber}</div>
+        <div style="font-size:11px;color:var(--text3)">#${o._id?.slice(-6)}</div>
+      </td>
+      <td>
+        <div style="font-weight:500;font-size:13px">${o.customer?.name}</div>
+        <div style="font-size:11px;color:var(--text3)">${o.customer?.phone}</div>
+      </td>
+      <td><div style="font-size:13px">${o.items?.length} item${o.items?.length !== 1 ? "s" : ""}</div></td>
+      <td><div style="font-weight:700;color:var(--lime);font-family:Syne,sans-serif">${formatCurrency(o.total)}</div></td>
+      <td>
+        ${payBadge(o.paymentStatus)}
+        <div style="font-size:11px;color:var(--text3);margin-top:4px">${o.paymentMethod || "—"}</div>
+      </td>
+      <td onclick="event.stopPropagation()">
+        <select class="status-select" id="status-${o._id}" data-order-id="${o._id}"
+          onchange="handleStatusChange(this, '${o._id}')">
+          ${[
+            "pending",
+            "confirmed",
+            "processing",
+            "shipped",
+            "delivered",
+            "cancelled",
+          ]
+            .map(
+              (s) =>
+                `<option value="${s}" ${o.orderStatus === s ? "selected" : ""}>${s.charAt(0).toUpperCase() + s.slice(1)}</option>`,
+            )
+            .join("")}
+        </select>
+      </td>
+      <td style="font-size:12px;color:var(--text2)">${formatDate(o.createdAt)}</td>
+      <td onclick="event.stopPropagation()">
+        <div id="fraud-cell-${o._id}">
+          ${buildFraudCellHtml(o._id, o.orderNumber, fraudData)}
+        </div>
+      </td>
+    </tr>`;
+      }
+
+      function buildFraudCellHtml(orderId, orderNumber, fraudData) {
+        let fraudBadge = "";
+
+        if (fraudData === null) {
+          // Loading skeleton
+          fraudBadge = `<div class="skel" style="height:18px;width:64px;border-radius:20px;margin-bottom:4px"></div>`;
+        } else if (!fraudData) {
+          // No scan yet
+          fraudBadge = `
+      <span style="font-size:10px;color:var(--text3);background:var(--surface2);
+                   padding:2px 7px;border-radius:20px;white-space:nowrap">
+        <i class="fas fa-circle" style="font-size:5px;opacity:.4"></i> Unscanned
+      </span>`;
+        } else {
+          const score = fraudData.riskScore || 0;
+          const verdict = fraudData.verdict;
+          const scoreColor =
+            score > 60
+              ? "var(--rose)"
+              : score > 30
+                ? "var(--amber)"
+                : "var(--lime)";
+          const verdictIcon =
+            verdict === "blocked" ? "🚫" : verdict === "review" ? "⚠️" : "✅";
+
+          const quickActions =
+            verdict !== "safe" && !fraudData.reviewAction
+              ? `<span style="margin-left:4px">
+           <span style="cursor:pointer;color:var(--lime);font-size:11px"
+             onclick="event.stopPropagation();reviewFraudLogAction('${fraudData.logId}','approved','')">✓</span>
+           <span style="cursor:pointer;color:var(--rose);font-size:11px;margin-left:3px"
+             onclick="event.stopPropagation();reviewFraudLogAction('${fraudData.logId}','rejected','')">✗</span>
+         </span>`
+              : fraudData.reviewAction
+                ? `<span style="font-size:9px;color:var(--text3);margin-left:3px">(${fraudData.reviewAction})</span>`
+                : "";
+
+          fraudBadge = `
+      <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px"
+           title="${fraudData.topFlag || "No flags"}">
+        <span style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;
+                     color:${scoreColor};line-height:1">${score}</span>
+        <div style="width:28px;height:3px;background:var(--surface2);border-radius:2px;overflow:hidden">
+          <div style="height:100%;width:${score}%;background:${scoreColor};border-radius:2px"></div>
+        </div>
+        <span style="font-size:11px">${verdictIcon}</span>
+        ${quickActions}
+      </div>`;
+        }
+
+        return `
+    <div style="display:flex;flex-direction:column;gap:3px">
+      ${fraudBadge}
+      <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:center">
+        <button class="btn btn-ghost btn-sm btn-icon" onclick="viewOrder('${orderId}')" title="View">
+          <i class="fas fa-eye"></i>
+        </button>
+        <button class="btn btn-ghost btn-sm btn-icon" onclick="openInvoiceModal('${orderId}')" title="Invoice">
+          <i class="fas fa-file-invoice"></i>
+        </button>
+        <button class="btn-slip" onclick="openSlipModal('${orderId}')" title="POS Slip">
+          <i class="fas fa-receipt"></i> POS
+        </button>
+        <button class="btn btn-ghost btn-sm btn-icon"
+          onclick="quickFraudCheck('${orderId}','${orderNumber}')"
+          title="Re-scan" style="color:var(--rose)">
+          <i class="fas fa-shield-halved"></i>
+        </button>
+      </div>
+    </div>`;
+      }
       // FIXED: robust status change handler — prevents double firing, restores on error
       async function handleStatusChange(selectEl, orderId) {
         if (statusUpdating.has(orderId)) return; // prevent race conditions
@@ -8237,6 +8367,999 @@ Send a test message to see the response…
 
           roleBadge.textContent = roleText;
           roleBadge.className = roleClass;
+        }
+      }
+
+      // ── Fraud page state ────────────────────────────────────────────────────────
+      let fraudPage = 1,
+        fraudTotalPages = 1;
+      let fraudFilter = { verdict: "", minScore: "", reviewAction: "" };
+
+      // ── Main fraud page ─────────────────────────────────────────────────────────
+      async function loadFraudPage() {
+        const c = document.getElementById("content");
+        c.innerHTML = `
+    <div class="fade-up">
+      <div class="section-header">
+        <div>
+          <h2>🛡️ Fraud Detection</h2>
+          <div class="card-sub" style="margin-top:4px">Real-time risk analysis — multi-signal scoring engine</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost btn-sm" onclick="runBulkScan()">
+            <i class="fas fa-radar"></i> Bulk Scan (24h)
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="loadFraudPage()">
+            <i class="fas fa-rotate-right"></i>
+          </button>
+        </div>
+      </div>
+ 
+      <!-- Stats -->
+      <div class="stat-grid fade-up" id="fraudStatsGrid" style="margin-bottom:20px">
+        ${[1, 2, 3, 4]
+          .map(
+            (i) => `
+          <div class="stat-card stagger-${i}">
+            <div class="skel" style="height:42px;width:42px;border-radius:12px;margin-bottom:16px"></div>
+            <div class="skel" style="height:26px;width:65%;margin-bottom:8px"></div>
+            <div class="skel" style="height:13px;width:45%"></div>
+          </div>`,
+          )
+          .join("")}
+      </div>
+ 
+      <!-- Charts row -->
+      <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:16px;margin-bottom:20px">
+        <div class="card fade-up">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+            <div>
+              <div class="card-title">Verdict Breakdown</div>
+              <div class="card-sub">All-time distribution</div>
+            </div>
+          </div>
+          <div style="position:relative;height:180px">
+            <canvas id="fraudVerdictChart" role="img"
+              aria-label="Donut chart of fraud verdicts: safe, review, blocked"></canvas>
+          </div>
+          <div style="display:flex;gap:14px;margin-top:12px;flex-wrap:wrap">
+            <span style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2)">
+              <span style="width:10px;height:10px;border-radius:2px;background:#639922;display:inline-block"></span>
+              <span id="fv-safe">Safe</span>
+            </span>
+            <span style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2)">
+              <span style="width:10px;height:10px;border-radius:2px;background:#EF9F27;display:inline-block"></span>
+              <span id="fv-review">Review</span>
+            </span>
+            <span style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2)">
+              <span style="width:10px;height:10px;border-radius:2px;background:#E24B4A;display:inline-block"></span>
+              <span id="fv-blocked">Blocked</span>
+            </span>
+          </div>
+        </div>
+ 
+        <div class="card fade-up">
+          <div class="card-title" style="margin-bottom:4px">Top Triggered Flags</div>
+          <div class="card-sub" style="margin-bottom:14px">Last 30 days</div>
+          <div id="fraudFlagsList" style="display:flex;flex-direction:column;gap:5px">
+            <div style="text-align:center;padding:32px"><div class="spinner" style="margin:0 auto"></div></div>
+          </div>
+        </div>
+      </div>
+ 
+      <!-- Filter toolbar -->
+      <div class="card fade-up" style="margin-bottom:16px">
+        <div style="display:grid;grid-template-columns:auto auto auto auto 1fr auto;gap:10px;align-items:center">
+          <select class="inp" style="width:auto" onchange="fraudFilter.verdict=this.value;fraudPage=1;loadFraudLogs()">
+            <option value="">All Verdicts</option>
+            <option value="blocked">🚫 Blocked</option>
+            <option value="review">⚠️ Review</option>
+            <option value="safe">✅ Safe</option>
+          </select>
+          <select class="inp" style="width:auto" onchange="fraudFilter.reviewAction=this.value;fraudPage=1;loadFraudLogs()">
+            <option value="">All Review Status</option>
+            <option value="pending">⏳ Pending Review</option>
+            <option value="approved">✅ Approved</option>
+            <option value="rejected">❌ Rejected</option>
+          </select>
+          <input class="inp" type="number" placeholder="Min score" style="width:100px"
+            oninput="fraudFilter.minScore=this.value;fraudPage=1;loadFraudLogs()">
+          <input class="inp" type="number" placeholder="Max score" style="width:100px"
+            oninput="fraudFilter.maxScore=this.value;fraudPage=1;loadFraudLogs()">
+          <div></div>
+          <button class="btn btn-ghost btn-sm"
+            onclick="fraudFilter={verdict:'',minScore:'',maxScore:'',reviewAction:''};fraudPage=1;loadFraudLogs()">
+            <i class="fas fa-rotate-right"></i>
+          </button>
+        </div>
+      </div>
+ 
+      <!-- Logs table -->
+      <div class="card fade-up" style="padding:0;overflow:hidden">
+        <table class="data-table">
+          <thead><tr>
+            <th>Order</th>
+            <th>Customer</th>
+            <th>Score</th>
+            <th>Verdict</th>
+            <th>Top Flag</th>
+            <th>Review</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr></thead>
+          <tbody id="fraudLogsBody">
+            <tr><td colspan="8" style="text-align:center;padding:48px">
+              <div class="spinner" style="margin:0 auto"></div>
+            </td></tr>
+          </tbody>
+        </table>
+        <div style="padding:16px 20px;border-top:1px solid var(--border);
+                    display:flex;align-items:center;justify-content:space-between">
+          <div style="font-size:13px;color:var(--text3)" id="fraudInfo"></div>
+          <div class="pagination" id="fraudPages"></div>
+        </div>
+      </div>
+    </div>`;
+
+        // Load stats + logs in parallel
+        await Promise.all([loadFraudStats(), loadFraudLogs()]);
+      }
+
+      // ── Stats ────────────────────────────────────────────────────────────────────
+      async function loadFraudStats() {
+        try {
+          const res = await apiCall("/fraud/stats");
+          const d = res.data;
+
+          // Update stat cards
+          document.getElementById("fraudStatsGrid").innerHTML = `
+      ${fraudStatCard("Total Scanned", d.totalLogs || 0, "fa-shield-halved", "var(--lime)", "rgba(198,241,53,.15)", "All-time logs")}
+      ${fraudStatCard("Blocked Today", d.blockedToday || 0, "fa-ban", "var(--rose)", "rgba(244,63,94,.15)", "Auto-cancelled")}
+      ${fraudStatCard("Pending Review", d.reviewPending || 0, "fa-clock", "var(--amber)", "rgba(245,166,35,.15)", "Need action")}
+      ${fraudStatCard("Avg Risk Score", d.avgRiskScore || 0, "fa-chart-line", "var(--sky)", "rgba(56,189,248,.15)", "0=clean, 100=fraud")}`;
+
+          // Update fraud badge in nav
+          const nb = document.getElementById("fraudBadge");
+          if (nb && d.reviewPending > 0) {
+            nb.textContent = d.reviewPending;
+            nb.style.display = "";
+          }
+
+          // Render donut chart
+          const vb = d.verdictBreakdown || {};
+          const safeCount = vb.safe || 0;
+          const reviewCount = vb.review || 0;
+          const blockedCount = vb.blocked || 0;
+
+          document.getElementById("fv-safe").textContent = `Safe ${safeCount}`;
+          document.getElementById("fv-review").textContent =
+            `Review ${reviewCount}`;
+          document.getElementById("fv-blocked").textContent =
+            `Blocked ${blockedCount}`;
+
+          const ctx = document.getElementById("fraudVerdictChart");
+          if (ctx) {
+            const existing = Chart.getChart(ctx);
+            if (existing) existing.destroy();
+            const ch = new Chart(ctx, {
+              type: "doughnut",
+              data: {
+                labels: ["Safe", "Review", "Blocked"],
+                datasets: [
+                  {
+                    data: [safeCount, reviewCount, blockedCount],
+                    backgroundColor: ["#639922", "#EF9F27", "#E24B4A"],
+                    borderWidth: 0,
+                    hoverOffset: 6,
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: "70%",
+                plugins: { legend: { display: false } },
+              },
+            });
+            activeCharts.push(ch);
+          }
+
+          // Top flags
+          const flags = d.topFlags || [];
+          const maxCount = flags[0]?.count || 1;
+          document.getElementById("fraudFlagsList").innerHTML = flags.length
+            ? flags
+                .map((f) => {
+                  const pct = Math.round((f.count / maxCount) * 100);
+                  const col =
+                    f.count > 5
+                      ? "#E24B4A"
+                      : f.count > 2
+                        ? "#EF9F27"
+                        : "#888780";
+                  return `
+            <div style="display:flex;align-items:center;gap:8px;padding:5px 0;
+                        border-bottom:1px solid var(--border);font-size:12px">
+              <div style="width:6px;height:6px;border-radius:50%;background:${col};flex-shrink:0"></div>
+              <div style="flex:1;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+                   title="${f._id}">${f._id}</div>
+              <div style="width:60px;height:4px;background:var(--surface2);border-radius:2px;overflow:hidden;flex-shrink:0">
+                <div style="height:100%;width:${pct}%;background:${col};border-radius:2px"></div>
+              </div>
+              <div style="font-size:11px;color:var(--text3);width:20px;text-align:right;flex-shrink:0">${f.count}</div>
+            </div>`;
+                })
+                .join("")
+            : '<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">No flags yet</div>';
+        } catch (e) {
+          console.error("fraud stats error:", e.message);
+          document.getElementById("fraudStatsGrid").innerHTML =
+            `<div class="card" style="grid-column:1/-1;text-align:center;padding:40px;color:var(--rose)">
+        <i class="fas fa-exclamation-triangle" style="font-size:32px;margin-bottom:10px;display:block"></i>
+        ${e.message}
+      </div>`;
+        }
+      }
+
+      function fraudStatCard(label, value, icon, color, bg, sub) {
+        return `
+    <div class="stat-card fade-up" style="--accent:${color}">
+      <div class="stat-icon" style="background:${bg};color:${color}">
+        <i class="fas ${icon}"></i>
+      </div>
+      <div class="stat-value">${value}</div>
+      <div class="stat-label">${label}</div>
+      <div class="stat-sub" style="color:${color}">
+        <i class="fas fa-circle" style="font-size:7px"></i> ${sub}
+      </div>
+    </div>`;
+      }
+
+      // ── Logs table ───────────────────────────────────────────────────────────────
+      async function loadFraudLogs() {
+        try {
+          const qs = new URLSearchParams({ page: fraudPage, limit: 15 });
+          if (fraudFilter.verdict) qs.set("verdict", fraudFilter.verdict);
+          if (fraudFilter.reviewAction === "pending")
+            qs.set("reviewAction", "pending");
+          else if (fraudFilter.reviewAction)
+            qs.set("reviewAction", fraudFilter.reviewAction);
+          if (fraudFilter.minScore) qs.set("minScore", fraudFilter.minScore);
+          if (fraudFilter.maxScore) qs.set("maxScore", fraudFilter.maxScore);
+
+          const res = await apiCall(`/fraud/logs?${qs}`);
+          fraudTotalPages = res.pagination?.pages || 1;
+          const logs = res.data || [];
+
+          document.getElementById("fraudLogsBody").innerHTML = logs.length
+            ? logs.map(renderFraudRow).join("")
+            : `<tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text3)">
+           <i class="fas fa-shield-halved" style="font-size:32px;margin-bottom:12px;display:block"></i>
+           No fraud logs found
+         </td></tr>`;
+
+          document.getElementById("fraudInfo").textContent =
+            `${logs.length} logs · Page ${fraudPage} of ${fraudTotalPages}`;
+
+          renderPagination("fraudPages", fraudPage, fraudTotalPages, (p) => {
+            fraudPage = p;
+            loadFraudLogs();
+          });
+        } catch (e) {
+          showToast(e.message, "error");
+        }
+      }
+
+      function renderFraudRow(log) {
+        const score = log.riskScore || 0;
+        const verdict = log.verdict || "safe";
+        const scoreColor =
+          score > 60
+            ? "var(--rose)"
+            : score > 30
+              ? "var(--amber)"
+              : "var(--lime)";
+
+        const verdictBadgeHtml =
+          verdict === "blocked"
+            ? `<span class="badge badge-rose"><i class="fas fa-ban" style="font-size:9px"></i> Blocked</span>`
+            : verdict === "review"
+              ? `<span class="badge badge-amber"><i class="fas fa-clock" style="font-size:9px"></i> Review</span>`
+              : `<span class="badge badge-lime"><i class="fas fa-check" style="font-size:9px"></i> Safe</span>`;
+
+        const reviewHtml =
+          log.reviewAction === "approved"
+            ? `<span class="badge badge-lime">Approved</span>`
+            : log.reviewAction === "rejected"
+              ? `<span class="badge badge-rose">Rejected</span>`
+              : log.reviewAction === "escalated"
+                ? `<span class="badge badge-sky">Escalated</span>`
+                : verdict !== "safe"
+                  ? `<span class="badge badge-amber">Pending</span>`
+                  : `<span style="color:var(--text3);font-size:12px">—</span>`;
+
+        const topFlag = log.allFlags?.[0] || "—";
+        const order = log.order || {};
+        const custName = order.customer?.name || "—";
+        const custPhone = order.customer?.phone || "";
+
+        return `
+    <tr onclick="openFraudLogDetail('${log._id}')">
+      <td>
+        <div style="font-weight:600;font-size:13px;font-family:'Space Mono',monospace;color:var(--lime)">
+          ${log.orderNumber || "—"}
+        </div>
+        <div style="font-size:10px;color:var(--text3)">#${String(log._id).slice(-6)}</div>
+      </td>
+      <td>
+        <div style="font-size:13px;font-weight:500">${custName}</div>
+        <div style="font-size:11px;color:var(--text3)">${custPhone}</div>
+      </td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;
+                       color:${scoreColor}">${score}</span>
+          <div style="width:48px">
+            <div style="height:4px;background:var(--surface2);border-radius:2px;overflow:hidden">
+              <div style="height:100%;width:${score}%;background:${scoreColor};border-radius:2px"></div>
+            </div>
+          </div>
+        </div>
+      </td>
+      <td>${verdictBadgeHtml}</td>
+      <td>
+        <div style="font-size:12px;color:var(--text2);max-width:180px;
+                    overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+             title="${topFlag}">${topFlag}</div>
+        ${
+          log.allFlags?.length > 1
+            ? `<div style="font-size:10px;color:var(--text3)">+${log.allFlags.length - 1} more</div>`
+            : ""
+        }
+      </td>
+      <td>${reviewHtml}</td>
+      <td style="font-size:12px;color:var(--text2)">${formatDate(log.createdAt)}</td>
+      <td onclick="event.stopPropagation()">
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-ghost btn-sm btn-icon"
+            onclick="openFraudLogDetail('${log._id}')" title="View details">
+            <i class="fas fa-eye"></i>
+          </button>
+          ${
+            verdict !== "safe" && !log.reviewAction
+              ? `
+            <button class="btn btn-ghost btn-sm btn-icon"
+              style="color:var(--lime)"
+              onclick="reviewFraudLogAction('${log._id}','approved')"
+              title="Approve order">
+              <i class="fas fa-check"></i>
+            </button>
+            <button class="btn btn-danger btn-sm btn-icon"
+              onclick="reviewFraudLogAction('${log._id}','rejected')"
+              title="Reject & cancel order">
+              <i class="fas fa-xmark"></i>
+            </button>`
+              : ""
+          }
+          <button class="btn btn-ghost btn-sm btn-icon"
+            onclick="reanalyzeOrder('${log.order?._id || log.order}','${log._id}')"
+            title="Re-analyze">
+            <i class="fas fa-rotate-right" style="font-size:11px"></i>
+          </button>
+        </div>
+      </td>
+    </tr>`;
+      }
+
+      // ── Log detail modal ──────────────────────────────────────────────────────────
+      async function openFraudLogDetail(logId) {
+        modal(`
+    <div class="modal-box wide">
+      <div class="modal-header">
+        <div><div class="modal-title">Fraud Log Detail</div></div>
+        <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body" style="display:flex;justify-content:center;padding:48px">
+        <div class="spinner"></div>
+      </div>
+    </div>`);
+
+        try {
+          const res = await apiCall(`/fraud/logs/${logId}`);
+          const log = res.data;
+          const score = log.riskScore || 0;
+          const scoreColor =
+            score > 60
+              ? "var(--rose)"
+              : score > 30
+                ? "var(--amber)"
+                : "var(--lime)";
+          const order = log.order || {};
+
+          const signalRows = Object.entries({
+            velocity: { label: "Velocity", w: 25, color: "#E24B4A" },
+            orderPattern: { label: "Order Pattern", w: 20, color: "#EF9F27" },
+            customerProfile: {
+              label: "Customer Profile",
+              w: 20,
+              color: "#378ADD",
+            },
+            addressRisk: { label: "Address Risk", w: 15, color: "#F0997B" },
+            paymentBehavior: { label: "Payment", w: 12, color: "#8B5CF6" },
+            deviceFingerprint: { label: "Device", w: 8, color: "#1D9E75" },
+          })
+            .map(([key, cfg]) => {
+              const sig = log.signals?.[key] || {};
+              const s = sig.score || 0;
+              const flags = sig.flags || [];
+              return `
+        <div style="padding:10px;background:var(--bg);border-radius:10px;
+                    border:1px solid var(--border);margin-bottom:8px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <div style="font-size:12px;font-weight:600;color:${cfg.color};width:140px;flex-shrink:0">
+              ${cfg.label}
+            </div>
+            <div style="flex:1;height:5px;background:var(--surface2);border-radius:3px;overflow:hidden">
+              <div style="height:100%;width:${s}%;background:${cfg.color};border-radius:3px"></div>
+            </div>
+            <div style="font-size:12px;font-weight:700;color:${cfg.color};width:30px;text-align:right">
+              ${s}
+            </div>
+            <div style="font-size:10px;color:var(--text3);width:28px">${cfg.w}%w</div>
+          </div>
+          ${
+            flags.length
+              ? `<div style="display:flex;flex-direction:column;gap:3px;margin-top:4px">
+                ${flags
+                  .map(
+                    (f) => `
+                  <div style="font-size:11px;color:var(--text2);padding:3px 8px;
+                              background:var(--surface);border-radius:6px">
+                    ⚑ ${f}
+                  </div>`,
+                  )
+                  .join("")}
+              </div>`
+              : `<div style="font-size:11px;color:var(--text3)">No flags</div>`
+          }
+        </div>`;
+            })
+            .join("");
+
+          document.getElementById("modalContainer").innerHTML = `
+      <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+        <div class="modal-box wide">
+          <div class="modal-header">
+            <div>
+              <div class="modal-title">🛡️ Fraud Log — ${log.orderNumber}</div>
+              <div class="modal-sub">${formatFullDate(log.createdAt)}</div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <span style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:${scoreColor}">
+                ${score}
+              </span>
+              <div style="background:${score > 60 ? "rgba(244,63,94,.15)" : score > 30 ? "rgba(245,166,35,.15)" : "rgba(198,241,53,.15)"};
+                          color:${scoreColor};padding:5px 14px;border-radius:20px;
+                          font-size:12px;font-weight:700;text-transform:uppercase">
+                ${log.verdict}
+              </div>
+              <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+            </div>
+          </div>
+          <div class="modal-body">
+ 
+            <!-- Score bar -->
+            <div style="margin-bottom:20px">
+              <div style="height:10px;background:var(--surface2);border-radius:5px;overflow:hidden">
+                <div style="height:100%;width:${score}%;
+                            background:linear-gradient(90deg,var(--lime),${scoreColor});
+                            border-radius:5px"></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;margin-top:6px;
+                          font-size:10px;color:var(--text3)">
+                <span>0 — Safe</span><span>30 — Review threshold</span>
+                <span>60 — Block threshold</span><span>100</span>
+              </div>
+            </div>
+ 
+            <!-- Order + device info -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+              <div class="info-block">
+                <h4><i class="fas fa-receipt" style="margin-right:6px"></i>Order Info</h4>
+                <div class="info-row"><span>Order #</span><span style="font-family:monospace;color:var(--lime)">${log.orderNumber}</span></div>
+                <div class="info-row"><span>Customer</span><span>${order.customer?.name || "—"}</span></div>
+                <div class="info-row"><span>Phone</span><span>${order.customer?.phone || "—"}</span></div>
+                <div class="info-row"><span>Total</span><span style="color:var(--lime)">${formatCurrency(order.total)}</span></div>
+                <div class="info-row"><span>Auto Action</span>
+                  <span>${
+                    log.autoAction === "flagged"
+                      ? '<span class="badge badge-rose">Flagged</span>'
+                      : log.autoAction === "cancelled"
+                        ? '<span class="badge badge-rose">Cancelled</span>'
+                        : '<span class="badge badge-text">None</span>'
+                  }</span>
+                </div>
+              </div>
+              <div class="info-block">
+                <h4><i class="fas fa-laptop" style="margin-right:6px"></i>Device & Request</h4>
+                <div class="info-row"><span>IP Address</span><span style="font-family:monospace;font-size:11px">${log.ipAddress || "—"}</span></div>
+                <div class="info-row"><span>Fingerprint</span><span style="font-family:monospace;font-size:11px;color:var(--teal)">${log.fingerprint || "—"}</span></div>
+                <div class="info-row"><span>User Agent</span><span style="font-size:10px;word-break:break-all">${(log.userAgent || "—").slice(0, 60)}</span></div>
+                <div class="info-row"><span>Review Status</span>
+                  <span>${
+                    log.reviewAction
+                      ? `<span class="badge ${log.reviewAction === "approved" ? "badge-lime" : log.reviewAction === "rejected" ? "badge-rose" : "badge-sky"}">${log.reviewAction}</span>`
+                      : '<span class="badge badge-amber">Pending</span>'
+                  }</span>
+                </div>
+              </div>
+            </div>
+ 
+            <!-- Signal breakdown -->
+            <div style="font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;
+                        color:var(--text3);margin-bottom:12px">
+              Signal Breakdown
+            </div>
+            ${signalRows}
+ 
+            <!-- Review note if exists -->
+            ${
+              log.reviewNote
+                ? `
+              <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;
+                          padding:14px;margin-top:4px">
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;
+                            letter-spacing:.6px;color:var(--text3);margin-bottom:6px">
+                  Review Note
+                </div>
+                <div style="font-size:13px;color:var(--text2)">${log.reviewNote}</div>
+              </div>`
+                : ""
+            }
+          </div>
+          <div class="modal-footer" style="justify-content:space-between">
+            <div style="display:flex;gap:8px">
+              ${
+                log.verdict !== "safe" && !log.reviewAction
+                  ? `
+                <button class="btn btn-primary btn-sm"
+                  onclick="reviewFraudLogAction('${log._id}','approved','')">
+                  <i class="fas fa-check"></i> Approve
+                </button>
+                <button class="btn btn-danger btn-sm"
+                  onclick="reviewFraudLogAction('${log._id}','rejected','')">
+                  <i class="fas fa-xmark"></i> Reject Order
+                </button>
+                <button class="btn btn-ghost btn-sm"
+                  onclick="reviewFraudLogAction('${log._id}','escalated','')">
+                  <i class="fas fa-arrow-up-right-from-square"></i> Escalate
+                </button>`
+                  : ""
+              }
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-ghost btn-sm"
+                onclick="viewOrder('${order._id || log.order}');closeModal()">
+                <i class="fas fa-receipt"></i> View Order
+              </button>
+              <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+        } catch (e) {
+          showToast(e.message, "error");
+          closeModal();
+        }
+      }
+
+      // ── Review action ─────────────────────────────────────────────────────────────
+      async function reviewFraudLogAction(logId, action, note) {
+        // If note is undefined (called without it), prompt
+        if (note === undefined) {
+          note = prompt(`Add a note for "${action}" action (optional):`) || "";
+          if (note === null) return; // user cancelled
+        }
+        try {
+          await apiCall(`/fraud/logs/${logId}/review`, {
+            method: "PUT",
+            body: JSON.stringify({ action, note }),
+          });
+          const msgs = {
+            approved: "✅ Order approved — marked legitimate",
+            rejected: "🚫 Order rejected & cancelled",
+            escalated: "⬆️ Escalated for further review",
+          };
+          showToast(msgs[action] || "Reviewed", "success");
+          closeModal();
+          loadFraudLogs();
+          loadFraudStats();
+        } catch (e) {
+          showToast(e.message, "error");
+        }
+      }
+
+      // ── Re-analyze ────────────────────────────────────────────────────────────────
+      async function reanalyzeOrder(orderId, logId) {
+        if (!orderId || orderId === "undefined") {
+          showToast("Order ID not available", "warning");
+          return;
+        }
+        showToast("Re-analyzing order…", "info");
+        try {
+          const res = await apiCall(`/fraud/analyze/${orderId}`, {
+            method: "POST",
+          });
+          showToast(
+            `Score: ${res.data.riskScore} — ${res.data.verdict}`,
+            res.data.verdict === "blocked"
+              ? "error"
+              : res.data.verdict === "review"
+                ? "warning"
+                : "success",
+          );
+          loadFraudLogs();
+        } catch (e) {
+          showToast(e.message, "error");
+        }
+      }
+
+      // ── Bulk scan ─────────────────────────────────────────────────────────────────
+      async function runBulkScan() {
+        const btn = document.querySelector('button[onclick="runBulkScan()"]');
+        if (btn) {
+          btn.disabled = true;
+          btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scanning…';
+        }
+        try {
+          const res = await apiCall("/fraud/bulk-scan", {
+            method: "POST",
+            body: JSON.stringify({ hours: 24, limit: 200 }),
+          });
+          const r = res.results;
+          showToast(
+            `Scan complete: ${r.safe} safe · ${r.review} review · ${r.blocked} blocked`,
+            r.blocked > 0 ? "warning" : "success",
+          );
+          loadFraudPage();
+        } catch (e) {
+          showToast("Bulk scan failed: " + e.message, "error");
+        } finally {
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-radar"></i> Bulk Scan (24h)';
+          }
+        }
+      }
+
+      // ── Customer risk lookup (from order detail / anywhere) ──────────────────────
+      async function checkCustomerFraudRisk(phone) {
+        try {
+          const res = await apiCall(
+            `/fraud/customer-risk?phone=${encodeURIComponent(phone)}`,
+          );
+          const d = res.data;
+          const col =
+            d.riskLevel === "high"
+              ? "var(--rose)"
+              : d.riskLevel === "medium"
+                ? "var(--amber)"
+                : "var(--lime)";
+          showToast(
+            `${phone} — Risk: ${d.riskLevel.toUpperCase()} (avg score ${d.avgRiskScore || 0})`,
+            "info",
+          );
+        } catch (e) {
+          showToast(e.message, "error");
+        }
+      }
+
+      async function quickFraudCheck(orderId, orderNumber) {
+        if (!orderId) {
+          showToast("Invalid order ID", "error");
+          return;
+        }
+
+        showToast(`Analyzing ${orderNumber || orderId}...`, "info");
+
+        try {
+          const response = await fetch(`${API_URL}/fraud/analyze/${orderId}`, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          });
+
+          // Check if response is OK
+          if (!response.ok) {
+            // If 500 error or other HTTP error, fall back to manual check
+            console.warn(`API returned ${response.status}, using manual check`);
+            await manualFraudCheck(orderId, orderNumber);
+            return;
+          }
+
+          const contentType = response.headers.get("content-type");
+          if (!contentType || !contentType.includes("application/json")) {
+            console.warn("Non-JSON response, using manual check");
+            await manualFraudCheck(orderId, orderNumber);
+            return;
+          }
+
+          const result = await response.json();
+
+          // Check if result has data property
+          if (!result || !result.data) {
+            console.warn("Invalid response structure, using manual check");
+            await manualFraudCheck(orderId, orderNumber);
+            return;
+          }
+
+          const d = result.data;
+
+          // Safely access signals with fallback
+          const signals = d.signals || {};
+
+          const color =
+            d.verdict === "blocked"
+              ? "var(--rose)"
+              : d.verdict === "review"
+                ? "var(--amber)"
+                : "var(--lime)";
+          const icon =
+            d.verdict === "blocked"
+              ? "🚫"
+              : d.verdict === "review"
+                ? "⚠️"
+                : "✅";
+
+          modal(`
+      <div class="modal-box" style="max-width:520px">
+        <div class="modal-header">
+          <div>
+            <div class="modal-title">🛡️ Fraud Analysis — ${d.orderNumber || orderNumber}</div>
+            <div class="modal-sub">${d.analysisTime ? `Completed in ${d.analysisTime}ms` : "Analysis complete"}</div>
+          </div>
+          <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+ 
+          <div style="background:var(--bg);border-radius:14px;padding:20px;
+                      display:flex;align-items:center;justify-content:space-between;
+                      margin-bottom:20px;border:1px solid var(--border)">
+            <div>
+              <div style="font-size:11px;color:var(--text3);margin-bottom:4px">RISK SCORE</div>
+              <div style="font-family:'Syne',sans-serif;font-size:42px;font-weight:800;
+                          color:${color};line-height:1">${d.riskScore || 0}</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:2px">out of 100</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:32px;margin-bottom:6px">${icon}</div>
+              <div style="background:${d.verdict === "blocked" ? "rgba(244,63,94,.15)" : d.verdict === "review" ? "rgba(245,166,35,.15)" : "rgba(198,241,53,.15)"};
+                          color:${color};padding:6px 14px;border-radius:20px;
+                          font-size:13px;font-weight:700;text-transform:uppercase">
+                ${d.verdict || "UNKNOWN"}
+              </div>
+            </div>
+          </div>
+ 
+          <div style="margin-bottom:20px">
+            <div style="height:8px;background:var(--surface2);border-radius:4px;overflow:hidden">
+              <div style="height:100%;width:${d.riskScore || 0}%;
+                          background:linear-gradient(90deg,var(--lime),${color});
+                          border-radius:4px;transition:width .6s ease"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:6px;
+                        font-size:10px;color:var(--text3)">
+              <span>0 — Safe</span><span>30 — Review</span><span>60 — Block</span><span>100</span>
+            </div>
+          </div>
+
+          ${
+            d.allFlags && d.allFlags.length
+              ? `
+          <div style="font-size:11px;font-weight:700;letter-spacing:.6px;
+                      text-transform:uppercase;color:var(--text3);margin-bottom:10px">
+            Triggered Flags (${d.allFlags.length})
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;max-height:200px;overflow-y:auto">
+            ${d.allFlags
+              .map(
+                (f) => `
+              <div style="display:flex;align-items:flex-start;gap:8px;
+                          padding:7px 10px;background:var(--bg);border-radius:8px;
+                          font-size:12px;color:var(--text2)">
+                <span style="color:var(--rose);flex-shrink:0">⚑</span>${escapeHtml(f)}
+              </div>
+            `,
+              )
+              .join("")}
+          </div>
+          `
+              : `
+          <div style="text-align:center;padding:20px;background:var(--bg);border-radius:12px;
+                      color:var(--lime);font-size:13px">
+            ✅ No flags triggered — order looks clean
+          </div>
+          `
+          }
+          
+          ${
+            d.recommendation
+              ? `
+          <div style="margin-top:16px;padding:12px;background:var(--surface2);border-radius:10px;
+                      font-size:12px;color:var(--text2)">
+            <strong>💡 Recommendation:</strong> ${escapeHtml(d.recommendation)}
+          </div>
+          `
+              : ""
+          }
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+          <button class="btn btn-primary btn-sm" onclick="closeModal();viewOrder('${orderId}')">
+            <i class="fas fa-eye"></i> View Order Details
+          </button>
+        </div>
+      </div>
+    `);
+        } catch (e) {
+          console.error("Fraud check error:", e);
+          // Fall back to manual check on any error
+          await manualFraudCheck(orderId, orderNumber);
+        }
+      }
+
+      // Fallback manual fraud check if backend endpoint doesn't exist
+      async function manualFraudCheck(orderId, orderNumber) {
+        try {
+          // Fetch order details
+          const order = (await apiCall(`/orders/${orderId}`)).data;
+
+          // Simple manual fraud detection rules
+          const flags = [];
+          let riskScore = 0;
+
+          // Check for high value orders
+          if (order.total > 50000) {
+            flags.push("High value order (> ৳50,000)");
+            riskScore += 25;
+          } else if (order.total > 25000) {
+            flags.push("Elevated order value (> ৳25,000)");
+            riskScore += 15;
+          }
+
+          // Check for multiple items with same product
+          const itemCounts = {};
+          order.items?.forEach((item) => {
+            itemCounts[item.productId] =
+              (itemCounts[item.productId] || 0) + item.quantity;
+          });
+          const hasMultipleSame = Object.values(itemCounts).some(
+            (qty) => qty > 5,
+          );
+          if (hasMultipleSame) {
+            flags.push("Unusual quantity of same product (>5 units)");
+            riskScore += 20;
+          }
+
+          // Check for suspicious address patterns
+          const address = order.customer?.address;
+          if (address && (!address.street || address.street.length < 3)) {
+            flags.push("Incomplete or suspicious address");
+            riskScore += 15;
+          }
+
+          // Check payment method vs order value
+          if (
+            order.paymentMethod === "cash_on_delivery" &&
+            order.total > 30000
+          ) {
+            flags.push("High value COD order");
+            riskScore += 20;
+          }
+
+          // Determine verdict
+          let verdict = "safe";
+          if (riskScore >= 60) verdict = "blocked";
+          else if (riskScore >= 30) verdict = "review";
+
+          const color =
+            verdict === "blocked"
+              ? "var(--rose)"
+              : verdict === "review"
+                ? "var(--amber)"
+                : "var(--lime)";
+          const icon =
+            verdict === "blocked" ? "🚫" : verdict === "review" ? "⚠️" : "✅";
+
+          // Refresh this order's fraud cell in the table (non-blocking)
+          apiCall("/fraud/status-batch", {
+            method: "POST",
+            body: JSON.stringify({ orderIds: [orderId] }),
+          })
+            .then((fraudRes) => {
+              const fraudData = (fraudRes.data || {})[orderId];
+              const cell = document.getElementById(`fraud-cell-${orderId}`);
+              if (cell && fraudData) {
+                cell.innerHTML = buildFraudCellHtml(
+                  orderId,
+                  orderNumber,
+                  fraudData,
+                );
+              }
+            })
+            .catch(() => {});
+
+          modal(`
+      <div class="modal-box" style="max-width:520px">
+        <div class="modal-header">
+          <div>
+            <div class="modal-title">🛡️ Manual Fraud Check — ${order.orderNumber}</div>
+            <div class="modal-sub">⚠️ Backend endpoint unavailable - using local rules</div>
+          </div>
+          <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+          <div style="background:var(--bg);border-radius:14px;padding:20px;
+                      display:flex;align-items:center;justify-content:space-between;
+                      margin-bottom:20px;border:1px solid var(--border)">
+            <div>
+              <div style="font-size:11px;color:var(--text3);margin-bottom:4px">RISK SCORE</div>
+              <div style="font-family:'Syne',sans-serif;font-size:42px;font-weight:800;
+                          color:${color};line-height:1">${riskScore}</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:2px">out of 100</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:32px;margin-bottom:6px">${icon}</div>
+              <div style="background:${verdict === "blocked" ? "rgba(244,63,94,.15)" : verdict === "review" ? "rgba(245,166,35,.15)" : "rgba(198,241,53,.15)"};
+                          color:${color};padding:6px 14px;border-radius:20px;
+                          font-size:13px;font-weight:700;text-transform:uppercase">
+                ${verdict}
+              </div>
+            </div>
+          </div>
+          
+          <div style="margin-bottom:20px">
+            <div style="height:8px;background:var(--surface2);border-radius:4px;overflow:hidden">
+              <div style="height:100%;width:${riskScore}%;
+                          background:linear-gradient(90deg,var(--lime),${color});
+                          border-radius:4px"></div>
+            </div>
+          </div>
+          
+          ${
+            flags.length
+              ? `
+          <div style="font-size:11px;font-weight:700;margin-bottom:10px">⚠️ Risk Factors</div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            ${flags
+              .map(
+                (f) => `
+              <div style="padding:7px 10px;background:var(--bg);border-radius:8px;font-size:12px;color:var(--text2)">
+                <span style="color:var(--rose);margin-right:8px">⚠</span>${f}
+              </div>
+            `,
+              )
+              .join("")}
+          </div>
+          `
+              : '<div style="text-align:center;padding:20px;color:var(--lime)">✅ No risk factors detected</div>'
+          }
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+          <button class="btn btn-primary btn-sm" onclick="closeModal();viewOrder('${orderId}')">
+            <i class="fas fa-eye"></i> View Order
+          </button>
+        </div>
+      </div>
+    `);
+        } catch (e) {
+          showToast(
+            "Failed to fetch order for manual check: " + e.message,
+            "error",
+          );
         }
       }
 
