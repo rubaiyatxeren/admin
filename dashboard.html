@@ -2266,7 +2266,6 @@
       function updateSidebarByRole() {
         const userRole = getCurrentUserRole();
 
-        // Define which pages each role CANNOT see
         const hiddenForRole = {
           manager: [
             "testing",
@@ -2276,7 +2275,6 @@
             "coupons",
             "chatbot",
             "bulk-email",
-            "profit",
           ],
           admin: ["testing", "settings", "bulk-email", "products-analytics"],
           super_admin: [], // sees everything
@@ -2666,7 +2664,7 @@
           testing: ["super_admin"], // Only super_admin
           "bulk-email": ["super_admin"], // No manager access
           "delivery-charges": ["super_admin", "admin"],
-          profit: ["super_admin"],
+          profit: ["super_admin", "admin"], // ✅ Now admin can access
         };
 
         // Check if user has permission
