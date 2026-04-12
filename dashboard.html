@@ -1985,7 +1985,18 @@
         >
           <i class="fas fa-chart-bar"></i> Product Analytics
         </a>
-
+        <div class="nav-section-label" style="margin-top: 12px">Finance</div>
+        <a
+          class="nav-link"
+          data-page="profit"
+          onclick="
+            loadPage('profit');
+            return false;
+          "
+          href="#"
+        >
+          <i class="fas fa-chart-pie"></i> Profit & Costs
+        </a>
         <div class="nav-section-label" style="margin-top: 12px">Catalog</div>
         <a
           class="nav-link"
@@ -2217,6 +2228,7 @@
     <!-- hidden print area for invoice -->
     <div id="invoicePrintArea" style="display: none"></div>
     <script src="js/products-analytics.js"></script>
+    <script src="js/profit-admin.js"></script>
     <script>
       // ═══════════════════════════════════════════
       // CONFIG
@@ -2264,6 +2276,7 @@
             "coupons",
             "chatbot",
             "bulk-email",
+            "profit",
           ],
           admin: ["testing", "settings", "bulk-email", "products-analytics"],
           super_admin: [], // sees everything
@@ -2653,6 +2666,7 @@
           testing: ["super_admin"], // Only super_admin
           "bulk-email": ["super_admin"], // No manager access
           "delivery-charges": ["super_admin", "admin"],
+          profit: ["super_admin"],
         };
 
         // Check if user has permission
@@ -2691,6 +2705,7 @@
           "bulk-email": "📧 Bulk Email",
           "delivery-charges": "Delivery Charges",
           fraud: "🛡️ Fraud Detection",
+          profit: "📊 Profit & Cost Tracking",
         };
         document.getElementById("pageTitle").textContent = titles[page] || page;
         destroyCharts();
@@ -2709,6 +2724,7 @@
           "bulk-email": loadBulkEmailManager,
           "delivery-charges": loadDeliveryChargesPage,
           fraud: loadFraudPage,
+          profit: loadProfitPage,
         };
 
         (pages[page] || loadDashboard)();
@@ -4304,6 +4320,10 @@
                         </div>
                         <div style="display:flex;gap:8px">
                           <button class="btn btn-ghost" onclick="openInvoiceModal('${order._id}')"><i class="fas fa-file-invoice"></i> View Invoice</button>
+                          <button class="btn btn-ghost btn-sm"
+  onclick="viewOrderProfit('${order._id}','${order.orderNumber}')">
+  <i class="fas fa-chart-pie"></i> Profit
+</button>
                           <button class="btn btn-ghost" onclick="closeModal()">Close</button>
                         </div>
                       </div>
