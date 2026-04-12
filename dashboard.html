@@ -2278,7 +2278,6 @@
             "bulk-email", // ❌ Hide Bulk Email
             "delivery-charges", // ❌ Hide Delivery Charges
             "profit", // ❌ Hide Profit
-            "fraud", // ❌ Hide Fraud Detection
           ],
           admin: [
             "testing",
@@ -2675,7 +2674,7 @@
           "bulk-email": ["super_admin"], // Only super_admin
           "delivery-charges": ["super_admin"], // ❌ Remove manager if not allowed
           profit: ["super_admin"], // ❌ Remove manager if not allowed
-          fraud: ["super_admin", "admin"], // ❌ Remove manager if not allowed
+          fraud: ["super_admin", "admin", "manager"], // ❌ Remove manager if not allowed
         };
 
         // Check if user has permission
