@@ -2275,8 +2275,16 @@
             "coupons",
             "chatbot",
             "bulk-email",
+            "profit",
           ],
-          admin: ["testing", "settings", "bulk-email", "products-analytics"],
+          admin: [
+            "products",
+            "profit",
+            "testing",
+            "settings",
+            "bulk-email",
+            "products-analytics",
+          ],
           super_admin: [], // sees everything
         };
 
@@ -2653,7 +2661,7 @@
         // Define page access permissions
         const pagePermissions = {
           dashboard: ["super_admin", "admin"],
-          products: ["super_admin", "admin"],
+          products: ["super_admin"],
           categories: ["super_admin", "admin", "manager"],
           banners: ["super_admin", "admin", "manager"],
           coupons: ["super_admin", "admin"],
@@ -2664,7 +2672,7 @@
           testing: ["super_admin"], // Only super_admin
           "bulk-email": ["super_admin"], // No manager access
           "delivery-charges": ["super_admin", "admin"],
-          profit: ["super_admin", "admin"], // ✅ Now admin can access
+          profit: ["super_admin"], // ✅ Now admin can access
         };
 
         // Check if user has permission
