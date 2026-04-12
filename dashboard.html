@@ -2266,26 +2266,21 @@
       function updateSidebarByRole() {
         const userRole = getCurrentUserRole();
 
+        // Define which pages each role CANNOT see (HIDE from sidebar)
         const hiddenForRole = {
           manager: [
             "testing",
             "settings",
             "products-analytics",
-            "products",
-            "coupons",
-            "chatbot",
-            "bulk-email",
-            "profit",
-            "delivery-charges",
+            "products", // ❌ Hide Products - managers can't edit
+            "coupons", // ❌ Hide Coupons - managers can't manage
+            "chatbot", // ❌ Hide Chatbot - managers can't edit
+            "bulk-email", // ❌ Hide Bulk Email
+            "delivery-charges", // ❌ Hide Delivery Charges
+            "profit", // ❌ Hide Profit
+            "fraud", // ❌ Hide Fraud Detection
           ],
-          admin: [
-            "products",
-            "profit",
-            "testing",
-            "settings",
-            "bulk-email",
-            "products-analytics",
-          ],
+          admin: ["testing", "settings", "bulk-email", "products-analytics"],
           super_admin: [], // sees everything
         };
 
@@ -2296,7 +2291,7 @@
           if (link) link.style.display = "none";
         });
 
-        // Also hide empty section labels if all items under them are hidden
+        // Also hide empty section labels
         document.querySelectorAll(".nav-section-label").forEach((label) => {
           let next = label.nextElementSibling;
           let allHidden = true;
@@ -2659,21 +2654,21 @@
       function loadPage(page) {
         const userRole = getCurrentUserRole();
 
-        // Define page access permissions
         const pagePermissions = {
-          dashboard: ["super_admin", "admin", "manager"],
-          products: ["super_admin"],
-          categories: ["super_admin", "admin", "manager"],
-          banners: ["super_admin", "admin", "manager"],
-          coupons: ["super_admin", "admin"],
-          orders: ["super_admin", "admin", "manager"],
-          chatbot: ["super_admin", "admin"],
-          "products-analytics": ["super_admin", "admin"],
+          dashboard: ["super_admin", "admin", "manager"], // ✅ Add manager
+          products: ["super_admin", "admin"], // Managers can't edit products
+          categories: ["super_admin", "admin", "manager"], // ✅ Managers can view categories
+          banners: ["super_admin", "admin", "manager"], // ✅ Managers can view banners
+          coupons: ["super_admin", "admin"], // Managers can't manage coupons
+          orders: ["super_admin", "admin", "manager"], // ✅ Managers can view orders
+          chatbot: ["super_admin", "admin"], // Managers can't edit chatbot
+          "products-analytics": ["super_admin", "admin"], // Managers can't view analytics
           settings: ["super_admin"], // Only super_admin
           testing: ["super_admin"], // Only super_admin
-          "bulk-email": ["super_admin"], // No manager access
-          "delivery-charges": ["super_admin", "admin"],
-          profit: ["super_admin"], // ✅ Now admin can access
+          "bulk-email": ["super_admin"], // Only super_admin
+          "delivery-charges": ["super_admin", "admin"], // ❌ Remove manager if not allowed
+          profit: ["super_admin", "admin"], // ❌ Remove manager if not allowed
+          fraud: ["super_admin", "admin"], // ❌ Remove manager if not allowed
         };
 
         // Check if user has permission
