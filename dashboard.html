@@ -4040,14 +4040,34 @@
                 body: JSON.stringify({ orderIds: orders.map((o) => o._id) }),
               });
               const fraudMap = fraudRes.data || {};
+
+              // Check if any orders were auto-cancelled by fraud system
               orders.forEach((o) => {
                 const cell = document.getElementById(`fraud-cell-${o._id}`);
+                const fraudData = fraudMap[o._id];
+
                 if (cell) {
                   cell.innerHTML = buildFraudCellHtml(
                     o._id,
                     o.orderNumber,
-                    fraudMap[o._id],
+                    fraudData,
                   );
+                }
+
+                // If fraud verdict is blocked but order status is not cancelled, show warning
+                if (
+                  fraudData &&
+                  fraudData.verdict === "blocked" &&
+                  o.orderStatus !== "cancelled"
+                ) {
+                  console.warn(
+                    `Order ${o.orderNumber} has blocked verdict but status is ${o.orderStatus}`,
+                  );
+                  // Optional: Auto-cancel it now
+                  apiCall(`/orders/${o._id}/status`, {
+                    method: "PUT",
+                    body: JSON.stringify({ orderStatus: "cancelled" }),
+                  }).catch((e) => console.error("Failed to auto-cancel:", e));
                 }
               });
             } catch (e) {
@@ -9099,9 +9119,7 @@ Send a test message to see the response…
             },
           });
 
-          // Check if response is OK
           if (!response.ok) {
-            // If 500 error or other HTTP error, fall back to manual check
             console.warn(`API returned ${response.status}, using manual check`);
             await manualFraudCheck(orderId, orderNumber);
             return;
@@ -9116,7 +9134,6 @@ Send a test message to see the response…
 
           const result = await response.json();
 
-          // Check if result has data property
           if (!result || !result.data) {
             console.warn("Invalid response structure, using manual check");
             await manualFraudCheck(orderId, orderNumber);
@@ -9124,8 +9141,6 @@ Send a test message to see the response…
           }
 
           const d = result.data;
-
-          // Safely access signals with fallback
           const signals = d.signals || {};
 
           const color =
@@ -9141,6 +9156,75 @@ Send a test message to see the response…
                 ? "⚠️"
                 : "✅";
 
+          // 🔥 NEW: AUTO-CANCEL FOR BLOCKED VERDICT
+          if (d.verdict === "blocked") {
+            // Automatically cancel the order without asking
+            try {
+              await apiCall(`/orders/${orderId}/status`, {
+                method: "PUT",
+                body: JSON.stringify({ orderStatus: "cancelled" }),
+              });
+
+              showToast(
+                `🚫 Order ${orderNumber} AUTO-CANCELLED due to fraud detection (Score: ${d.riskScore})`,
+                "error",
+              );
+
+              // Refresh the fraud cell in the table
+              setTimeout(() => {
+                if (currentPage === "orders") loadOrdersList();
+                if (currentPage === "fraud") loadFraudLogs();
+              }, 500);
+
+              // Show a modal informing about auto-cancellation
+              modal(`
+          <div class="modal-box" style="max-width:520px">
+            <div class="modal-header">
+              <div>
+                <div class="modal-title">🚫 Order Auto-Cancelled</div>
+                <div class="modal-sub">Fraud detection system blocked this order</div>
+              </div>
+              <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+              <div style="background:rgba(244,63,94,.15);border-radius:14px;padding:20px;text-align:center;margin-bottom:20px">
+                <div style="font-size:48px;margin-bottom:12px">🚫</div>
+                <div style="font-size:18px;font-weight:800;color:var(--rose);margin-bottom:8px">Order Cancelled Automatically</div>
+                <div style="font-size:13px;color:var(--text3)">Risk score: ${d.riskScore} (threshold: 55+)</div>
+              </div>
+              
+              <div style="margin-bottom:16px">
+                <div style="font-size:12px;font-weight:700;margin-bottom:8px">Reason for cancellation:</div>
+                <div style="background:var(--bg);border-radius:10px;padding:12px;font-size:12px;color:var(--text2)">
+                  ${
+                    d.allFlags
+                      ?.slice(0, 5)
+                      .map((f) => `⚠️ ${f}`)
+                      .join("<br>") || "High risk score detected"
+                  }
+                </div>
+              </div>
+              
+              <div style="background:var(--amber-dim);border-radius:10px;padding:12px;font-size:12px">
+                <strong>💡 Note:</strong> This order was automatically cancelled by the fraud prevention system. 
+                No manual review required for blocked orders.
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-primary" onclick="closeModal()">OK</button>
+            </div>
+          </div>
+        `);
+
+              return; // Exit early - no need to show the manual review modal
+            } catch (cancelErr) {
+              console.error("Failed to auto-cancel blocked order:", cancelErr);
+              showToast("Failed to auto-cancel blocked order", "error");
+              // Continue to show modal even if cancel fails
+            }
+          }
+
+          // For REVIEW or SAFE verdicts, show the analysis modal (no auto-cancel)
           modal(`
       <div class="modal-box" style="max-width:520px">
         <div class="modal-header">
@@ -9179,7 +9263,7 @@ Send a test message to see the response…
             </div>
             <div style="display:flex;justify-content:space-between;margin-top:6px;
                         font-size:10px;color:var(--text3)">
-              <span>0 — Safe</span><span>30 — Review</span><span>60 — Block</span><span>100</span>
+              <span>0 — Safe</span><span>30 — Review</span><span>55 — Block</span><span>100</span>
             </div>
           </div>
 
@@ -9192,6 +9276,7 @@ Send a test message to see the response…
           </div>
           <div style="display:flex;flex-direction:column;gap:4px;max-height:200px;overflow-y:auto">
             ${d.allFlags
+              .slice(0, 8)
               .map(
                 (f) => `
               <div style="display:flex;align-items:flex-start;gap:8px;
@@ -9202,6 +9287,7 @@ Send a test message to see the response…
             `,
               )
               .join("")}
+            ${d.allFlags.length > 8 ? `<div style="font-size:11px;color:var(--text3);text-align:center;padding:4px">+${d.allFlags.length - 8} more flags</div>` : ""}
           </div>
           `
               : `
@@ -9222,19 +9308,84 @@ Send a test message to see the response…
           `
               : ""
           }
+          
+          ${
+            d.verdict === "review"
+              ? `
+          <div style="margin-top:16px;padding:12px;background:rgba(245,166,35,.1);border-radius:10px;
+                      font-size:12px;color:var(--amber);text-align:center">
+            <strong>⚠️ Manual Review Required</strong><br>
+            This order needs your attention. Please review the flags above and take appropriate action.
+          </div>
+          `
+              : ""
+          }
         </div>
         <div class="modal-footer">
           <button class="btn btn-ghost" onclick="closeModal()">Close</button>
           <button class="btn btn-primary btn-sm" onclick="closeModal();viewOrder('${orderId}')">
             <i class="fas fa-eye"></i> View Order Details
           </button>
+          ${
+            d.verdict === "review"
+              ? `
+          <button class="btn btn-danger btn-sm" onclick="closeModal();manualCancelOrder('${orderId}', '${orderNumber}')">
+            <i class="fas fa-ban"></i> Cancel Order
+          </button>
+          `
+              : ""
+          }
         </div>
       </div>
     `);
+
+          // Refresh the fraud cell in the table (non-blocking)
+          apiCall("/fraud/status-batch", {
+            method: "POST",
+            body: JSON.stringify({ orderIds: [orderId] }),
+          })
+            .then((fraudRes) => {
+              const fraudData = (fraudRes.data || {})[orderId];
+              const cell = document.getElementById(`fraud-cell-${orderId}`);
+              if (cell && fraudData) {
+                cell.innerHTML = buildFraudCellHtml(
+                  orderId,
+                  orderNumber,
+                  fraudData,
+                );
+              }
+            })
+            .catch(() => {});
         } catch (e) {
           console.error("Fraud check error:", e);
-          // Fall back to manual check on any error
           await manualFraudCheck(orderId, orderNumber);
+        }
+      }
+
+      // Add helper function for manual cancellation of review orders
+      async function manualCancelOrder(orderId, orderNumber) {
+        if (
+          !confirm(
+            `Are you sure you want to CANCEL order ${orderNumber}?\n\nThis action cannot be undone.`,
+          )
+        ) {
+          return;
+        }
+
+        try {
+          await apiCall(`/orders/${orderId}/status`, {
+            method: "PUT",
+            body: JSON.stringify({ orderStatus: "cancelled" }),
+          });
+
+          showToast(`Order ${orderNumber} cancelled successfully`, "success");
+
+          // Refresh the page
+          if (currentPage === "orders") loadOrdersList();
+          if (currentPage === "fraud") loadFraudLogs();
+          if (currentPage === "dashboard") loadDashboard();
+        } catch (err) {
+          showToast("Failed to cancel order: " + err.message, "error");
         }
       }
 
