@@ -4128,26 +4128,17 @@
           const verdictIcon =
             verdict === "blocked" ? "🚫" : verdict === "review" ? "⚠️" : "✅";
 
-          // CRITICAL FIX: Auto-blocked orders (score >= 70) should not have review actions
-          // They were hard-deleted by backend, so just show "Auto-blocked" status
-          const isAutoBlocked = verdict === "blocked" && score >= 70;
-
-          let reviewActionHtml = "";
-
-          if (isAutoBlocked) {
-            // Auto-blocked by backend - no approve/reject, just show status
-            reviewActionHtml = `<span style="font-size:9px;color:var(--rose);margin-left:3px">(auto-cancelled)</span>`;
-          } else if (verdict !== "safe" && !fraudData.reviewAction) {
-            // Only show approve/reject for manual review cases (score 30-69)
-            reviewActionHtml = `<span style="margin-left:4px">
+          const quickActions =
+            verdict !== "safe" && !fraudData.reviewAction
+              ? `<span style="margin-left:4px">
            <span style="cursor:pointer;color:var(--lime);font-size:11px"
              onclick="event.stopPropagation();reviewFraudLogAction('${fraudData.logId}','approved','')">✓</span>
            <span style="cursor:pointer;color:var(--rose);font-size:11px;margin-left:3px"
              onclick="event.stopPropagation();reviewFraudLogAction('${fraudData.logId}','rejected','')">✗</span>
-         </span>`;
-          } else if (fraudData.reviewAction) {
-            reviewActionHtml = `<span style="font-size:9px;color:var(--text3);margin-left:3px">(${fraudData.reviewAction})</span>`;
-          }
+         </span>`
+              : fraudData.reviewAction
+                ? `<span style="font-size:9px;color:var(--text3);margin-left:3px">(${fraudData.reviewAction})</span>`
+                : "";
 
           fraudBadge = `
       <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px"
@@ -4158,7 +4149,7 @@
           <div style="height:100%;width:${score}%;background:${scoreColor};border-radius:2px"></div>
         </div>
         <span style="font-size:11px">${verdictIcon}</span>
-        ${reviewActionHtml}
+        ${quickActions}
       </div>`;
         }
 
@@ -8690,7 +8681,6 @@ Send a test message to see the response…
       function renderFraudRow(log) {
         const score = log.riskScore || 0;
         const verdict = log.verdict || "safe";
-        const isAutoBlocked = verdict === "blocked" && score >= 70;
         const scoreColor =
           score > 60
             ? "var(--rose)"
@@ -8700,7 +8690,7 @@ Send a test message to see the response…
 
         const verdictBadgeHtml =
           verdict === "blocked"
-            ? `<span class="badge badge-rose"><i class="fas fa-ban" style="font-size:9px"></i> Blocked${isAutoBlocked ? " (auto)" : ""}</span>`
+            ? `<span class="badge badge-rose"><i class="fas fa-ban" style="font-size:9px"></i> Blocked</span>`
             : verdict === "review"
               ? `<span class="badge badge-amber"><i class="fas fa-clock" style="font-size:9px"></i> Review</span>`
               : `<span class="badge badge-lime"><i class="fas fa-check" style="font-size:9px"></i> Safe</span>`;
@@ -8720,36 +8710,6 @@ Send a test message to see the response…
         const order = log.order || {};
         const custName = order.customer?.name || "—";
         const custPhone = order.customer?.phone || "";
-
-        // Show action buttons only for review cases (not auto-blocked)
-        let actionButtons = `
-    <button class="btn btn-ghost btn-sm btn-icon"
-      onclick="openFraudLogDetail('${log._id}')" title="View details">
-      <i class="fas fa-eye"></i>
-    </button>`;
-
-        // Only show approve/reject for review verdicts that aren't auto-blocked
-        if (verdict === "review" && !log.reviewAction) {
-          actionButtons += `
-      <button class="btn btn-ghost btn-sm btn-icon"
-        style="color:var(--lime)"
-        onclick="reviewFraudLogAction('${log._id}','approved')"
-        title="Approve order">
-        <i class="fas fa-check"></i>
-      </button>
-      <button class="btn btn-danger btn-sm btn-icon"
-        onclick="reviewFraudLogAction('${log._id}','rejected')"
-        title="Reject & cancel order">
-        <i class="fas fa-xmark"></i>
-      </button>`;
-        }
-
-        actionButtons += `
-    <button class="btn btn-ghost btn-sm btn-icon"
-      onclick="reanalyzeOrder('${log.order?._id || log.order}','${log._id}')"
-      title="Re-analyze">
-      <i class="fas fa-rotate-right" style="font-size:11px"></i>
-    </button>`;
 
         return `
     <tr onclick="openFraudLogDetail('${log._id}')">
@@ -8789,7 +8749,31 @@ Send a test message to see the response…
       <td style="font-size:12px;color:var(--text2)">${formatDate(log.createdAt)}</td>
       <td onclick="event.stopPropagation()">
         <div style="display:flex;gap:4px">
-          ${actionButtons}
+          <button class="btn btn-ghost btn-sm btn-icon"
+            onclick="openFraudLogDetail('${log._id}')" title="View details">
+            <i class="fas fa-eye"></i>
+          </button>
+          ${
+            verdict !== "safe" && !log.reviewAction
+              ? `
+            <button class="btn btn-ghost btn-sm btn-icon"
+              style="color:var(--lime)"
+              onclick="reviewFraudLogAction('${log._id}','approved')"
+              title="Approve order">
+              <i class="fas fa-check"></i>
+            </button>
+            <button class="btn btn-danger btn-sm btn-icon"
+              onclick="reviewFraudLogAction('${log._id}','rejected')"
+              title="Reject & cancel order">
+              <i class="fas fa-xmark"></i>
+            </button>`
+              : ""
+          }
+          <button class="btn btn-ghost btn-sm btn-icon"
+            onclick="reanalyzeOrder('${log.order?._id || log.order}','${log._id}')"
+            title="Re-analyze">
+            <i class="fas fa-rotate-right" style="font-size:11px"></i>
+          </button>
         </div>
       </td>
     </tr>`;
@@ -8961,37 +8945,34 @@ Send a test message to see the response…
                 : ""
             }
           </div>
-          const isAutoBlocked = verdict === "blocked" && score >= 70;
-<div class="modal-footer" style="justify-content:space-between">
-  <div style="display:flex;gap:8px">
-    ${
-      verdict === "review" && !log.reviewAction
-        ? `
-      <button class="btn btn-primary btn-sm"
-        onclick="reviewFraudLogAction('${log._id}','approved','')">
-        <i class="fas fa-check"></i> Approve
-      </button>
-      <button class="btn btn-danger btn-sm"
-        onclick="reviewFraudLogAction('${log._id}','rejected','')">
-        <i class="fas fa-xmark"></i> Reject Order
-      </button>
-      <button class="btn btn-ghost btn-sm"
-        onclick="reviewFraudLogAction('${log._id}','escalated','')">
-        <i class="fas fa-arrow-up-right-from-square"></i> Escalate
-      </button>`
-        : isAutoBlocked
-          ? `<span class="badge badge-rose" style="padding:8px 16px">🚫 Order auto-cancelled by fraud engine</span>`
-          : ""
-    }
-  </div>
-  <div style="display:flex;gap:8px">
-    <button class="btn btn-ghost btn-sm"
-      onclick="viewOrder('${order._id || log.order}');closeModal()">
-      <i class="fas fa-receipt"></i> View Order
-    </button>
-    <button class="btn btn-ghost" onclick="closeModal()">Close</button>
-  </div>
-</div>
+          <div class="modal-footer" style="justify-content:space-between">
+            <div style="display:flex;gap:8px">
+              ${
+                log.verdict !== "safe" && !log.reviewAction
+                  ? `
+                <button class="btn btn-primary btn-sm"
+                  onclick="reviewFraudLogAction('${log._id}','approved','')">
+                  <i class="fas fa-check"></i> Approve
+                </button>
+                <button class="btn btn-danger btn-sm"
+                  onclick="reviewFraudLogAction('${log._id}','rejected','')">
+                  <i class="fas fa-xmark"></i> Reject Order
+                </button>
+                <button class="btn btn-ghost btn-sm"
+                  onclick="reviewFraudLogAction('${log._id}','escalated','')">
+                  <i class="fas fa-arrow-up-right-from-square"></i> Escalate
+                </button>`
+                  : ""
+              }
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-ghost btn-sm"
+                onclick="viewOrder('${order._id || log.order}');closeModal()">
+                <i class="fas fa-receipt"></i> View Order
+              </button>
+              <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+            </div>
+          </div>
         </div>
       </div>`;
         } catch (e) {
@@ -9118,7 +9099,9 @@ Send a test message to see the response…
             },
           });
 
+          // Check if response is OK
           if (!response.ok) {
+            // If 500 error or other HTTP error, fall back to manual check
             console.warn(`API returned ${response.status}, using manual check`);
             await manualFraudCheck(orderId, orderNumber);
             return;
@@ -9133,6 +9116,7 @@ Send a test message to see the response…
 
           const result = await response.json();
 
+          // Check if result has data property
           if (!result || !result.data) {
             console.warn("Invalid response structure, using manual check");
             await manualFraudCheck(orderId, orderNumber);
@@ -9140,8 +9124,9 @@ Send a test message to see the response…
           }
 
           const d = result.data;
-          const score = d.riskScore || 0;
-          const isAutoBlocked = d.verdict === "blocked" && score >= 70;
+
+          // Safely access signals with fallback
+          const signals = d.signals || {};
 
           const color =
             d.verdict === "blocked"
@@ -9156,20 +9141,6 @@ Send a test message to see the response…
                 ? "⚠️"
                 : "✅";
 
-          // Build action buttons based on verdict
-          let actionButtons = "";
-          if (d.verdict === "review" && !d.reviewAction) {
-            actionButtons = `
-        <button class="btn btn-primary btn-sm" onclick="closeModal();reviewFraudLogAction('${d.logId}','approved','')">
-          <i class="fas fa-check"></i> Approve Order
-        </button>
-        <button class="btn btn-danger btn-sm" onclick="closeModal();reviewFraudLogAction('${d.logId}','rejected','')">
-          <i class="fas fa-xmark"></i> Reject Order
-        </button>`;
-          } else if (isAutoBlocked) {
-            actionButtons = `<span class="badge badge-rose" style="padding:10px 20px">🚫 Order was auto-cancelled by fraud detection (score ${score} ≥ 70)</span>`;
-          }
-
           modal(`
       <div class="modal-box" style="max-width:520px">
         <div class="modal-header">
@@ -9180,13 +9151,14 @@ Send a test message to see the response…
           <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
         </div>
         <div class="modal-body">
+ 
           <div style="background:var(--bg);border-radius:14px;padding:20px;
                       display:flex;align-items:center;justify-content:space-between;
                       margin-bottom:20px;border:1px solid var(--border)">
             <div>
               <div style="font-size:11px;color:var(--text3);margin-bottom:4px">RISK SCORE</div>
               <div style="font-family:'Syne',sans-serif;font-size:42px;font-weight:800;
-                          color:${color};line-height:1">${score}</div>
+                          color:${color};line-height:1">${d.riskScore || 0}</div>
               <div style="font-size:11px;color:var(--text3);margin-top:2px">out of 100</div>
             </div>
             <div style="text-align:right">
@@ -9194,14 +9166,14 @@ Send a test message to see the response…
               <div style="background:${d.verdict === "blocked" ? "rgba(244,63,94,.15)" : d.verdict === "review" ? "rgba(245,166,35,.15)" : "rgba(198,241,53,.15)"};
                           color:${color};padding:6px 14px;border-radius:20px;
                           font-size:13px;font-weight:700;text-transform:uppercase">
-                ${d.verdict || "UNKNOWN"}${isAutoBlocked ? " (auto)" : ""}
+                ${d.verdict || "UNKNOWN"}
               </div>
             </div>
           </div>
-
+ 
           <div style="margin-bottom:20px">
             <div style="height:8px;background:var(--surface2);border-radius:4px;overflow:hidden">
-              <div style="height:100%;width:${score}%;
+              <div style="height:100%;width:${d.riskScore || 0}%;
                           background:linear-gradient(90deg,var(--lime),${color});
                           border-radius:4px;transition:width .6s ease"></div>
             </div>
@@ -9239,20 +9211,29 @@ Send a test message to see the response…
           </div>
           `
           }
-        </div>
-        <div class="modal-footer" style="justify-content:space-between">
-          ${actionButtons}
-          <div style="display:flex;gap:8px">
-            <button class="btn btn-ghost" onclick="closeModal()">Close</button>
-            <button class="btn btn-primary btn-sm" onclick="closeModal();viewOrder('${orderId}')">
-              <i class="fas fa-eye"></i> View Order Details
-            </button>
+          
+          ${
+            d.recommendation
+              ? `
+          <div style="margin-top:16px;padding:12px;background:var(--surface2);border-radius:10px;
+                      font-size:12px;color:var(--text2)">
+            <strong>💡 Recommendation:</strong> ${escapeHtml(d.recommendation)}
           </div>
+          `
+              : ""
+          }
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" onclick="closeModal()">Close</button>
+          <button class="btn btn-primary btn-sm" onclick="closeModal();viewOrder('${orderId}')">
+            <i class="fas fa-eye"></i> View Order Details
+          </button>
         </div>
       </div>
     `);
         } catch (e) {
           console.error("Fraud check error:", e);
+          // Fall back to manual check on any error
           await manualFraudCheck(orderId, orderNumber);
         }
       }
