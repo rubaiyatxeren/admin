@@ -4148,20 +4148,17 @@
           const verdictIcon =
             verdict === "blocked" ? "🚫" : verdict === "review" ? "⚠️" : "✅";
 
-          // AFTER
           const quickActions =
-            verdict !== "safe" &&
-            !fraudData.reviewAction &&
-            fraudData.autoAction !== "rejected"
-              ? `<span style="cursor:pointer;color:var(--lime);font-size:11px"
-         onclick="event.stopPropagation();reviewFraudLogAction('${fraudData.logId}','approved','')">✓</span>
-       <span style="cursor:pointer;color:var(--rose);font-size:11px;margin-left:3px"
-         onclick="event.stopPropagation();reviewFraudLogAction('${fraudData.logId}','rejected','')">✗</span>`
+            verdict !== "safe" && !fraudData.reviewAction
+              ? `<span style="margin-left:4px">
+           <span style="cursor:pointer;color:var(--lime);font-size:11px"
+             onclick="event.stopPropagation();reviewFraudLogAction('${fraudData.logId}','approved','')">✓</span>
+           <span style="cursor:pointer;color:var(--rose);font-size:11px;margin-left:3px"
+             onclick="event.stopPropagation();reviewFraudLogAction('${fraudData.logId}','rejected','')">✗</span>
+         </span>`
               : fraudData.reviewAction
                 ? `<span style="font-size:9px;color:var(--text3);margin-left:3px">(${fraudData.reviewAction})</span>`
-                : fraudData.autoAction === "rejected"
-                  ? `<span style="font-size:9px;color:var(--rose);margin-left:3px">(auto-rejected)</span>`
-                  : "";
+                : "";
 
           fraudBadge = `
       <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px"
@@ -8508,13 +8505,11 @@ Send a test message to see the response…
             <option value="safe">✅ Safe</option>
           </select>
           <select class="inp" style="width:auto" onchange="fraudFilter.reviewAction=this.value;fraudPage=1;loadFraudLogs()">
-  <option value="">All Review Status</option>
-  <option value="pending">⏳ Pending Review</option>
-  <option value="approved">✅ Approved</option>
-  <option value="rejected">❌ Rejected</option>
-  <option value="auto_cancelled">⚡ Auto-cancelled</option>
-  <option value="auto_blocked">🚫 Hard-blocked</option>
-</select>
+            <option value="">All Review Status</option>
+            <option value="pending">⏳ Pending Review</option>
+            <option value="approved">✅ Approved</option>
+            <option value="rejected">❌ Rejected</option>
+          </select>
           <input class="inp" type="number" placeholder="Min score" style="width:100px"
             oninput="fraudFilter.minScore=this.value;fraudPage=1;loadFraudLogs()">
           <input class="inp" type="number" placeholder="Max score" style="width:100px"
@@ -8673,15 +8668,10 @@ Send a test message to see the response…
         try {
           const qs = new URLSearchParams({ page: fraudPage, limit: 15 });
           if (fraudFilter.verdict) qs.set("verdict", fraudFilter.verdict);
-          if (fraudFilter.reviewAction === "pending") {
+          if (fraudFilter.reviewAction === "pending")
             qs.set("reviewAction", "pending");
-          } else if (fraudFilter.reviewAction === "auto_cancelled") {
-            qs.set("autoAction", "rejected");
-          } else if (fraudFilter.reviewAction === "auto_blocked") {
-            qs.set("autoAction", "blocked");
-          } else if (fraudFilter.reviewAction) {
+          else if (fraudFilter.reviewAction)
             qs.set("reviewAction", fraudFilter.reviewAction);
-          }
           if (fraudFilter.minScore) qs.set("minScore", fraudFilter.minScore);
           if (fraudFilter.maxScore) qs.set("maxScore", fraudFilter.maxScore);
 
@@ -8732,23 +8722,12 @@ Send a test message to see the response…
               ? `<span class="badge badge-rose">Rejected</span>`
               : log.reviewAction === "escalated"
                 ? `<span class="badge badge-sky">Escalated</span>`
-                : log.autoAction === "blocked"
-                  ? `<span class="badge badge-rose">🚫 Auto-blocked</span>`
-                  : log.autoAction === "rejected"
-                    ? `<span class="badge badge-rose">⚡ Auto-cancelled</span>`
-                    : log.autoAction === "held"
-                      ? `<span class="badge badge-amber">⏸ On hold</span>`
-                      : verdict !== "safe"
-                        ? `<span class="badge badge-amber">Pending</span>`
-                        : `<span style="color:var(--text3);font-size:12px">—</span>`;
+                : verdict !== "safe"
+                  ? `<span class="badge badge-amber">Pending</span>`
+                  : `<span style="color:var(--text3);font-size:12px">—</span>`;
 
         const topFlag = log.allFlags?.[0] || "—";
         const order = log.order || {};
-        const orderId = order._id
-          ? String(order._id)
-          : log.order && typeof log.order === "string"
-            ? log.order
-            : null;
         const custName = order.customer?.name || "—";
         const custPhone = order.customer?.phone || "";
 
@@ -8794,31 +8773,25 @@ Send a test message to see the response…
             onclick="openFraudLogDetail('${log._id}')" title="View details">
             <i class="fas fa-eye"></i>
           </button>
-         ${
-           verdict !== "safe" &&
-           !log.reviewAction &&
-           log.autoAction !== "blocked" &&
-           log.autoAction !== "rejected"
-             ? `
-          <button class="btn btn-ghost btn-sm btn-icon"
-            style="color:var(--lime)"
-            onclick="reviewFraudLogAction('${log._id}','approved','')"
-            title="Approve order"
-              ${!orderId ? 'disabled style="color:var(--text3);cursor:not-allowed"' : ""}>
+          ${
+            verdict !== "safe" && !log.reviewAction
+              ? `
+            <button class="btn btn-ghost btn-sm btn-icon"
+              style="color:var(--lime)"
+              onclick="reviewFraudLogAction('${log._id}','approved')"
+              title="Approve order">
               <i class="fas fa-check"></i>
             </button>
             <button class="btn btn-danger btn-sm btn-icon"
-              onclick="reviewFraudLogAction('${log._id}','rejected','')"
-              title="Reject & cancel order"
-              ${!orderId ? 'disabled style="opacity:.4;cursor:not-allowed"' : ""}>
+              onclick="reviewFraudLogAction('${log._id}','rejected')"
+              title="Reject & cancel order">
               <i class="fas fa-xmark"></i>
             </button>`
-             : ""
-         }
+              : ""
+          }
           <button class="btn btn-ghost btn-sm btn-icon"
-            onclick="reanalyzeOrder('${orderId || ""}','${log._id}')"
-            title="Re-analyze"
-            ${!orderId ? 'disabled style="opacity:.4;cursor:not-allowed"' : ""}>
+            onclick="reanalyzeOrder('${log.order?._id || log.order}','${log._id}')"
+            title="Re-analyze">
             <i class="fas fa-rotate-right" style="font-size:11px"></i>
           </button>
         </div>
@@ -8850,12 +8823,6 @@ Send a test message to see the response…
                 ? "var(--amber)"
                 : "var(--lime)";
           const order = log.order || {};
-
-          const orderId = order._id
-            ? String(order._id)
-            : log.order && typeof log.order === "string"
-              ? log.order
-              : null;
 
           const signalRows = Object.entries({
             velocity: { label: "Velocity", w: 25, color: "#E24B4A" },
@@ -9019,19 +8986,10 @@ Send a test message to see the response…
               }
             </div>
             <div style="display:flex;gap:8px">
-              ${
-                orderId
-                  ? `
               <button class="btn btn-ghost btn-sm"
-                onclick="viewOrder('${orderId}');closeModal()">
+                onclick="viewOrder('${order._id || log.order}');closeModal()">
                 <i class="fas fa-receipt"></i> View Order
-              </button>`
-                  : `
-              <button class="btn btn-ghost btn-sm" disabled
-                style="opacity:.4;cursor:not-allowed">
-                <i class="fas fa-receipt"></i> Order Deleted
-              </button>`
-              }
+              </button>
               <button class="btn btn-ghost" onclick="closeModal()">Close</button>
             </div>
           </div>
