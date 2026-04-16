@@ -427,6 +427,7 @@ function loadPage(page) {
   const pagePermissions = {
     dashboard: ["super_admin", "admin", "manager"], // ✅ Add manager
     products: ["super_admin", "admin"], // Managers can't edit products
+    blogs: ["super_admin", "admin"],
     categories: ["super_admin", "admin", "manager"], // ✅ Managers can view categories
     banners: ["super_admin", "admin", "manager"], // ✅ Managers can view banners
     coupons: ["super_admin", "admin"], // Managers can't manage coupons
@@ -466,6 +467,7 @@ function loadPage(page) {
     dashboard: "Dashboard",
     "products-analytics": "📊 Product Analytics",
     "god-tracker": "🔮 GodTracker — Visitor Analytics",
+    blogs: "📝 Blog Manager",
     products: "Products",
     categories: "Categories",
     coupons: "🎟️ Coupons",
@@ -498,6 +500,7 @@ function loadPage(page) {
     "delivery-charges": loadDeliveryChargesPage,
     fraud: loadFraudPage,
     profit: loadProfitPage,
+    blogs: loadBlogs,
   };
 
   (pages[page] || loadDashboard)();
@@ -3682,6 +3685,38 @@ window.injectReportButton = function (pageName) {
     }
   }, 300);
 };
+
+let realTimeCounterInterval = null;
+
+function startRealTimeCounter() {
+  // Clear existing interval if any
+  if (realTimeCounterInterval) {
+    clearInterval(realTimeCounterInterval);
+  }
+
+  // Update every 10 seconds
+  realTimeCounterInterval = setInterval(() => {
+    fetchRealTimeActiveCount();
+  }, 10000);
+}
+
+function stopRealTimeCounter() {
+  if (realTimeCounterInterval) {
+    clearInterval(realTimeCounterInterval);
+    realTimeCounterInterval = null;
+  }
+}
+
+function cleanupGodTracker() {
+  if (realTimeCounterInterval) {
+    clearInterval(realTimeCounterInterval);
+    realTimeCounterInterval = null;
+  }
+  if (gtAutoRefreshInterval) {
+    clearInterval(gtAutoRefreshInterval);
+    gtAutoRefreshInterval = null;
+  }
+}
 
 // Override loadPage to inject button
 const originalLoadPage = window.loadPage;
@@ -7191,10 +7226,7 @@ async function manualFraudCheck(orderId, orderNumber) {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// GOD TRACKER — Full Analytics Dashboard
-// Drop this entire file's contents into your admin-dash.js
-// Adds: loadGodTrackerPage(), and all helper functions
-// Also: add "GodTracker" nav link pointing to data-page="god-tracker"
+// GOD TRACKER — Fixed Version
 // ═══════════════════════════════════════════════════════════════════
 
 // ── State ───────────────────────────────────────────────────────────
@@ -7203,17 +7235,8 @@ let gtSessionTotalPages = 1;
 let gtSessionFilter = { search: "", deviceType: "" };
 let gtCurrentSession = null;
 let gtAutoRefreshInterval = null;
-let gtStatsCache = null;
 
-// ── Add to your loadPage() pages map: ───────────────────────────────
-// "god-tracker": loadGodTrackerPage,
-// ── Add to titles map: ──────────────────────────────────────────────
-// "god-tracker": "🔮 GodTracker — Visitor Analytics",
-
-// ═══════════════════════════════════════════════════════════════════
-// MAIN PAGE LOADER
-// ═══════════════════════════════════════════════════════════════════
-// Replace the loadGodTrackerPage function
+// ── MAIN PAGE LOADER (OPTIMIZED) ───────────────────────────────────
 async function loadGodTrackerPage() {
   const c = document.getElementById("content");
   if (!c) return;
@@ -7224,9 +7247,9 @@ async function loadGodTrackerPage() {
     gtAutoRefreshInterval = null;
   }
 
+  // Show loading skeleton immediately
   c.innerHTML = `
     <div class="fade-up">
-      <!-- Header with REAL-TIME counter -->
       <div class="section-header" style="margin-bottom:24px">
         <div>
           <h2 style="display:flex;align-items:center;gap:10px">
@@ -7234,24 +7257,18 @@ async function loadGodTrackerPage() {
             GodTracker
             <span class="badge badge-lime" style="font-size:11px;font-weight:600">LIVE</span>
           </h2>
-          <div class="card-sub" style="margin-top:4px">
-            Real-time visitor analytics · Session replay · Funnel intelligence
-          </div>
+          <div class="card-sub">Real-time visitor analytics · Session replay · Funnel intelligence</div>
         </div>
         <div style="display:flex;gap:8px;align-items:center">
-          <!-- REAL-TIME ACTIVE COUNT CARD -->
           <div style="display:flex;align-items:center;gap:10px;background:linear-gradient(135deg, var(--lime-dim), var(--bg));border:1px solid var(--lime);border-radius:12px;padding:8px 16px;">
-            <div style="position:relative;">
-              <span style="width:10px;height:10px;border-radius:50%;background:var(--lime);display:inline-block;animation:glow-pulse 1.5s infinite;"></span>
-            </div>
+            <span style="width:10px;height:10px;border-radius:50%;background:var(--lime);display:inline-block;animation:glow-pulse 1.5s infinite;"></span>
             <div>
-              <div style="font-size:10px;color:var(--text3);letter-spacing:0.5px;">ACTIVE NOW</div>
-              <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--lime);line-height:1;" id="gtActiveCount">0</div>
+              <div style="font-size:10px;color:var(--text3);">ACTIVE NOW</div>
+              <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--lime);line-height:1;" id="gtActiveCount">—</div>
             </div>
           </div>
-          <button class="btn btn-ghost btn-sm" id="gtAutoRefreshBtn"
-            onclick="toggleGtAutoRefresh()">
-            <i class="fas fa-rotate-right" id="gtRefreshIcon"></i> Auto-refresh: OFF
+          <button class="btn btn-ghost btn-sm" id="gtAutoRefreshBtn" onclick="toggleGtAutoRefresh()">
+            <i class="fas fa-rotate-right"></i> Auto
           </button>
           <button class="btn btn-primary btn-sm" onclick="loadGodTrackerPage()">
             <i class="fas fa-sync-alt"></i> Refresh
@@ -7259,404 +7276,278 @@ async function loadGodTrackerPage() {
         </div>
       </div>
 
-      <!-- KPI Stats -->
+      <!-- KPI Stats - Skeleton -->
       <div class="stat-grid fade-up" id="gtStatsGrid" style="margin-bottom:24px">
-        ${[1, 2, 3, 4]
-          .map(
-            (i) => `
-          <div class="stat-card stagger-${i}">
-            <div class="skel" style="height:42px;width:42px;border-radius:12px;margin-bottom:16px"></div>
-            <div class="skel" style="height:26px;width:70%;margin-bottom:8px"></div>
-            <div class="skel" style="height:13px;width:45%"></div>
-          </div>`,
-          )
-          .join("")}
+        ${[1, 2, 3, 4].map((i) => `<div class="stat-card stagger-${i}"><div class="skel" style="height:42px;width:42px;border-radius:12px;margin-bottom:16px"></div><div class="skel" style="height:26px;width:70%;margin-bottom:8px"></div><div class="skel" style="height:13px;width:45%"></div></div>`).join("")}
       </div>
 
       <!-- Charts row -->
       <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:16px;margin-bottom:20px">
-
-        <!-- Event type breakdown -->
-        <div class="card fade-up stagger-2">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-            <div>
-              <div class="card-title">Top Event Types</div>
-              <div class="card-sub">All sessions · by frequency</div>
-            </div>
-          </div>
-          <div id="gtEventsList" style="display:flex;flex-direction:column;gap:5px;max-height:240px;overflow-y:auto">
-            <div style="text-align:center;padding:32px"><div class="spinner" style="margin:0 auto"></div></div>
-          </div>
-        </div>
-
-        <!-- Device Breakdown -->
-        <div class="card fade-up stagger-3">
-          <div class="card-title" style="margin-bottom:4px">Device Split</div>
-          <div class="card-sub" style="margin-bottom:16px">All-time sessions</div>
-          <div style="position:relative;height:180px">
-            <canvas id="gtDeviceChart"></canvas>
-          </div>
-          <div id="gtDeviceLegend" style="display:flex;justify-content:center;gap:14px;margin-top:12px;flex-wrap:wrap"></div>
-        </div>
-
-        <!-- Funnel -->
-        <div class="card fade-up stagger-4">
-          <div class="card-title" style="margin-bottom:4px">Conversion Funnel</div>
-          <div class="card-sub" style="margin-bottom:16px">Sessions → Orders</div>
-          <div id="gtFunnel" style="display:flex;flex-direction:column;gap:6px">
-            <div style="text-align:center;padding:32px"><div class="spinner" style="margin:0 auto"></div></div>
-          </div>
-        </div>
+        <div class="card fade-up stagger-2"><div class="card-title">Top Event Types</div><div id="gtEventsList" style="min-height:200px"><div class="spinner" style="margin:20px auto"></div></div></div>
+        <div class="card fade-up stagger-3"><div class="card-title">Device Split</div><div style="height:160px"><canvas id="gtDeviceChart"></canvas></div><div id="gtDeviceLegend" class="flex justify-center gap-4 mt-3"></div></div>
+        <div class="card fade-up stagger-4"><div class="card-title">Conversion Funnel</div><div id="gtFunnel" style="min-height:200px"><div class="spinner" style="margin:20px auto"></div></div></div>
       </div>
 
       <!-- Session Table -->
       <div class="card fade-up" style="padding:0;overflow:hidden;margin-bottom:20px">
-
-        <!-- Toolbar -->
-        <div style="padding:16px 20px;border-bottom:1px solid var(--border);
-                    display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-          <div class="card-title" style="flex:1;min-width:140px">
-            <i class="fas fa-users" style="color:var(--lime);margin-right:8px"></i>
-            Visitor Sessions
-          </div>
-          <div class="inp-group" style="width:220px">
-            <i class="fas fa-search"></i>
-            <input class="inp" id="gtSessionSearch" placeholder="Search session, IP, phone…"
-              oninput="gtSessionFilter.search=this.value;gtSessionPage=1;loadGtSessions()">
-          </div>
-          <select class="inp" style="width:auto"
-            onchange="gtSessionFilter.deviceType=this.value;gtSessionPage=1;loadGtSessions()">
-            <option value="">All Devices</option>
-            <option value="mobile">📱 Mobile</option>
-            <option value="tablet">📟 Tablet</option>
-            <option value="desktop">🖥️ Desktop</option>
-          </select>
-          <button class="btn btn-ghost btn-sm"
-            onclick="gtSessionFilter={search:'',deviceType:''};gtSessionPage=1;
-                     document.getElementById('gtSessionSearch').value='';loadGtSessions()">
-            <i class="fas fa-rotate-right"></i>
-          </button>
+        <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <div class="card-title" style="flex:1"><i class="fas fa-users" style="color:var(--lime);margin-right:8px"></i>Visitor Sessions</div>
+          <div class="inp-group" style="width:220px"><i class="fas fa-search"></i><input class="inp" id="gtSessionSearch" placeholder="Search..." oninput="gtSessionFilter.search=this.value;gtSessionPage=1;loadGtSessions()"></div>
+          <select class="inp" style="width:auto" onchange="gtSessionFilter.deviceType=this.value;gtSessionPage=1;loadGtSessions()"><option value="">All Devices</option><option value="mobile">📱 Mobile</option><option value="desktop">🖥️ Desktop</option></select>
+          <button class="btn btn-ghost btn-sm" onclick="gtSessionFilter={search:'',deviceType:''};gtSessionPage=1;document.getElementById('gtSessionSearch').value='';loadGtSessions()"><i class="fas fa-rotate-right"></i></button>
         </div>
-
-        <table class="data-table">
-          <thead><tr>
-            <th>Visitor</th>
-            <th>Device</th>
-            <th>Browser / OS</th>
-            <th>Events</th>
-            <th>Pages</th>
-            <th>Linked Order</th>
-            <th>Last Seen</th>
-            <th>Actions</th>
-          </tr></thead>
-          <tbody id="gtSessionsBody">
-            <tr><td colspan="8" style="text-align:center;padding:48px">
-              <div class="spinner" style="margin:0 auto"></div>
-            </td></tr>
-          </tbody>
-        </table>
-
-        <div style="padding:16px 20px;border-top:1px solid var(--border);
-                    display:flex;align-items:center;justify-content:space-between">
+        <table class="data-table"><thead><tr><th>Visitor</th><th>Device</th><th>Browser / OS</th><th>Events</th><th>Pages</th><th>Linked Order</th><th>Last Seen</th><th>Actions</th></tr></thead>
+        <tbody id="gtSessionsBody"><tr><td colspan="8" style="text-align:center;padding:48px"><div class="spinner"></div></td></tr></tbody></table>
+        <div style="padding:16px 20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
           <div style="font-size:13px;color:var(--text3)" id="gtSessionInfo"></div>
           <div class="pagination" id="gtSessionPages"></div>
         </div>
       </div>
 
-      <!-- Bottom row: Recent Activity Feed + Top Referrers -->
+      <!-- Bottom row -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-
-        <div class="card fade-up">
-          <div class="card-title" style="margin-bottom:4px">
-            <i class="fas fa-bolt" style="color:var(--amber);margin-right:8px"></i>
-            Live Event Feed
-          </div>
-          <div class="card-sub" style="margin-bottom:14px">Most recent events across all sessions</div>
-          <div id="gtEventFeed" style="display:flex;flex-direction:column;gap:5px;
-                                       max-height:380px;overflow-y:auto">
-            <div style="text-align:center;padding:24px;color:var(--text3)">
-              <i class="fas fa-satellite-dish" style="font-size:24px;margin-bottom:8px;display:block"></i>
-              Loading feed…
-            </div>
-          </div>
-        </div>
-
-        <div class="card fade-up">
-          <div class="card-title" style="margin-bottom:4px">
-            <i class="fas fa-chart-line" style="color:var(--teal);margin-right:8px"></i>
-            Engagement Signals
-          </div>
-          <div class="card-sub" style="margin-bottom:14px">Aggregated behavior metrics</div>
-          <div id="gtEngagementPanel">
-            <div style="text-align:center;padding:24px"><div class="spinner" style="margin:0 auto"></div></div>
-          </div>
-        </div>
-
+        <div class="card fade-up"><div class="card-title"><i class="fas fa-bolt" style="color:var(--amber);margin-right:8px"></i>Live Event Feed</div><div id="gtEventFeed" style="max-height:380px;overflow-y:auto"><div class="spinner" style="margin:20px auto"></div></div></div>
+        <div class="card fade-up"><div class="card-title"><i class="fas fa-chart-line" style="color:var(--teal);margin-right:8px"></i>Engagement Signals</div><div id="gtEngagementPanel"><div class="spinner" style="margin:20px auto"></div></div></div>
       </div>
     </div>
-
-    <!-- Inject glow pulse keyframe -->
-    <style>
-      @keyframes glow-pulse {
-        0%,100% { opacity:1; box-shadow: 0 0 4px var(--lime); }
-        50% { opacity:.5; box-shadow: none; }
-      }
-    </style>
+    <style>@keyframes glow-pulse{0%,100%{opacity:1;box-shadow:0 0 4px var(--lime);}50%{opacity:.5;box-shadow:none;}}</style>
   `;
 
-  // Load all data in parallel
+  // PARALLEL LOAD ALL DATA - MUCH FASTER
   await Promise.all([
     loadGtStats(),
     loadGtSessions(),
     loadGtEventFeed(),
-    fetchRealTimeActiveCount(), // Add real-time count
+    fetchRealTimeActiveCount(),
   ]);
-
-  // Start real-time counter updates every 10 seconds
-  startRealTimeCounter();
 }
 
-// Replace your existing fetchRealTimeActiveCount function with this:
-async function fetchRealTimeActiveCount() {
-  try {
-    // Get sessions and calculate active count client-side
-    const res = await apiCall("/track/sessions?limit=200");
-    const sessions = res.data || [];
-
-    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-    const activeCount = sessions.filter(
-      (s) => new Date(s.lastSeen) >= fiveMinutesAgo,
-    ).length;
-
-    const activeCountEl = document.getElementById("gtActiveCount");
-    if (activeCountEl) {
-      const oldValue = parseInt(activeCountEl.textContent) || 0;
-      if (oldValue !== activeCount) {
-        activeCountEl.style.transform = "scale(1.1)";
-        setTimeout(() => {
-          if (activeCountEl) activeCountEl.style.transform = "scale(1)";
-        }, 200);
-      }
-      activeCountEl.textContent = activeCount;
-    }
-
-    return activeCount;
-  } catch (error) {
-    console.error("Failed to fetch active count:", error);
-    const activeCountEl = document.getElementById("gtActiveCount");
-    if (activeCountEl) activeCountEl.textContent = "0";
-    return 0;
-  }
-}
-
-// NEW FUNCTION: Start real-time counter updates
-let realTimeCounterInterval = null;
-
-function startRealTimeCounter() {
-  // Clear existing interval if any
-  if (realTimeCounterInterval) {
-    clearInterval(realTimeCounterInterval);
-  }
-
-  // Update every 10 seconds
-  realTimeCounterInterval = setInterval(() => {
-    fetchRealTimeActiveCount();
-  }, 10000);
-}
-
-function stopRealTimeCounter() {
-  if (realTimeCounterInterval) {
-    clearInterval(realTimeCounterInterval);
-    realTimeCounterInterval = null;
-  }
-}
-
-async function fetchOrderSuccessFromSessions() {
-  try {
-    // Fetch recent sessions
-    const res = await apiCall("/track/sessions?limit=100");
-    const sessions = res.data || [];
-
-    let totalOrderSuccess = 0;
-    let totalChatbotOpens = 0;
-
-    // Process each session to extract events
-    for (const session of sessions) {
-      // Fetch full session details with events
-      try {
-        const sessionDetail = await apiCall(
-          `/track/sessions/${session.sessionId}`,
-        );
-        const events = sessionDetail.data?.events || [];
-
-        // Count order_success events
-        const successCount = events.filter(
-          (e) => e.type === "order_success",
-        ).length;
-        totalOrderSuccess += successCount;
-
-        // Count chatbot_open events
-        const chatbotCount = events.filter(
-          (e) => e.type === "chatbot_open",
-        ).length;
-        totalChatbotOpens += chatbotCount;
-      } catch (e) {
-        // Skip sessions that fail to load
-        continue;
-      }
-    }
-
-    return { orderSuccess: totalOrderSuccess, chatbotOpens: totalChatbotOpens };
-  } catch (e) {
-    console.error("Failed to fetch order success from sessions:", e);
-    return { orderSuccess: 0, chatbotOpens: 0 };
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// STATS
-// ═══════════════════════════════════════════════════════════════════
+// ─── STATS LOADER (WITH FALLBACKS) ─────────────────────────────────
 async function loadGtStats() {
   try {
-    const res = await apiCall("/track/stats");
-    const d = res.data;
-
-    // Fetch REAL order data from orders API
-    let realOrderSuccess = 0;
-    let realOrderAttempt = 0;
-    let realOrderFailures = 0;
-    let realChatbotOpens = 0;
+    // Try to get stats from tracking API
+    let trackingStats = {
+      todayCount: 0,
+      d7Count: 0,
+      d30Count: 0,
+      topEvents: [],
+      deviceBreakdown: [],
+    };
 
     try {
-      // Get ALL orders
-      const ordersRes = await apiCall(`/orders?limit=5000`);
-      const orders = ordersRes.data || [];
+      const res = await apiCall("/track/stats");
+      trackingStats = res.data || trackingStats;
+    } catch (e) {
+      console.warn(
+        "Tracking stats API failed, using calculated stats",
+        e.message,
+      );
+    }
 
-      realOrderSuccess = orders.filter(
+    // Get REAL order data for conversion metrics
+    let orderStats = { totalOrders: 0, deliveredOrders: 0, cancelledOrders: 0 };
+    try {
+      const ordersRes = await apiCall("/orders?limit=5000");
+      const orders = ordersRes.data || [];
+      orderStats.totalOrders = orders.length;
+      orderStats.deliveredOrders = orders.filter(
         (o) => o.orderStatus === "delivered",
       ).length;
-      realOrderAttempt = orders.length;
-      realOrderFailures = orders.filter(
+      orderStats.cancelledOrders = orders.filter(
         (o) => o.orderStatus === "cancelled",
       ).length;
     } catch (e) {
-      console.warn("Could not fetch order stats:", e);
+      console.warn("Could not fetch order stats:", e.message);
     }
 
-    // ALSO fetch from sessions to get chatbot opens and verify order success
-    const sessionStats = await fetchOrderSuccessFromSessions();
-
-    // Use the maximum of both sources (or combine)
-    const finalOrderSuccess = Math.max(
-      realOrderSuccess,
-      sessionStats.orderSuccess,
-    );
-    const finalChatbotOpens = sessionStats.chatbotOpens;
-
-    // Store globally
-    window._gtOrderSuccessCount = finalOrderSuccess;
-    window._gtOrderAttemptCount = realOrderAttempt;
-    window._gtChatbotOpens = finalChatbotOpens;
-
-    // Add to data object
-    d.orderSuccessCount = finalOrderSuccess;
-    d.orderAttemptCount = realOrderAttempt;
-    d.orderFailureCount = realOrderFailures;
-    d.chatbotOpenCount = finalChatbotOpens;
-
-    // Try to get fraud stats
+    // Get active sessions count
+    let activeCount = 0;
     try {
-      const fraudRes = await apiCall("/fraud/stats");
-      if (fraudRes.data) {
-        d.fraudHeldCount = fraudRes.data.blockedToday || 0;
-      }
+      const sessionsRes = await apiCall("/track/sessions?limit=200");
+      const sessions = sessionsRes.data || [];
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+      activeCount = sessions.filter(
+        (s) => new Date(s.lastSeen) >= fiveMinutesAgo,
+      ).length;
     } catch (e) {}
 
-    console.log(
-      `📊 Stats: ${finalOrderSuccess} orders success, ${finalChatbotOpens} chatbot opens`,
+    // Calculate total events from topEvents if available
+    const totalEvents = (trackingStats.topEvents || []).reduce(
+      (sum, e) => sum + (e.count || 0),
+      0,
     );
 
-    gtStatsCache = d;
-
-    // KPI cards
+    // Update KPI cards
     const grid = document.getElementById("gtStatsGrid");
     if (grid) {
       grid.innerHTML = `
-        ${gtStatCard("Today's Sessions", d.todayCount || 0, "fa-eye", "var(--lime)", "rgba(198,241,53,.15)", "Unique sessions today")}
-        ${gtStatCard("Last 7 Days", d.d7Count || 0, "fa-calendar-week", "var(--sky)", "rgba(56,189,248,.15)", "Weekly visitor count")}
-        ${gtStatCard("Last 30 Days", d.d30Count || 0, "fa-calendar-alt", "var(--teal)", "rgba(45,212,191,.15)", "Monthly visitor count")}
-        ${gtStatCard(
-          "Total Events",
-          (d.topEvents || []).reduce((s, e) => s + (e.count || 0), 0),
-          "fa-bolt",
-          "var(--amber)",
-          "rgba(245,166,35,.15)",
-          "All tracked events",
-        )}
+        ${gtStatCard("Today's Sessions", trackingStats.todayCount || 0, "fa-eye", "var(--lime)", "rgba(198,241,53,.15)", "Unique sessions today")}
+        ${gtStatCard("Last 7 Days", trackingStats.d7Count || 0, "fa-calendar-week", "var(--sky)", "rgba(56,189,248,.15)", "Weekly visitor count")}
+        ${gtStatCard("Last 30 Days", trackingStats.d30Count || 0, "fa-calendar-alt", "var(--teal)", "rgba(45,212,191,.15)", "Monthly visitor count")}
+        ${gtStatCard("Total Events", totalEvents, "fa-bolt", "var(--amber)", "rgba(245,166,35,.15)", "All tracked events")}
       `;
     }
 
-    renderGtEventsList(d.topEvents || []);
-    renderGtDeviceChart(d.deviceBreakdown || []);
-    renderGtFunnel(d.topEvents || []);
-    renderGtEngagement(d);
+    // Store for funnel and engagement
+    window._gtOrderStats = orderStats;
+    window._gtTrackingStats = trackingStats;
+
+    // Render components with available data
+    renderGtEventsList(trackingStats.topEvents || []);
+    renderGtDeviceChart(trackingStats.deviceBreakdown || []);
+    renderGtFunnel(trackingStats.topEvents || []);
+    renderGtEngagement(trackingStats, orderStats);
+
+    // Update active count display
+    const activeEl = document.getElementById("gtActiveCount");
+    if (activeEl) activeEl.textContent = activeCount;
   } catch (e) {
     console.error("GodTracker stats error:", e.message);
     const grid = document.getElementById("gtStatsGrid");
-    if (grid)
-      grid.innerHTML = `
-      <div class="card" style="grid-column:1/-1;text-align:center;padding:40px;color:var(--rose)">
-        <i class="fas fa-exclamation-triangle" style="font-size:32px;margin-bottom:10px;display:block"></i>
-        Failed to load tracker stats: ${e.message}
-      </div>`;
-  }
-}
-
-// Helper function to fetch order success from sessions
-async function fetchOrderSuccessFromSessions() {
-  try {
-    // Fetch recent sessions
-    const res = await apiCall("/track/sessions?limit=100");
-    const sessions = res.data || [];
-
-    let totalOrderSuccess = 0;
-    let totalChatbotOpens = 0;
-
-    // Process each session to extract events
-    for (const session of sessions) {
-      // Fetch full session details with events
-      try {
-        const sessionDetail = await apiCall(
-          `/track/sessions/${session.sessionId}`,
-        );
-        const events = sessionDetail.data?.events || [];
-
-        // Count order_success events
-        const successCount = events.filter(
-          (e) => e.type === "order_success",
-        ).length;
-        totalOrderSuccess += successCount;
-
-        // Count chatbot_open events
-        const chatbotCount = events.filter(
-          (e) => e.type === "chatbot_open",
-        ).length;
-        totalChatbotOpens += chatbotCount;
-      } catch (e) {
-        // Skip sessions that fail to load
-        continue;
-      }
+    if (grid) {
+      grid.innerHTML = `<div class="card" style="grid-column:1/-1;text-align:center;padding:40px;color:var(--rose)">Failed to load stats: ${e.message}</div>`;
     }
-
-    return { orderSuccess: totalOrderSuccess, chatbotOpens: totalChatbotOpens };
-  } catch (e) {
-    console.error("Failed to fetch order success from sessions:", e);
-    return { orderSuccess: 0, chatbotOpens: 0 };
   }
 }
 
-// Replace the renderGtFunnel function
+function gtStatCard(label, value, icon, color, bg, sub) {
+  return `
+    <div class="stat-card fade-up" style="--accent:${color}">
+      <div class="stat-icon" style="background:${bg};color:${color}">
+        <i class="fas ${icon}"></i>
+      </div>
+      <div class="stat-value">${Number(value).toLocaleString()}</div>
+      <div class="stat-label">${label}</div>
+      <div class="stat-sub up" style="color:${color}"><i class="fas fa-circle" style="font-size:7px"></i> ${sub}</div>
+    </div>`;
+}
 
+// ─── EVENT LIST ────────────────────────────────────────────────────
+function renderGtEventsList(events) {
+  const el = document.getElementById("gtEventsList");
+  if (!el) return;
+
+  // Combine product view events
+  const eventMap = new Map();
+  events.forEach((e) => {
+    if (e._id === "product_view" || e._id === "product_detail_view") {
+      const existing = eventMap.get("product_views");
+      if (existing) existing.count += e.count;
+      else
+        eventMap.set("product_views", { _id: "product_views", count: e.count });
+    } else {
+      eventMap.set(e._id, { _id: e._id, count: e.count });
+    }
+  });
+
+  const processed = Array.from(eventMap.values()).sort(
+    (a, b) => b.count - a.count,
+  );
+
+  if (!processed.length) {
+    el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text3)">No events yet</div>`;
+    return;
+  }
+
+  const maxCount = processed[0]?.count || 1;
+  const iconMap = {
+    page_view: { icon: "fa-file", color: "var(--lime)" },
+    product_views: { icon: "fa-box-open", color: "var(--sky)" },
+    add_to_cart: { icon: "fa-cart-plus", color: "var(--teal)" },
+    cart_checkout_open: { icon: "fa-credit-card", color: "var(--amber)" },
+    order_attempt: { icon: "fa-paper-plane", color: "var(--sky)" },
+    order_success: { icon: "fa-circle-check", color: "var(--lime)" },
+    search: { icon: "fa-search", color: "var(--text2)" },
+    chatbot_open: { icon: "fa-robot", color: "var(--teal)" },
+    scroll_depth: { icon: "fa-arrows-up-down", color: "var(--text3)" },
+  };
+
+  el.innerHTML = processed
+    .slice(0, 10)
+    .map((e) => {
+      const pct = Math.round((e.count / maxCount) * 100);
+      const meta = iconMap[e._id] || {
+        icon: "fa-circle-dot",
+        color: "var(--text3)",
+      };
+      let label = e._id.replace(/_/g, " ");
+      if (e._id === "product_views") label = "product views";
+      return `
+      <div style="display:flex;align-items:center;gap:8px;padding:4px 0">
+        <div style="width:22px;height:22px;border-radius:6px;background:rgba(255,255,255,.04);display:flex;align-items:center;justify-content:center">
+          <i class="fas ${meta.icon}" style="font-size:10px;color:${meta.color}"></i>
+        </div>
+        <div style="flex:1">
+          <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">
+            <span style="color:var(--text2)">${label}</span>
+            <span style="color:${meta.color};font-weight:700">${e.count.toLocaleString()}</span>
+          </div>
+          <div style="height:3px;background:var(--surface2);border-radius:2px;overflow:hidden">
+            <div style="height:100%;width:${pct}%;background:${meta.color};border-radius:2px"></div>
+          </div>
+        </div>
+      </div>`;
+    })
+    .join("");
+}
+
+// ─── DEVICE CHART ──────────────────────────────────────────────────
+function renderGtDeviceChart(deviceBreakdown) {
+  const ctx = document.getElementById("gtDeviceChart");
+  if (!ctx) return;
+
+  const existing = Chart.getChart(ctx);
+  if (existing) existing.destroy();
+
+  if (!deviceBreakdown.length) {
+    deviceBreakdown = [
+      { _id: "desktop", count: 0 },
+      { _id: "mobile", count: 0 },
+    ];
+  }
+
+  const labels = deviceBreakdown.map((d) => d._id);
+  const data = deviceBreakdown.map((d) => d.count || 0);
+  const colors = labels.map((l) =>
+    l === "mobile" ? "#c6f135" : l === "tablet" ? "#38bdf8" : "#f5a623",
+  );
+  const total = data.reduce((s, n) => s + n, 0);
+
+  const ch = new Chart(ctx, {
+    type: "doughnut",
+    data: {
+      labels,
+      datasets: [
+        {
+          data,
+          backgroundColor: colors.map((c) => c + "CC"),
+          borderColor: colors,
+          borderWidth: 2,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: "68%",
+      plugins: { legend: { display: false } },
+    },
+  });
+  activeCharts.push(ch);
+
+  const legend = document.getElementById("gtDeviceLegend");
+  if (legend && total > 0) {
+    legend.innerHTML = deviceBreakdown
+      .map((d, i) => {
+        const pct = Math.round((d.count / total) * 100);
+        const icons = { mobile: "📱", tablet: "📟", desktop: "🖥️" };
+        return `<span style="display:flex;align-items:center;gap:5px;font-size:11px"><span style="width:8px;height:8px;border-radius:2px;background:${colors[i]}"></span>${icons[d._id] || "💻"} ${d._id} <strong>${pct}%</strong></span>`;
+      })
+      .join("");
+  }
+}
+
+// ─── FUNNEL (UPDATED WITH REAL ORDER DATA) ─────────────────────────
 function renderGtFunnel(topEvents) {
   const el = document.getElementById("gtFunnel");
   if (!el) return;
@@ -7668,10 +7559,8 @@ function renderGtFunnel(topEvents) {
 
   const productViews =
     getCount("product_view") + getCount("product_detail_view");
-
-  // Get order success from global (set in loadGtStats)
-  const orderSuccess = window._gtOrderSuccessCount || 0;
   const orderAttempt = getCount("order_attempt");
+  const orderSuccess = window._gtOrderStats?.deliveredOrders || 0;
 
   const steps = [
     {
@@ -7716,389 +7605,50 @@ function renderGtFunnel(topEvents) {
 
   el.innerHTML = steps
     .map((s, i) => {
-      const pct = maxValue > 0 ? Math.round((s.value / maxValue) * 100) : 0;
+      const pct = Math.round((s.value / maxValue) * 100);
       let convPct = 100;
-      if (i > 0 && steps[i - 1].value > 0) {
+      if (i > 0 && steps[i - 1].value > 0)
         convPct = Math.round((s.value / steps[i - 1].value) * 100);
-      }
-
       return `
-      <div style="position:relative; margin-bottom: 12px;">
+      <div style="margin-bottom:12px">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
-          <i class="fas ${s.icon}" style="font-size:11px;color:${s.color};width:14px;flex-shrink:0"></i>
+          <i class="fas ${s.icon}" style="font-size:11px;color:${s.color};width:14px"></i>
           <span style="font-size:11px;color:var(--text2);flex:1">${s.label}</span>
           <span style="font-size:12px;font-weight:700;color:${s.color}">${s.value.toLocaleString()}</span>
-          ${i > 0 ? `<span style="font-size:9px;color:var(--text3);min-width:35px;text-align:right">${convPct}%</span>` : `<span style="font-size:9px;color:var(--text3);min-width:35px"></span>`}
+          ${i > 0 ? `<span style="font-size:9px;color:var(--text3);min-width:35px;text-align:right">${convPct}%</span>` : '<span style="min-width:35px"></span>'}
         </div>
         <div style="height:5px;background:var(--surface2);border-radius:3px;overflow:hidden;margin-left:22px">
-          <div style="height:100%;width:${pct}%;background:${s.color};
-                      border-radius:3px;transition:width .7s ease;opacity:.85"></div>
+          <div style="height:100%;width:${pct}%;background:${s.color};border-radius:3px"></div>
         </div>
       </div>`;
     })
     .join("");
 }
 
-function gtStatCard(label, value, icon, color, bg, sub) {
-  return `
-    <div class="stat-card fade-up" style="--accent:${color}">
-      <div class="stat-icon" style="background:${bg};color:${color}">
-        <i class="fas ${icon}"></i>
-      </div>
-      <div class="stat-value">${Number(value).toLocaleString()}</div>
-      <div class="stat-label">${label}</div>
-      <div class="stat-sub up" style="color:${color}">
-        <i class="fas fa-circle" style="font-size:7px"></i> ${sub}
-      </div>
-    </div>`;
-}
-
-// Update the injectGodTrackerNavLink function to include the real-time badge
-function injectGodTrackerNavLink() {
-  const nav = document.querySelector("#sidebar nav");
-  if (!nav || document.querySelector('[data-page="god-tracker"]')) return;
-
-  // Find the "Advanced Tools" label and inject before it (or just append)
-  const advLabel = Array.from(nav.querySelectorAll(".nav-section-label")).find(
-    (el) => el.textContent.trim() === "Advanced Tools",
-  );
-
-  const link = document.createElement("a");
-  link.className = "nav-link";
-  link.setAttribute("data-page", "god-tracker");
-  link.href = "#";
-  link.innerHTML = `<i class="fas fa-eye"></i> GodTracker
-    <span class="nav-badge" id="gtLiveBadge" style="display:none;background:var(--lime);color:#0b0d0f"></span>`;
-  link.onclick = (e) => {
-    e.preventDefault();
-    loadPage("god-tracker");
-  };
-
-  const section = document.createElement("div");
-  section.className = "nav-section-label";
-  section.style.marginTop = "12px";
-  section.textContent = "Analytics";
-
-  if (advLabel) {
-    nav.insertBefore(link, advLabel);
-    nav.insertBefore(section, link);
-  } else {
-    nav.appendChild(section);
-    nav.appendChild(link);
-  }
-
-  // Also add to loadPage pages + titles maps
-  // (We patch it live here)
-  const origLoadPage = window.loadPage;
-  window.loadPage = function (page) {
-    if (page === "god-tracker") {
-      currentPage = page;
-      document
-        .querySelectorAll(".nav-link")
-        .forEach((l) => l.classList.remove("active"));
-      document
-        .querySelector('[data-page="god-tracker"]')
-        ?.classList.add("active");
-      document.getElementById("pageTitle").textContent =
-        "🔮 GodTracker — Visitor Analytics";
-      destroyCharts();
-      loadGodTrackerPage();
-      return;
-    }
-    origLoadPage(page);
-  };
-}
-
-function cleanupGodTracker() {
-  if (realTimeCounterInterval) {
-    clearInterval(realTimeCounterInterval);
-    realTimeCounterInterval = null;
-  }
-  if (gtAutoRefreshInterval) {
-    clearInterval(gtAutoRefreshInterval);
-    gtAutoRefreshInterval = null;
-  }
-}
-
-// ─── Event types bar list ────────────────────────────────────────────
-// Replace the renderGtEventsList function
-
-function renderGtEventsList(events) {
-  const el = document.getElementById("gtEventsList");
-  if (!el) return;
-
-  // FIX: Combine product_view and product_detail_view
-  const combinedEvents = [];
-  const eventMap = new Map();
-
-  events.forEach((e) => {
-    if (e._id === "product_view" || e._id === "product_detail_view") {
-      // Combine into "product_views"
-      const existing = eventMap.get("product_views");
-      if (existing) {
-        existing.count += e.count;
-      } else {
-        eventMap.set("product_views", { _id: "product_views", count: e.count });
-      }
-    } else {
-      eventMap.set(e._id, { _id: e._id, count: e.count });
-    }
-  });
-
-  const processedEvents = Array.from(eventMap.values());
-  processedEvents.sort((a, b) => b.count - a.count);
-
-  if (!processedEvents.length) {
-    el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">No events yet</div>`;
-    return;
-  }
-
-  const maxCount = processedEvents[0]?.count || 1;
-  const iconMap = {
-    page_view: { icon: "fa-file", color: "var(--lime)" },
-    product_views: { icon: "fa-box-open", color: "var(--sky)" },
-    add_to_cart: { icon: "fa-cart-plus", color: "var(--teal)" },
-    remove_from_cart: { icon: "fa-cart-arrow-down", color: "var(--rose)" },
-    cart_open: { icon: "fa-shopping-cart", color: "var(--amber)" },
-    cart_checkout_open: { icon: "fa-credit-card", color: "var(--amber)" },
-    order_attempt: { icon: "fa-paper-plane", color: "var(--sky)" },
-    order_success: { icon: "fa-circle-check", color: "var(--lime)" },
-    order_fail: { icon: "fa-circle-xmark", color: "var(--rose)" },
-    order_fraud_held: { icon: "fa-shield-halved", color: "var(--rose)" },
-    search: { icon: "fa-search", color: "var(--text2)" },
-    coupon_apply_success: { icon: "fa-ticket", color: "var(--lime)" },
-    coupon_apply_fail: { icon: "fa-ticket", color: "var(--rose)" },
-    chatbot_open: { icon: "fa-robot", color: "var(--teal)" },
-    track_order: { icon: "fa-satellite-dish", color: "var(--sky)" },
-    modal_open: { icon: "fa-window-maximize", color: "var(--text3)" },
-    policy_view: { icon: "fa-scroll", color: "var(--text3)" },
-    scroll_depth: { icon: "fa-arrows-up-down", color: "var(--text3)" },
-    idle: { icon: "fa-moon", color: "var(--text3)" },
-    rage_click: { icon: "fa-hand-fist", color: "var(--rose)" },
-  };
-
-  el.innerHTML = processedEvents
-    .slice(0, 14)
-    .map((e) => {
-      const pct = Math.round((e.count / maxCount) * 100);
-      const meta = iconMap[e._id] || {
-        icon: "fa-circle-dot",
-        color: "var(--text3)",
-      };
-      // Format label nicely
-      let label = e._id.replace(/_/g, " ");
-      if (e._id === "product_views") label = "product views";
-      return `
-      <div style="display:flex;align-items:center;gap:8px;padding:4px 0">
-        <div style="width:22px;height:22px;border-radius:6px;
-                    background:rgba(255,255,255,.04);display:flex;
-                    align-items:center;justify-content:center;flex-shrink:0">
-          <i class="fas ${meta.icon}" style="font-size:10px;color:${meta.color}"></i>
-        </div>
-        <div style="flex:1;min-width:0">
-          <div style="display:flex;justify-content:space-between;
-                      font-size:11px;margin-bottom:3px">
-            <span style="color:var(--text2);overflow:hidden;text-overflow:ellipsis;
-                         white-space:nowrap">${label}</span>
-            <span style="color:${meta.color};font-weight:700;flex-shrink:0;margin-left:6px">${e.count.toLocaleString()}</span>
-          </div>
-          <div style="height:3px;background:var(--surface2);border-radius:2px;overflow:hidden">
-            <div style="height:100%;width:${pct}%;background:${meta.color};border-radius:2px;transition:width .5s ease"></div>
-          </div>
-        </div>
-      </div>`;
-    })
-    .join("");
-}
-
-// ─── Device chart ────────────────────────────────────────────────────
-function renderGtDeviceChart(deviceBreakdown) {
-  const ctx = document.getElementById("gtDeviceChart");
-  if (!ctx) return;
-
-  const existing = Chart.getChart(ctx);
-  if (existing) existing.destroy();
-
-  const deviceMap = {
-    mobile: "#c6f135",
-    tablet: "#38bdf8",
-    desktop: "#f5a623",
-  };
-  const labels = deviceBreakdown.map((d) => d._id || "unknown");
-  const data = deviceBreakdown.map((d) => d.count || 0);
-  const colors = labels.map((l) => deviceMap[l] || "#5a6472");
-  const total = data.reduce((s, n) => s + n, 0);
-
-  const ch = new Chart(ctx, {
-    type: "doughnut",
-    data: {
-      labels,
-      datasets: [
-        {
-          data,
-          backgroundColor: colors.map((c) => c + "CC"),
-          borderColor: colors,
-          borderWidth: 2,
-          hoverOffset: 8,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      cutout: "68%",
-      plugins: { legend: { display: false } },
-    },
-  });
-  activeCharts.push(ch);
-
-  const legend = document.getElementById("gtDeviceLegend");
-  if (legend) {
-    legend.innerHTML = deviceBreakdown
-      .map((d, i) => {
-        const pct = total ? Math.round((d.count / total) * 100) : 0;
-        const icons = { mobile: "📱", tablet: "📟", desktop: "🖥️" };
-        return `
-        <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)">
-          <span style="width:8px;height:8px;border-radius:2px;
-                       background:${colors[i]};display:inline-block"></span>
-          ${icons[d._id] || "🌐"} ${d._id || "unknown"}
-          <strong style="color:${colors[i]}">${pct}%</strong>
-        </span>`;
-      })
-      .join("");
-  }
-}
-
-// ─── Conversion funnel ───────────────────────────────────────────────
-// Replace the renderGtFunnel function
-
-function renderGtFunnel(topEvents) {
-  const el = document.getElementById("gtFunnel");
-  if (!el) return;
-
-  const getCount = (type) => {
-    const e = topEvents.find((e) => e._id === type);
-    return e?.count || 0;
-  };
-
-  // FIX: Combine both product view types
-  const productViews =
-    getCount("product_view") + getCount("product_detail_view");
-
-  const steps = [
-    {
-      label: "Page Views",
-      value: getCount("page_view"),
-      icon: "fa-eye",
-      color: "var(--text2)",
-    },
-    {
-      label: "Product Views",
-      value: productViews,
-      icon: "fa-box-open",
-      color: "var(--sky)",
-    },
-    {
-      label: "Add to Cart",
-      value: getCount("add_to_cart"),
-      icon: "fa-cart-plus",
-      color: "var(--teal)",
-    },
-    {
-      label: "Checkout Open",
-      value: getCount("cart_checkout_open"),
-      icon: "fa-credit-card",
-      color: "var(--amber)",
-    },
-    {
-      label: "Order Attempts",
-      value: getCount("order_attempt"),
-      icon: "fa-paper-plane",
-      color: "var(--sky)",
-    },
-    {
-      label: "Orders Success",
-      value: getCount("order_success"),
-      icon: "fa-circle-check",
-      color: "var(--lime)",
-    },
-  ];
-
-  // Find max value for bar scaling
-  const maxValue = Math.max(...steps.map((s) => s.value), 1);
-
-  el.innerHTML = steps
-    .map((s, i) => {
-      const pct = maxValue > 0 ? Math.round((s.value / maxValue) * 100) : 0;
-      // Calculate conversion from previous step
-      let convPct = 100;
-      if (i > 0 && steps[i - 1].value > 0) {
-        convPct = Math.round((s.value / steps[i - 1].value) * 100);
-      }
-
-      return `
-      <div style="position:relative; margin-bottom: 12px;">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
-          <i class="fas ${s.icon}" style="font-size:11px;color:${s.color};width:14px;flex-shrink:0"></i>
-          <span style="font-size:11px;color:var(--text2);flex:1">${s.label}</span>
-          <span style="font-size:12px;font-weight:700;color:${s.color}">${s.value.toLocaleString()}</span>
-          ${i > 0 ? `<span style="font-size:9px;color:var(--text3);min-width:35px;text-align:right">${convPct}%</span>` : `<span style="font-size:9px;color:var(--text3);min-width:35px"></span>`}
-        </div>
-        <div style="height:5px;background:var(--surface2);border-radius:3px;overflow:hidden;margin-left:22px">
-          <div style="height:100%;width:${pct}%;background:${s.color};
-                      border-radius:3px;transition:width .7s ease;opacity:.85"></div>
-        </div>
-      </div>`;
-    })
-    .join("");
-}
-
-// ─── Engagement panel ────────────────────────────────────────────────
-function renderGtEngagement(d) {
+// ─── ENGAGEMENT PANEL ──────────────────────────────────────────────
+function renderGtEngagement(trackingStats, orderStats) {
   const el = document.getElementById("gtEngagementPanel");
   if (!el) return;
 
   const getCount = (type) => {
-    const e = (d.topEvents || []).find((e) => e._id === type);
+    const e = (trackingStats.topEvents || []).find((e) => e._id === type);
     return e?.count || 0;
   };
 
-  // Get event counts from tracking
   const addToCart = getCount("add_to_cart");
   const pageViews = getCount("page_view");
   const cartCheckoutOpen = getCount("cart_checkout_open");
   const productViews =
     getCount("product_view") + getCount("product_detail_view");
-  const orderFailures = getCount("order_fail");
-  const fraudHeldFromEvents = getCount("order_fraud_held");
-  const couponAttempt = getCount("coupon_apply_attempt");
-  const couponSuccess = getCount("coupon_apply_success");
+  const orderAttempt = getCount("order_attempt");
+  const orderSuccess = orderStats?.deliveredOrders || 0;
 
-  // Use REAL data from our enhanced stats
-  const orderSuccess = d.orderSuccessCount || 0;
-  const orderAttempt = d.orderAttemptCount || 0;
-  const fraudHeld = d.fraudHeldCount || fraudHeldFromEvents;
-  const chatbotOpens = d.chatbotOpenCount || 0;
-
-  // Calculate rates
-  let cartAddRate = "0.0";
-  if (productViews > 0) {
-    cartAddRate = ((addToCart / productViews) * 100).toFixed(1);
-    if (parseFloat(cartAddRate) > 100) cartAddRate = "100+";
-  }
-
+  const cartAddRate =
+    productViews > 0 ? ((addToCart / productViews) * 100).toFixed(1) : "0.0";
   const checkoutRate =
     addToCart > 0 ? ((cartCheckoutOpen / addToCart) * 100).toFixed(1) : "0.0";
   const orderConvRate =
     orderAttempt > 0 ? ((orderSuccess / orderAttempt) * 100).toFixed(1) : "0.0";
-  const couponSuccessRate =
-    couponAttempt > 0
-      ? ((couponSuccess / couponAttempt) * 100).toFixed(1) + "%"
-      : "—";
-
-  const totalAddToCart = addToCart;
-  const totalPageViews = pageViews;
 
   const rows = [
     {
@@ -8106,30 +7656,22 @@ function renderGtEngagement(d) {
       value: orderConvRate + "%",
       color: orderSuccess > 0 ? "var(--lime)" : "var(--amber)",
       icon: "fa-chart-line",
-      tooltip: `${orderSuccess} successful out of ${orderAttempt} orders`,
     },
     {
       label: "Cart Add Rate",
       value: cartAddRate + "%",
-      color:
-        parseFloat(cartAddRate) > 100
-          ? "var(--rose)"
-          : parseFloat(cartAddRate) > 30
-            ? "var(--lime)"
-            : "var(--sky)",
+      color: parseFloat(cartAddRate) > 30 ? "var(--lime)" : "var(--sky)",
       icon: "fa-cart-plus",
-      tooltip: `${addToCart} adds from ${productViews} product views`,
     },
     {
       label: "Checkout Rate",
       value: checkoutRate + "%",
       color: parseFloat(checkoutRate) > 50 ? "var(--lime)" : "var(--teal)",
       icon: "fa-credit-card",
-      tooltip: `${cartCheckoutOpen} checkouts from ${addToCart} cart adds`,
     },
     {
       label: "Total Add-to-Carts",
-      value: totalAddToCart,
+      value: addToCart,
       color: "var(--teal)",
       icon: "fa-shopping-cart",
     },
@@ -8146,30 +7688,6 @@ function renderGtEngagement(d) {
       icon: "fa-circle-check",
     },
     {
-      label: "Order Failures",
-      value: orderFailures,
-      color: orderFailures > 0 ? "var(--rose)" : "var(--text3)",
-      icon: "fa-circle-xmark",
-    },
-    {
-      label: "Fraud Held",
-      value: fraudHeld,
-      color: fraudHeld > 0 ? "var(--rose)" : "var(--text3)",
-      icon: "fa-shield-halved",
-    },
-    {
-      label: "Chatbot Opens",
-      value: chatbotOpens,
-      color: chatbotOpens > 0 ? "var(--teal)" : "var(--text3)",
-      icon: "fa-robot",
-    },
-    {
-      label: "Coupon Success Rate",
-      value: couponSuccessRate,
-      color: couponSuccess > 0 ? "var(--lime)" : "var(--amber)",
-      icon: "fa-ticket",
-    },
-    {
       label: "Product Views",
       value: productViews,
       color: "var(--sky)",
@@ -8177,121 +7695,31 @@ function renderGtEngagement(d) {
     },
     {
       label: "Total Page Views",
-      value: totalPageViews,
+      value: pageViews,
       color: "var(--text2)",
       icon: "fa-file",
     },
   ];
 
-  el.innerHTML = `
-    <div style="display:flex;flex-direction:column;gap:0">
-      ${rows
-        .map(
-          (r) => `
-        <div style="display:flex;align-items:center;gap:10px;padding:9px 0;
-                    border-bottom:1px solid var(--border);cursor:help"
-             title="${r.tooltip || ""}">
-          <i class="fas ${r.icon}" style="font-size:12px;color:${r.color};width:16px;flex-shrink:0"></i>
-          <span style="flex:1;font-size:12px;color:var(--text2)">${r.label}</span>
-          <span style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:${r.color}">
-            ${typeof r.value === "number" ? r.value.toLocaleString() : r.value}
-          </span>
-        </div>`,
-        )
-        .join("")}
-    </div>`;
+  el.innerHTML = `<div style="display:flex;flex-direction:column;gap:0">
+    ${rows
+      .map(
+        (r) => `
+      <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
+        <i class="fas ${r.icon}" style="font-size:12px;color:${r.color};width:16px"></i>
+        <span style="flex:1;font-size:12px;color:var(--text2)">${r.label}</span>
+        <span style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:${r.color}">${typeof r.value === "number" ? r.value.toLocaleString() : r.value}</span>
+      </div>
+    `,
+      )
+      .join("")}
+  </div>`;
 }
 
-// Replace the renderGtFunnel function
-
-function renderGtFunnel(topEvents) {
-  const el = document.getElementById("gtFunnel");
-  if (!el) return;
-
-  const getCount = (type) => {
-    const e = topEvents.find((e) => e._id === type);
-    return e?.count || 0;
-  };
-
-  const productViews =
-    getCount("product_view") + getCount("product_detail_view");
-
-  // FIX: Get order success from the cached stats (which now has real order data)
-  const orderSuccess = window._gtOrderSuccessCount || 0;
-  const orderAttempt = getCount("order_attempt");
-
-  const steps = [
-    {
-      label: "Page Views",
-      value: getCount("page_view"),
-      icon: "fa-eye",
-      color: "var(--text2)",
-    },
-    {
-      label: "Product Views",
-      value: productViews,
-      icon: "fa-box-open",
-      color: "var(--sky)",
-    },
-    {
-      label: "Add to Cart",
-      value: getCount("add_to_cart"),
-      icon: "fa-cart-plus",
-      color: "var(--teal)",
-    },
-    {
-      label: "Checkout Open",
-      value: getCount("cart_checkout_open"),
-      icon: "fa-credit-card",
-      color: "var(--amber)",
-    },
-    {
-      label: "Order Attempts",
-      value: orderAttempt,
-      icon: "fa-paper-plane",
-      color: "var(--sky)",
-    },
-    {
-      label: "Orders Success",
-      value: orderSuccess,
-      icon: "fa-circle-check",
-      color: "var(--lime)",
-    },
-  ];
-
-  const maxValue = Math.max(...steps.map((s) => s.value), 1);
-
-  el.innerHTML = steps
-    .map((s, i) => {
-      const pct = maxValue > 0 ? Math.round((s.value / maxValue) * 100) : 0;
-      let convPct = 100;
-      if (i > 0 && steps[i - 1].value > 0) {
-        convPct = Math.round((s.value / steps[i - 1].value) * 100);
-      }
-
-      return `
-      <div style="position:relative; margin-bottom: 12px;">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
-          <i class="fas ${s.icon}" style="font-size:11px;color:${s.color};width:14px;flex-shrink:0"></i>
-          <span style="font-size:11px;color:var(--text2);flex:1">${s.label}</span>
-          <span style="font-size:12px;font-weight:700;color:${s.color}">${s.value.toLocaleString()}</span>
-          ${i > 0 ? `<span style="font-size:9px;color:var(--text3);min-width:35px;text-align:right">${convPct}%</span>` : `<span style="font-size:9px;color:var(--text3);min-width:35px"></span>`}
-        </div>
-        <div style="height:5px;background:var(--surface2);border-radius:3px;overflow:hidden;margin-left:22px">
-          <div style="height:100%;width:${pct}%;background:${s.color};
-                      border-radius:3px;transition:width .7s ease;opacity:.85"></div>
-        </div>
-      </div>`;
-    })
-    .join("");
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// SESSION LIST
-// ═══════════════════════════════════════════════════════════════════
+// ─── SESSIONS (FAST WITH LIMITS) ───────────────────────────────────
 async function loadGtSessions() {
   try {
-    const qs = new URLSearchParams({ page: gtSessionPage, limit: 20 });
+    const qs = new URLSearchParams({ page: gtSessionPage, limit: 15 });
     if (gtSessionFilter.search) qs.set("search", gtSessionFilter.search);
     if (gtSessionFilter.deviceType)
       qs.set("deviceType", gtSessionFilter.deviceType);
@@ -8300,15 +7728,16 @@ async function loadGtSessions() {
     gtSessionTotalPages = res.pagination?.pages || 1;
     const sessions = res.data || [];
 
-    document.getElementById("gtSessionsBody").innerHTML = sessions.length
-      ? sessions.map(renderGtSessionRow).join("")
-      : `<tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text3)">
-           <i class="fas fa-ghost" style="font-size:32px;margin-bottom:12px;display:block"></i>
-           No sessions found
-         </td></tr>`;
+    const tbody = document.getElementById("gtSessionsBody");
+    if (tbody) {
+      tbody.innerHTML = sessions.length
+        ? sessions.map((s) => renderGtSessionRow(s)).join("")
+        : `<tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text3)"><i class="fas fa-ghost" style="font-size:32px;margin-bottom:12px;display:block"></i>No sessions found</td></tr>`;
+    }
 
-    document.getElementById("gtSessionInfo").textContent =
-      `${sessions.length} sessions · Page ${gtSessionPage} of ${gtSessionTotalPages}`;
+    const info = document.getElementById("gtSessionInfo");
+    if (info)
+      info.textContent = `${sessions.length} sessions · Page ${gtSessionPage} of ${gtSessionTotalPages}`;
 
     renderPagination(
       "gtSessionPages",
@@ -8320,32 +7749,18 @@ async function loadGtSessions() {
       },
     );
   } catch (e) {
-    showToast("Failed to load sessions: " + e.message, "error");
+    console.error("Sessions error:", e);
+    const tbody = document.getElementById("gtSessionsBody");
+    if (tbody)
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:48px;color:var(--rose)">Failed to load sessions: ${e.message}</td></tr>`;
   }
 }
 
 function renderGtSessionRow(s) {
-  const deviceIcon =
-    s.device?.deviceType === "mobile"
-      ? "📱"
-      : s.device?.deviceType === "tablet"
-        ? "📟"
-        : "🖥️";
+  const deviceIcon = s.device?.deviceType === "mobile" ? "📱" : "🖥️";
   const deviceColor =
-    s.device?.deviceType === "mobile"
-      ? "var(--lime)"
-      : s.device?.deviceType === "tablet"
-        ? "var(--sky)"
-        : "var(--amber)";
-
-  // FIX: Handle multiple linked orders
-  const linkedOrders = s.linkedOrders || [];
-  const hasLinkedOrders = linkedOrders.length > 0 || s.linkedOrderNumber;
-  const orderCount = linkedOrders.length + (s.linkedOrderNumber ? 1 : 0);
-  const firstOrder = s.linkedOrderNumber || linkedOrders[0] || null;
-  const isFresh = Date.now() - new Date(s.lastSeen) < 5 * 60 * 1000; // < 5 min
-
-  // Duration
+    s.device?.deviceType === "mobile" ? "var(--lime)" : "var(--amber)";
+  const isFresh = Date.now() - new Date(s.lastSeen) < 5 * 60 * 1000;
   const durationMs = s.sessionEnd
     ? new Date(s.sessionEnd) - new Date(s.sessionStart)
     : s.lastSeen
@@ -8355,96 +7770,103 @@ function renderGtSessionRow(s) {
     durationMs > 0
       ? durationMs < 60000
         ? `${Math.round(durationMs / 1000)}s`
-        : `${Math.floor(durationMs / 60000)}m ${Math.round((durationMs % 60000) / 1000)}s`
+        : `${Math.floor(durationMs / 60000)}m`
       : "—";
 
   return `
-    <tr onclick="openGtSessionDetail('${s.sessionId}')">
-      <td>
-        <div style="display:flex;align-items:center;gap:8px">
-          ${
-            isFresh
-              ? `<span style="width:7px;height:7px;border-radius:50%;background:var(--lime);
-                              animation:glow-pulse 2s infinite;flex-shrink:0"></span>`
-              : ""
-          }
-          <div>
-            <div style="font-family:monospace;font-size:11px;color:var(--lime);font-weight:700">
-              ${s.sessionId?.slice(0, 8)}…
-            </div>
-            <div style="font-size:10px;color:var(--text3)">
-              ${s.ip || "—"}
-              ${s.visitorId ? `· 👤 ${s.visitorId.slice(0, 6)}…` : ""}
-            </div>
-          </div>
-        </div>
-      </td>
-      <td>
-        <div style="display:flex;align-items:center;gap:5px">
-          <span style="font-size:16px">${deviceIcon}</span>
-          <span style="font-size:11px;color:${deviceColor};font-weight:600">
-            ${s.device?.deviceType || "—"}
-          </span>
-        </div>
-      </td>
-      <td>
-        <div style="font-size:12px;color:var(--text2)">${s.device?.browser || "—"}</div>
-        <div style="font-size:10px;color:var(--text3)">${s.device?.os || "—"}</div>
-      </td>
-      <td>
-        <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--sky)">
-          ${s.eventCount || 0}
-        </div>
-        <div style="font-size:10px;color:var(--text3)">${durationStr}</div>
-      </td>
-      <td>
-        <div style="font-size:13px;font-weight:600">${s.pageCount || 0}</div>
-      </td>
-      <td>
-        ${
-          hasLinkedOrders
-            ? `<div style="display:flex;flex-direction:column;gap:2px">
-               ${
-                 firstOrder
-                   ? `<span class="badge badge-lime" style="font-size:10px;cursor:pointer"
-                 onclick="event.stopPropagation();loadPage('orders');
-                          setTimeout(()=>{ordFilter.search='${firstOrder}';loadOrdersList()},400)">
-                 <i class="fas fa-receipt"></i> ${firstOrder}
-               </span>`
-                   : ""
-               }
-               ${orderCount > 1 ? `<span style="font-size:9px;color:var(--text3)">+${orderCount - 1} more orders</span>` : ""}
-               ${s.linkedPhone ? `<span style="font-size:10px;color:var(--text3)">${s.linkedPhone}</span>` : ""}
-             </div>`
-            : `<span style="color:var(--text3);font-size:12px">—</span>`
-        }
-      </td>
-      <td style="font-size:12px;color:var(--text2)">${formatDate(s.lastSeen)}</td>
-      <td onclick="event.stopPropagation()">
-        <div style="display:flex;gap:4px">
-          <button class="btn btn-ghost btn-sm btn-icon"
-            onclick="openGtSessionDetail('${s.sessionId}')" title="View Timeline">
-            <i class="fas fa-timeline"></i>
-          </button>
-          ${
-            hasLinkedOrders && firstOrder
-              ? `
-          <button class="btn btn-ghost btn-sm btn-icon"
-            onclick="loadPage('orders');
-                     setTimeout(()=>{ordFilter.search='${firstOrder}';loadOrdersList()},400)"
-            title="View Orders">
-            <i class="fas fa-receipt"></i>
-          </button>`
-              : ""
-          }
-        </div>
-      </td>
+    <tr onclick="openGtSessionDetail('${s.sessionId}')" style="cursor:pointer">
+      <td><div style="display:flex;align-items:center;gap:6px">${isFresh ? `<span style="width:7px;height:7px;border-radius:50%;background:var(--lime);animation:glow-pulse 2s infinite"></span>` : ""}<div><div style="font-family:monospace;font-size:11px;color:var(--lime)">${s.sessionId?.slice(0, 8)}…</div><div style="font-size:10px;color:var(--text3)">${s.ip || "—"}</div></div></div></td>
+      <td><div style="display:flex;align-items:center;gap:5px"><span>${deviceIcon}</span><span style="font-size:11px;color:${deviceColor}">${s.device?.deviceType || "—"}</span></div></td>
+      <td><div style="font-size:11px">${s.device?.browser || "—"}</div><div style="font-size:9px;color:var(--text3)">${s.device?.os?.slice(0, 20) || "—"}</div></td>
+      <td><div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--sky)">${s.eventCount || 0}</div><div style="font-size:10px;color:var(--text3)">${durationStr}</div></td>
+      <td><div style="font-size:13px;font-weight:600">${s.pageCount || 0}</div></td>
+      <td>${s.linkedOrderNumber ? `<span class="badge badge-lime" style="font-size:10px">${s.linkedOrderNumber}</span>` : '<span style="color:var(--text3)">—</span>'}</td>
+      <td style="font-size:12px">${formatDate(s.lastSeen)}</td>
+      <td onclick="event.stopPropagation()"><button class="btn btn-ghost btn-sm btn-icon" onclick="openGtSessionDetail('${s.sessionId}')" title="View"><i class="fas fa-eye"></i></button></td>
     </tr>`;
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// SESSION DETAIL MODAL — Full Event Timeline
-// ═══════════════════════════════════════════════════════════════════
+// ─── EVENT FEED ────────────────────────────────────────────────────
+async function loadGtEventFeed() {
+  const el = document.getElementById("gtEventFeed");
+  if (!el) return;
+
+  try {
+    const res = await apiCall("/track/sessions?limit=30");
+    const sessions = res.data || [];
+
+    if (!sessions.length) {
+      el.innerHTML = `<div style="text-align:center;padding:24px;color:var(--text3)">No recent activity</div>`;
+      return;
+    }
+
+    const deviceIcon = (t) => (t === "mobile" ? "📱" : "🖥️");
+
+    el.innerHTML = sessions
+      .slice(0, 15)
+      .map((s) => {
+        const ts = new Date(s.lastSeen);
+        const timeStr = ts.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+        const isFresh = Date.now() - ts < 5 * 60 * 1000;
+        return `
+        <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;background:var(--bg);border:1px solid var(--border);cursor:pointer" onclick="openGtSessionDetail('${s.sessionId}')">
+          ${isFresh ? `<span style="width:6px;height:6px;border-radius:50%;background:var(--lime);flex-shrink:0;animation:glow-pulse 2s infinite"></span>` : '<span style="width:6px"></span>'}
+          <span style="font-size:14px">${deviceIcon(s.device?.deviceType)}</span>
+          <div style="flex:1;min-width:0"><div style="font-family:monospace;font-size:10px;color:var(--lime)">${s.sessionId?.slice(0, 10)}…</div><div style="font-size:10px;color:var(--text3)">${s.ip || "—"} · ${s.eventCount || 0} events</div></div>
+          <span style="font-size:10px;color:var(--text3)">${timeStr}</span>
+        </div>`;
+      })
+      .join("");
+  } catch (e) {
+    if (el)
+      el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--rose)">Failed to load feed</div>`;
+  }
+}
+
+// ─── REAL-TIME ACTIVE COUNT ────────────────────────────────────────
+async function fetchRealTimeActiveCount() {
+  try {
+    const res = await apiCall("/track/sessions?limit=200");
+    const sessions = res.data || [];
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    const activeCount = sessions.filter(
+      (s) => new Date(s.lastSeen) >= fiveMinutesAgo,
+    ).length;
+    const el = document.getElementById("gtActiveCount");
+    if (el) el.textContent = activeCount;
+    return activeCount;
+  } catch (e) {
+    const el = document.getElementById("gtActiveCount");
+    if (el) el.textContent = "0";
+    return 0;
+  }
+}
+
+// ─── AUTO-REFRESH TOGGLE ───────────────────────────────────────────
+function toggleGtAutoRefresh() {
+  const btn = document.getElementById("gtAutoRefreshBtn");
+  if (gtAutoRefreshInterval) {
+    clearInterval(gtAutoRefreshInterval);
+    gtAutoRefreshInterval = null;
+    if (btn) btn.innerHTML = `<i class="fas fa-rotate-right"></i> Auto`;
+  } else {
+    gtAutoRefreshInterval = setInterval(async () => {
+      await Promise.all([
+        loadGtStats(),
+        loadGtSessions(),
+        loadGtEventFeed(),
+        fetchRealTimeActiveCount(),
+      ]);
+    }, 15000);
+    if (btn)
+      btn.innerHTML = `<i class="fas fa-circle fa-fade" style="color:var(--lime);font-size:8px"></i> 15s`;
+    showToast("Auto-refresh enabled (15s)", "info");
+  }
+}
+
 async function openGtSessionDetail(sessionId) {
   modal(`
     <div class="modal-box wide">
@@ -8769,133 +8191,16 @@ async function openGtSessionDetail(sessionId) {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// LIVE EVENT FEED
-// ═══════════════════════════════════════════════════════════════════
-async function loadGtEventFeed() {
-  const el = document.getElementById("gtEventFeed");
-  if (!el) return;
-
-  try {
-    // Get most recent sessions, extract last events from each
-    const res = await apiCall("/track/sessions?limit=40");
-    const sessions = res.data || [];
-
-    // Collect all events with session context, flatten and sort by ts
-    const allEvents = [];
-    sessions.forEach((s) => {
-      // Sessions returned without full events array (select -events)
-      // We'll show session-level info as "events"
-      allEvents.push({
-        ts: s.lastSeen,
-        sessionId: s.sessionId,
-        ip: s.ip,
-        deviceType: s.device?.deviceType,
-        eventCount: s.eventCount,
-        linkedOrder: s.linkedOrderNumber,
-      });
-    });
-
-    allEvents.sort((a, b) => new Date(b.ts) - new Date(a.ts));
-
-    if (!allEvents.length) {
-      el.innerHTML = `<div style="text-align:center;padding:24px;color:var(--text3);font-size:13px">
-        No recent activity</div>`;
-      return;
-    }
-
-    const deviceIcon = (t) =>
-      t === "mobile" ? "📱" : t === "tablet" ? "📟" : "🖥️";
-
-    el.innerHTML = allEvents
-      .slice(0, 20)
-      .map((e) => {
-        const ts = new Date(e.ts);
-        const timeStr = ts.toLocaleTimeString("en-US", {
-          hour: "2-digit",
-          minute: "2-digit",
-        });
-        const isFresh = Date.now() - ts < 5 * 60 * 1000;
-        return `
-        <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;
-                    border-radius:8px;background:var(--bg);border:1px solid var(--border);
-                    cursor:pointer;transition:border-color .15s"
-             onclick="openGtSessionDetail('${e.sessionId}')"
-             onmouseover="this.style.borderColor='var(--lime)'"
-             onmouseout="this.style.borderColor='var(--border)'">
-          ${
-            isFresh
-              ? `<span style="width:6px;height:6px;border-radius:50%;background:var(--lime);
-                                   flex-shrink:0;animation:glow-pulse 2s infinite"></span>`
-              : ""
-          }
-          <span style="font-size:14px;flex-shrink:0">${deviceIcon(e.deviceType)}</span>
-          <div style="flex:1;min-width:0">
-            <div style="font-family:monospace;font-size:10px;color:var(--lime)">
-              ${e.sessionId?.slice(0, 10)}…
-              ${e.linkedOrder ? `<span class="badge badge-lime" style="font-size:9px;margin-left:4px">${e.linkedOrder}</span>` : ""}
-            </div>
-            <div style="font-size:10px;color:var(--text3)">
-              ${e.ip || "—"} · ${e.eventCount || 0} events
-            </div>
-          </div>
-          <span style="font-size:10px;color:var(--text3);flex-shrink:0">${timeStr}</span>
-        </div>`;
-      })
-      .join("");
-  } catch (e) {
-    if (el)
-      el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--rose);font-size:12px">
-      Failed to load feed</div>`;
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// AUTO-REFRESH TOGGLE
-// ═══════════════════════════════════════════════════════════════════
-function toggleGtAutoRefresh() {
-  const btn = document.getElementById("gtAutoRefreshBtn");
-  const icon = document.getElementById("gtRefreshIcon");
-
-  if (gtAutoRefreshInterval) {
-    clearInterval(gtAutoRefreshInterval);
-    gtAutoRefreshInterval = null;
-    if (btn)
-      btn.innerHTML = `<i class="fas fa-rotate-right" id="gtRefreshIcon"></i> Auto-refresh: OFF`;
-  } else {
-    gtAutoRefreshInterval = setInterval(async () => {
-      await Promise.all([
-        loadGtStats(),
-        loadGtSessions(),
-        loadGtEventFeed(),
-        fetchRealTimeActiveCount(), // Include real-time count
-      ]);
-    }, 15000); // every 15s
-    if (btn)
-      btn.innerHTML = `<i class="fas fa-circle fa-fade" id="gtRefreshIcon" style="color:var(--lime);font-size:8px"></i> Auto-refresh: 15s`;
-    showToast("Auto-refresh enabled (15s)", "info");
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// SIDEBAR NAV INJECTION — call this once after the DOM is ready
-// Add this to the bottom of your init block where you call updateSidebarByRole()
-// ═══════════════════════════════════════════════════════════════════
+// ─── INJECT NAV LINK ───────────────────────────────────────────────
 function injectGodTrackerNavLink() {
   const nav = document.querySelector("#sidebar nav");
   if (!nav || document.querySelector('[data-page="god-tracker"]')) return;
-
-  // Find the "Advanced Tools" label and inject before it (or just append)
-  const advLabel = Array.from(nav.querySelectorAll(".nav-section-label")).find(
-    (el) => el.textContent.trim() === "Advanced Tools",
-  );
 
   const link = document.createElement("a");
   link.className = "nav-link";
   link.setAttribute("data-page", "god-tracker");
   link.href = "#";
-  link.innerHTML = `<i class="fas fa-eye"></i> GodTracker
-    <span class="nav-badge" id="gtLiveBadge" style="display:none;background:var(--lime);color:#0b0d0f">LIVE</span>`;
+  link.innerHTML = `<i class="fas fa-eye"></i> GodTracker`;
   link.onclick = (e) => {
     e.preventDefault();
     loadPage("god-tracker");
@@ -8906,44 +8211,14 @@ function injectGodTrackerNavLink() {
   section.style.marginTop = "12px";
   section.textContent = "Analytics";
 
-  if (advLabel) {
-    nav.insertBefore(link, advLabel);
-    nav.insertBefore(section, link);
-  } else {
-    nav.appendChild(section);
-    nav.appendChild(link);
-  }
-
-  // Also add to loadPage pages + titles maps
-  // (We patch it live here)
-  const origLoadPage = window.loadPage;
-  window.loadPage = function (page) {
-    if (page === "god-tracker") {
-      currentPage = page;
-      document
-        .querySelectorAll(".nav-link")
-        .forEach((l) => l.classList.remove("active"));
-      document
-        .querySelector('[data-page="god-tracker"]')
-        ?.classList.add("active");
-      document.getElementById("pageTitle").textContent =
-        "🔮 GodTracker — Visitor Analytics";
-      destroyCharts();
-      loadGodTrackerPage();
-      return;
-    }
-    origLoadPage(page);
-  };
+  nav.appendChild(section);
+  nav.appendChild(link);
 }
 
-// ─── Auto-inject on script load ────────────────────────────────────
-// (safe: runs after DOMContentLoaded since admin-dash.js defers via token check)
-if (document.readyState === "loading") {
+// Run injection
+if (document.readyState === "loading")
   document.addEventListener("DOMContentLoaded", injectGodTrackerNavLink);
-} else {
-  injectGodTrackerNavLink();
-}
-
+else injectGodTrackerNavLink();
 // ═══════════════════════════════════════════
 // INIT
 if (!token) {
