@@ -45,6 +45,7 @@ function updateSidebarByRole() {
       "fraud",
       "god-tracker",
       "beetransfer",
+      "reviews",
     ],
     admin: [
       "testing",
@@ -55,6 +56,7 @@ function updateSidebarByRole() {
       "profit",
       "god-tracker",
       "beetransfer",
+      "reviews",
     ],
     super_admin: [], // sees everything
   };
@@ -444,6 +446,7 @@ function loadPage(page) {
     fraud: ["super_admin", "admin"], // ❌ Remove manager if not allowed
     "god-tracker": ["super_admin"],
     beetransfer: ["super_admin"],
+    reviews: ["super_admin"],
   };
 
   // Check if user has permission
@@ -484,6 +487,7 @@ function loadPage(page) {
     "delivery-charges": "Delivery Charges",
     fraud: "🛡️ Fraud Detection",
     profit: "📊 Profit & Cost Tracking",
+    reviews: "⭐ Reviews & Ratings",
   };
   document.getElementById("pageTitle").textContent = titles[page] || page;
   destroyCharts();
@@ -506,6 +510,7 @@ function loadPage(page) {
     fraud: loadFraudPage,
     profit: loadProfitPage,
     blogs: loadBlogs,
+    reviews: loadReviewsPage,
   };
 
   (pages[page] || loadDashboard)();
