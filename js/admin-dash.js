@@ -44,6 +44,7 @@ function updateSidebarByRole() {
       "profit", // ❌ Hide Profit
       "fraud",
       "god-tracker",
+      "beetransfer",
     ],
     admin: [
       "testing",
@@ -53,6 +54,7 @@ function updateSidebarByRole() {
       "delivery-charges",
       "profit",
       "god-tracker",
+      "beetransfer",
     ],
     super_admin: [], // sees everything
   };
@@ -441,6 +443,7 @@ function loadPage(page) {
     profit: ["super_admin"], // ❌ Remove manager if not allowed
     fraud: ["super_admin", "admin"], // ❌ Remove manager if not allowed
     "god-tracker": ["super_admin"],
+    beetransfer: ["super_admin"],
   };
 
   // Check if user has permission
@@ -474,6 +477,7 @@ function loadPage(page) {
     orders: "Orders",
     banners: "Banners",
     chatbot: "🤖 Chatbot Manager",
+    beetransfer: "🐝 BeeTransfer",
     settings: "Settings",
     testing: "⚗️ Load Testing",
     "bulk-email": "📧 Bulk Email",
@@ -495,6 +499,7 @@ function loadPage(page) {
     banners: loadBanners,
     settings: loadSettings,
     testing: loadTesting,
+    beetransfer: loadBeeTransferPage,
     chatbot: loadChatbotManager,
     "bulk-email": loadBulkEmailManager,
     "delivery-charges": loadDeliveryChargesPage,
@@ -8215,6 +8220,21 @@ function injectGodTrackerNavLink() {
   nav.appendChild(link);
 }
 
+async function btRefreshPendingBadge() {
+  try {
+    const res = await apiCall("/transfers/admin/stats");
+    const pending = res.data?.pending || 0;
+    const badge = document.getElementById("btPendingBadge");
+    if (badge) {
+      badge.textContent = pending;
+      badge.style.display = pending > 0 ? "" : "none";
+    }
+  } catch (e) {}
+}
+// Call on init and every 60s
+btRefreshPendingBadge();
+setInterval(btRefreshPendingBadge, 60000);
+
 // Run injection
 if (document.readyState === "loading")
   document.addEventListener("DOMContentLoaded", injectGodTrackerNavLink);
@@ -8242,5 +8262,6 @@ if (!token) {
   // Update role badge
   updateRoleBadge();
 
+  btRefreshPendingBadge();
   loadPage("dashboard");
 }
