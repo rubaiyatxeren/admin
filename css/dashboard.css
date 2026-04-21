@@ -1912,3 +1912,32 @@ textarea.inp {
     font-size: 10px !important;
   }
 }
+/* ── BeeTransfer Sub-navigation tabs ────────────────────────────────────── */
+.bt-tab {
+  transition: all 0.2s;
+}
+.bt-tab.active {
+  background: var(--surface2) !important;
+  color: var(--lime) !important;
+  border-color: rgba(198, 241, 53, 0.2) !important;
+}
+.bt-tab:not(.active):hover {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+}
+
+/* ── BeeTransfer Storage gauge ──────────────────────────────────────────── */
+.bt-gauge-ring {
+  transition: stroke-dasharray 1s ease;
+}
+
+/* ── BeeTransfer File row hover ─────────────────────────────────────────── */
+#btRecentList .data-table tbody tr:hover,
+#btTableBody tr:hover {
+  background: var(--bg3);
+}
+
+/* ── BeeTransfer Analytics funnel bars ─────────────────────────────────── */
+.bt-funnel-bar {
+  transition: width 0.6s ease;
+}
