@@ -198,6 +198,24 @@
             >0</span
           >
         </a>
+        <div class="nav-section-label" style="margin-top: 12px">Support</div>
+        <a
+          class="nav-link"
+          data-page="complaints"
+          onclick="
+            loadPage('complaints');
+            return false;
+          "
+          href="#"
+        >
+          <i class="fas fa-ticket-alt"></i> Complaints
+          <span
+            class="nav-badge"
+            id="complaintBadge"
+            style="display: none; background: var(--rose)"
+            >0</span
+          >
+        </a>
         <div class="nav-section-label" style="margin-top: 12px">Packaging</div>
         <a
           class="nav-link"
@@ -362,5 +380,6 @@
     <script src="js/beetransfer-admin.js"></script>
     <script src="js/review-admin.js"></script>
     <script src="js/admin-dash.js"></script>
+    <script src="js/complaint-admin.js"></script>
   </body>
 </html>
