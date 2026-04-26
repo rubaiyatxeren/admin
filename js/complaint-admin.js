@@ -852,6 +852,123 @@ async function openCmpDetail(id) {
                   : ""
               }
 
+                    <!-- Ticket Meta -->
+<div style="padding:18px;border-bottom:1px solid var(--border)">
+
+  <!-- Section header -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+    <div style="font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);font-weight:700;display:flex;align-items:center;gap:6px">
+      <span style="width:3px;height:12px;background:var(--lime);border-radius:2px;display:inline-block"></span>
+      TICKET META
+    </div>
+    <span style="font-size:9px;font-family:monospace;color:var(--text3);background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:2px 7px">#${c._id?.slice(-8)}</span>
+  </div>
+
+  <!-- Rows -->
+  <div style="display:flex;flex-direction:column;gap:4px">
+
+    <!-- ID -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;border-left:3px solid var(--lime)">
+      <div style="display:flex;align-items:center;gap:7px">
+        <i class="fas fa-fingerprint" style="font-size:10px;color:var(--lime);width:12px"></i>
+        <span style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);font-weight:600">ID</span>
+      </div>
+      <span style="font-family:monospace;font-size:11px;color:var(--lime);font-weight:700;letter-spacing:0.5px">${c._id?.slice(-12)}</span>
+    </div>
+
+    <!-- IP Address -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;border-left:3px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:7px">
+        <i class="fas fa-globe" style="font-size:10px;color:var(--text3);width:12px"></i>
+        <span style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);font-weight:600">IP</span>
+      </div>
+      <span style="font-family:monospace;font-size:10px;color:var(--text2)">${c.ipAddress || "—"}</span>
+    </div>
+
+    <!-- Created -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;border-left:3px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:7px">
+        <i class="fas fa-calendar-plus" style="font-size:10px;color:var(--text3);width:12px"></i>
+        <span style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);font-weight:600">Created</span>
+      </div>
+      <span style="font-family:monospace;font-size:10px;color:var(--text2)">${formatFullDate(c.createdAt)}</span>
+    </div>
+
+    <!-- First Response (conditional) -->
+    ${c.firstResponseAt ? `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:rgba(56,189,248,0.04);border:1px solid rgba(56,189,248,0.15);border-radius:8px;border-left:3px solid var(--sky)">
+      <div style="display:flex;align-items:center;gap:7px">
+        <i class="fas fa-reply" style="font-size:10px;color:var(--sky);width:12px"></i>
+        <span style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--sky);font-weight:600">1st Reply</span>
+      </div>
+      <span style="font-family:monospace;font-size:10px;color:var(--sky)">${formatDate(c.firstResponseAt)}</span>
+    </div>` : `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:rgba(245,166,35,0.04);border:1px dashed rgba(245,166,35,0.2);border-radius:8px;border-left:3px solid var(--amber)">
+      <div style="display:flex;align-items:center;gap:7px">
+        <i class="fas fa-reply" style="font-size:10px;color:var(--amber);width:12px"></i>
+        <span style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--amber);font-weight:600">1st Reply</span>
+      </div>
+      <span style="font-size:10px;color:var(--amber);font-style:italic">Awaiting</span>
+    </div>`}
+
+    <!-- Resolved (conditional) -->
+    ${c.resolvedAt ? `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:rgba(198,241,53,0.06);border:1px solid rgba(198,241,53,0.2);border-radius:8px;border-left:3px solid var(--lime)">
+      <div style="display:flex;align-items:center;gap:7px">
+        <i class="fas fa-check-circle" style="font-size:10px;color:var(--lime);width:12px"></i>
+        <span style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--lime);font-weight:600">Resolved</span>
+      </div>
+      <span style="font-family:monospace;font-size:10px;color:var(--lime);font-weight:600">${formatDate(c.resolvedAt)}</span>
+    </div>` : ""}
+
+    <!-- Assigned To (conditional) -->
+    ${c.assignedTo ? `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:rgba(56,189,248,0.04);border:1px solid rgba(56,189,248,0.15);border-radius:8px;border-left:3px solid var(--sky)">
+      <div style="display:flex;align-items:center;gap:7px">
+        <i class="fas fa-user-shield" style="font-size:10px;color:var(--sky);width:12px"></i>
+        <span style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--sky);font-weight:600">Assigned</span>
+      </div>
+      <span style="font-size:10px;color:var(--sky);font-weight:600;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.assignedTo}</span>
+    </div>` : `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:var(--bg);border:1px dashed var(--border);border-radius:8px;border-left:3px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:7px">
+        <i class="fas fa-user-slash" style="font-size:10px;color:var(--text3);width:12px"></i>
+        <span style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);font-weight:600">Assigned</span>
+      </div>
+      <span style="font-size:10px;color:var(--text3);font-style:italic">Unassigned</span>
+    </div>`}
+
+    <!-- User Agent (collapsed, shown as truncated) -->
+    ${c.userAgent ? `
+    <div style="padding:7px 10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;cursor:default" title="${c.userAgent}">
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">
+        <i class="fa-brands fa-chrome" style="font-size:10px;color:var(--text3);width:12px"></i>
+        <span style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);font-weight:600">User Agent</span>
+      </div>
+      <div style="font-family:monospace;font-size:9px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%">${c.userAgent}</div>
+    </div>` : ""}
+
+  </div>
+
+  <!-- SLA summary footer -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding:8px 10px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+    <span style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);font-weight:600">Total Open Time</span>
+    <span style="font-family:monospace;font-size:11px;font-weight:700;color:${
+      c.status === 'resolved' || c.status === 'closed' || c.status === 'rejected'
+        ? 'var(--lime)'
+        : Math.round((new Date() - new Date(c.createdAt)) / 3600000) > 48
+          ? 'var(--rose)'
+          : Math.round((new Date() - new Date(c.createdAt)) / 3600000) > 24
+            ? 'var(--amber)'
+            : 'var(--teal)'
+    }">
+      ${Math.round(((c.resolvedAt ? new Date(c.resolvedAt) : new Date()) - new Date(c.createdAt)) / 3600000)}h
+      ${c.resolvedAt ? '<span style="font-size:9px;font-weight:400;opacity:0.7"> · closed</span>' : ''}
+    </span>
+  </div>
+
+</div>
+
               <!-- Rejection block -->
               ${
                 c.rejectionNote
