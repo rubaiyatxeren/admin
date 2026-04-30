@@ -33,7 +33,7 @@ async function loadBlogs() {
           </button>
           <button class="btn btn-ghost btn-sm" onclick="openPendingCommentsModal()">
             <i class="fas fa-comments"></i> Pending Comments
-            <span class="nav-badge" id="pendingCommentsBadge" style="display:none;background:var(--amber)">0</span>
+            <span class="nav-badge" id="pendingCommentsBadge" style="display:none;background:var(--amber); padding: 2px 6px; border-radius: 20px; font-size: 10px; font-weight: 600; color: #0b0d0f;">0</span>
           </button>
           <button class="btn btn-primary" onclick="openBlogModal()">
             <i class="fas fa-plus"></i> New Post
