@@ -80,6 +80,17 @@
         <div class="nav-section-label" style="margin-top: 12px">Finance</div>
         <a
           class="nav-link"
+          data-page="finance"
+          onclick="
+            loadPage('finance');
+            return false;
+          "
+          href="#"
+        >
+          <i class="fas fa-chart-line"></i> Finance Manager
+        </a>
+        <a
+          class="nav-link"
           data-page="profit"
           onclick="
             loadPage('profit');
@@ -379,7 +390,9 @@
     <script src="js/blog-admin.js"></script>
     <script src="js/beetransfer-admin.js"></script>
     <script src="js/review-admin.js"></script>
+    <script src="js/finance-admin.js"></script>
     <script src="js/admin-dash.js"></script>
+
     <script src="js/complaint-admin.js"></script>
   </body>
 </html>
