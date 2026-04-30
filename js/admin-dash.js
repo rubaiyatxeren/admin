@@ -447,6 +447,7 @@ function loadPage(page) {
     "god-tracker": ["super_admin"],
     beetransfer: ["super_admin"],
     reviews: ["super_admin"],
+    finance: ["super_admin"],
   };
 
   // Check if user has permission
@@ -488,6 +489,7 @@ function loadPage(page) {
     fraud: "🛡️ Fraud Detection",
     profit: "📊 Profit & Cost Tracking",
     reviews: "⭐ Reviews & Ratings",
+    finance: "💰 Finance Manager",
   };
   document.getElementById("pageTitle").textContent = titles[page] || page;
   destroyCharts();
@@ -511,10 +513,38 @@ function loadPage(page) {
     profit: loadProfitPage,
     blogs: loadBlogs,
     reviews: loadReviewsPage,
+    finance: loadFinancePage,
   };
 
   (pages[page] || loadDashboard)();
 }
+
+// Add this after the loadPage function definition or at the end of the file
+(function ensureFinancePage() {
+  if (!window.loadPage) return;
+  const origLoadPage = window.loadPage;
+  window.loadPage = function (page) {
+    if (page === "finance") {
+      if (typeof loadFinancePage === "function") {
+        currentPage = "finance";
+        document
+          .querySelectorAll(".nav-link")
+          .forEach((l) => l.classList.remove("active"));
+        document
+          .querySelector('[data-page="finance"]')
+          ?.classList.add("active");
+        destroyCharts();
+        loadFinancePage();
+        return;
+      } else {
+        console.error("Finance module not loaded");
+        showToast("Finance module not loaded yet. Please refresh.", "error");
+        return;
+      }
+    }
+    return origLoadPage(page);
+  };
+})();
 
 function refreshPage() {
   loadPage(currentPage);
